@@ -1,0 +1,65 @@
+{
+  "name": "@saturation/sdk",
+  "version": "1.0.0",
+  "description": "Official TypeScript SDK for the Saturation API (/v1)",
+  "keywords": [
+    "saturation",
+    "api",
+    "sdk",
+    "typescript",
+    "production-finance",
+    "budgeting"
+  ],
+  "homepage": "https://docs.saturation.io",
+  "bugs": {
+    "url": "https://github.com/Saturation-IO/saturation/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Saturation-IO/saturation.git",
+    "directory": "modules/saturation-next-sdk"
+  },
+  "license": "Proprietary",
+  "author": "Saturation",
+  "type": "module",
+  "exports": {
+    ".": {
+      "browser": "./dist/esm/index.js",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "browser": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "pnpm clean && pnpm build:types && pnpm build:esm && pnpm build:cjs",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:types": "tsc -p tsconfig.types.json",
+    "clean": "rm -rf dist",
+    "generate": "openapi-ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepublishOnly": "pnpm build"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "0.97.3",
+    "typescript": "^5.4.3",
+    "vitest": "^4.0.16"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "restricted",
+    "registry": "https://registry.npmjs.org/"
+  }
+}
