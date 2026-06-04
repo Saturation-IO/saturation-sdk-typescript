@@ -20,7 +20,6 @@ import { serializeExpand } from '../expand.js';
  */
 export type AssignTarget =
   | { transaction: string }
-  | { budgetLine: string }
   | { purchaseOrder: string }
   | { contact: string }
   | { project: string };
@@ -125,7 +124,7 @@ export class DocumentsResource {
   }
 
   /**
-   * Assign a dropped document to a typed target — `{ transaction }`, `{ budgetLine }`,
+   * Assign a dropped document to a typed target — `{ transaction }`,
    * `{ purchaseOrder }`, `{ contact }` or `{ project }`. Idempotent on the same id;
    * a same-kind assignment to a different id needs `replace: true` or it returns
    * `409 already_assigned`. There is no address-string overload.
@@ -198,15 +197,6 @@ export class ProjectDocumentsResource {
     return new List<Document>(
       () => this.t.paginate<typeof options, Document>(sdk.documentsListByTransaction, options),
       () => this.t.runPage<typeof options, Document>(sdk.documentsListByTransaction, options),
-    );
-  }
-
-  /** Documents assigned to a budget line. */
-  byBudgetLine(lineId: string): List<Document> {
-    const options = { path: { workspaceId: this.t.workspaceId, projectId: this.projectId, lineId } };
-    return new List<Document>(
-      () => this.t.paginate<typeof options, Document>(sdk.documentsListByBudgetLine, options),
-      () => this.t.runPage<typeof options, Document>(sdk.documentsListByBudgetLine, options),
     );
   }
 

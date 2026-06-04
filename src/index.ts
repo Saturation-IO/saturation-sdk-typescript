@@ -17,7 +17,7 @@ export type { ErrorCode } from './errors.js';
 export { List } from './http.js';
 export type { Page } from './http.js';
 
-// Document assign targets (typed `{ transaction | budgetLine | … }` refs).
+// Document assign targets (typed `{ transaction | purchaseOrder | … }` refs).
 export type { AssignTarget } from './resources/documents.js';
 
 // Phase write bodies, derived from the generated operation Data types.

@@ -77,14 +77,14 @@ export type PhaseType = 'estimate' | 'actual' | 'rollup' | 'committed';
 export type BudgetLineKind = 'account' | 'line' | 'subtotal' | 'fringe' | 'markup' | 'credit' | 'banner';
 
 /**
- * The narrowed kind that appears on a node in the COMPUTED whole-tree response (engine output collapses the stored discriminator to these four).
+ * The narrowed kind that appears on a node in the computed whole-tree response. The computed response collapses the stored row kind to these four.
  */
 export type ComputedLineKind = 'account' | 'line' | 'credit' | 'fringe';
 
 /**
- * Allowed `expand` keys for budget-line reads (comma-separated, depth ≤ 2). `contact` and `documents` are batched-loader / relation expands; `account`, `phases` and `phaseData` are engine-projection expands (served from the engine pool, permission-projected so an expanded subtree never leaks); `sourceItem` dereferences the `sourceId` to its library origin (or an explicit tombstone, never null). `phaseData` is the depth-2 `lines.phaseData` key, the per-phase, per-line breakdown matrix (each contributing phase's `base`/`overtime`/ `fringe`/`amount`), distinct from `phases` which expands the coalesced value matrix. An unknown or too-deep key returns `400 expand_invalid`. Legacy parity note: the legacy `lines.notes` expand is intentionally NOT ported, the note is now a plain-text `line.notes` field always present inline on the line, so there is nothing to expand (the rich-text `NoteData` / `/budget/note` resource is gone, see `BudgetLine.notes`).
+ * Allowed `expand` keys for budget-line reads (comma-separated, depth ≤ 2). `contact` is a relation expand; `account`, `phases` and `phaseData` are computed expands (permission-projected so an expanded subtree never leaks); `sourceItem` dereferences the `sourceId` to its library origin (or an explicit tombstone, never null). `phaseData` is the depth-2 `lines.phaseData` key, the per-phase, per-line breakdown matrix (each contributing phase's `base`/`overtime`/`fringe`/`amount`), distinct from `phases` which expands the computed value matrix. An unknown or too-deep key returns `400 expand_invalid`. Legacy parity note: the legacy `lines.notes` expand is intentionally NOT ported; the note is now a plain-text `line.notes` field always present inline on the line, so there is nothing to expand (the rich-text `NoteData` / `/budget/note` resource is gone, see `BudgetLine.notes`).
  */
-export type BudgetLineExpand = 'phases' | 'phaseData' | 'contact' | 'account' | 'sourceItem' | 'documents';
+export type BudgetLineExpand = 'phases' | 'phaseData' | 'contact' | 'account' | 'sourceItem';
 
 /**
  * How a multi-value `tags` filter composes. `any` = OR (default), `all` = AND, `none` = exclude any tagged row.
@@ -92,7 +92,7 @@ export type BudgetLineExpand = 'phases' | 'phaseData' | 'contact' | 'account' | 
 export type TagMode = 'any' | 'all' | 'none';
 
 /**
- * One contributing fringe within a coalesced PhaseValues, itemized for transparency.
+ * One contributing fringe within a computed PhaseValues, itemized for transparency.
  */
 export type FringeBreakdownEntry = {
     id?: Id;
@@ -107,7 +107,7 @@ export type FringeBreakdownEntry = {
 };
 
 /**
- * The computed value matrix for one phase of one row (or the rolled-up subtotal on an account row). All amounts are integers in the workspace **base** currency's minor units, the engine converts each contributing line to base via its exchange rate BEFORE summing, so a coalesced value is never a mix of currencies. `combined` is the engine's source of truth (`combined === amount`); clients must never re-sum.
+ * The computed value matrix for one phase of one row (or the rolled-up subtotal on an account row). All amounts are integers in the workspace **base** currency's minor units; each contributing line is converted to base via its exchange rate before summing, so a computed value is never a mix of currencies. `combined` is the source of truth (`combined === amount`); clients must never re-sum.
  */
 export type PhaseValues = {
     /**
@@ -127,15 +127,15 @@ export type PhaseValues = {
      */
     fringeBreakdown: Array<FringeBreakdownEntry>;
     /**
-     * The engine node amount. `combined` mirrors this, it is the source of truth.
+     * The computed amount for the node. `combined` mirrors this; it is the source of truth.
      */
     amount: number;
     /**
-     * base + overtime + fringe, post-credit, the engine's authoritative total for the cell. Always equal to `amount`. Never re-summed client-side, never a stored fallback.
+     * base + overtime + fringe, post-credit; the authoritative total for the cell. Always equal to `amount`. Never re-summed client-side, never a stored fallback.
      */
     combined: number;
     /**
-     * The workspace base ISO-4217 currency the coalesced value is normalized to.
+     * The workspace base ISO-4217 currency the computed value is normalized to.
      */
     currency: string;
 };
@@ -169,7 +169,7 @@ export type BudgetPhase = {
 };
 
 /**
- * A stored budget row. `code` is the (non-unique, possibly empty) account number; `path` is the coded account path used for friendly lookups. The internal domain `address` is never returned. Expand-only relations (`contact`, `notes`, `documents`, `account`, `phases`, `sourceItem`) appear only when requested via `expand`.
+ * A stored budget row. `code` is the (non-unique, possibly empty) account number; `path` is the coded account path used for friendly lookups. The internal `address` is never returned. Expand-only relations (`contact`, `notes`, `account`, `phases`, `sourceItem`) appear only when requested via `expand`.
  */
 export type BudgetLine = {
     id: Id;
@@ -219,11 +219,11 @@ export type BudgetLine = {
      */
     markupAccountFilter?: string | null;
     /**
-     * Copy-on-use source link for a **workspace** library copy, the library item this row was copied from (e.g. a credit source). Null when the row has no workspace-library origin. Dereference with `expand=sourceItem`.
+     * Identifies the **workspace** library item this row was copied from (e.g. a credit source). Null when the row has no workspace-library origin. Dereference with `expand=sourceItem`.
      */
     sourceId?: Id | null;
     /**
-     * Copy-on-use source link for a **Saturation-derived** credit, the incentive *version* (not the program) this row was copied from. Provenance is two fields by origin: `sourceId` for workspace copies, `sourceIncentiveVersionId` (+ `sourceType`) for saturation-derived credits. Null when the row has no incentive origin.
+     * Identifies the **Saturation-derived** credit's incentive *version* (not the program) this row was copied from. Source tracking uses two fields by origin: `sourceId` for workspace copies, `sourceIncentiveVersionId` (+ `sourceType`) for Saturation-derived credits. Null when the row has no incentive origin.
      */
     sourceIncentiveVersionId?: Id | null;
     /**
@@ -235,21 +235,17 @@ export type BudgetLine = {
      */
     contact?: Contact;
     /**
-     * Present only with `expand=documents`. Documents assigned to this line (permission-projected).
-     */
-    documents?: Array<Document>;
-    /**
      * Present only with `expand=sourceItem`. The live library item `sourceId` points to, or an explicit tombstone `{ id, deleted: true }` when the source was removed, never null.
      */
     sourceItem?: unknown;
     /**
-     * Present only with `expand=phases`. The per-phase coalesced value matrix for this line, keyed by phase id (engine-projection expand, served from the pool).
+     * Present only with `expand=phases`. The per-phase computed value matrix for this line, keyed by phase id.
      */
     values?: {
         [key: string]: PhaseValues;
     };
     /**
-     * Present only with `expand=phaseData` (the depth-2 `lines.phaseData` key). The per-phase, per-line breakdown keyed by phase id, each phase's uncoalesced contributing parts (`base`/`overtime`/`fringe`/`amount`), distinct from the coalesced `values` matrix. Engine-projection expand, permission-projected, served from the pool.
+     * Present only with `expand=phaseData` (the depth-2 `lines.phaseData` key). The per-phase, per-line breakdown keyed by phase id, each phase's individual contributing parts (`base`/`overtime`/`fringe`/`amount`), distinct from the combined `values` matrix. Permission-projected.
      */
     phaseData?: {
         [key: string]: PhaseValues;
@@ -322,7 +318,7 @@ export type BudgetAccount = {
 };
 
 /**
- * A positional cell value, read via explicit `account` + `column` params (never a raw domain address). This is an engine-authoritative computed read like `/budget/totals`: `value` is the engine's truth as of `computedAt` (bounded-staleness, not real-time), and the response carries `Cache-Control` + opaque `ETag` headers for conditional GET. Echoes the resolved coordinates plus the value.
+ * A positional cell value, read via explicit `account` + `column` params. This is a computed read like `/budget/totals`: `value` is the authoritative value as of `computedAt` (may be slightly stale, not real-time), and the response carries `Cache-Control` + opaque `ETag` headers for conditional GET. Echoes the resolved coordinates plus the value.
  */
 export type BudgetCell = {
     /**
@@ -335,17 +331,17 @@ export type BudgetCell = {
     column: string;
     lineId?: Id;
     /**
-     * ISO-8601 timestamp the engine computed this cell value. Discloses freshness, the value reflects state within the cache TTL window, not a real-time guarantee. Mirrors the `computedAt` contract of `/budget`, `/budget/totals`, `/budget/rollup`, `/budget/variance`.
+     * ISO-8601 timestamp at which this cell value was computed. The value reflects state within the cache TTL window, not a real-time guarantee. Mirrors the `computedAt` contract of `/budget`, `/budget/totals`, `/budget/rollup`, `/budget/variance`.
      */
     computedAt: string;
     /**
-     * The computed value matrix for the cell (engine truth).
+     * The computed value matrix for the cell.
      */
     value: PhaseValues;
 };
 
 /**
- * One node in the COMPUTED whole-tree response, a flat row carrying `parentId` + `path` + `depth` so the client rebuilds the tree, plus the per-phase value matrix. Account rows carry their subtree's rolled-up subtotal; leaves carry their own value.
+ * One node in the computed whole-tree response, a flat row carrying `parentId` + `path` + `depth` so the client rebuilds the tree, plus the per-phase value matrix. Account rows carry their subtree's rolled-up subtotal; leaves carry their own value.
  */
 export type ComputedBudgetLine = {
     id: Id;
@@ -364,7 +360,7 @@ export type ComputedBudgetLine = {
 };
 
 /**
- * The whole budget, tree + phases + coalesced totals, as of `computedAt`. Never paginated (a correct rollup needs the full subtree). Above the server line ceiling this read returns `413 budget_too_large` instead. `expand` is rejected (`400 expand_invalid`), the phase matrix is always present, it is the point of the budget.
+ * The whole budget, tree + phases + computed totals, as of `computedAt`. Never paginated (a correct rollup needs the full subtree). Above the server line ceiling this read returns `413 budget_too_large` instead. `expand` is rejected (`400 expand_invalid`); the phase matrix is always present.
  */
 export type ComputedBudget = {
     /**
@@ -372,7 +368,7 @@ export type ComputedBudget = {
      */
     id: Id;
     /**
-     * ISO-8601 timestamp the engine computed these values. Discloses freshness, totals reflect state within the cache TTL window, not a real-time guarantee.
+     * ISO-8601 timestamp at which these values were computed. Totals reflect state within the cache TTL window, not a real-time guarantee.
      */
     computedAt: string;
     /**
@@ -380,7 +376,7 @@ export type ComputedBudget = {
      */
     phases: Array<BudgetPhase>;
     /**
-     * Root-coalesced totals keyed by phase id (engine truth; never re-summed).
+     * Root totals keyed by phase id (computed; never re-summed).
      */
     grandTotals: {
         [key: string]: PhaseValues;
@@ -392,7 +388,7 @@ export type ComputedBudget = {
 };
 
 /**
- * Engine-coalesced grand totals (or, with filters, the computed slice total) as of `computedAt`. The engine computes the filtered rollup; never summed client-side.
+ * Computed grand totals (or, with filters, the computed slice total) as of `computedAt`. The filtered rollup is computed server-side; never summed client-side.
  */
 export type BudgetTotals = {
     computedAt: string;
@@ -417,7 +413,7 @@ export type BudgetTotals = {
 };
 
 /**
- * Engine-authoritative rollup for a single phase, as of `computedAt`.
+ * Computed rollup for a single phase, as of `computedAt`.
  */
 export type BudgetRollup = {
     computedAt: string;
@@ -426,13 +422,13 @@ export type BudgetRollup = {
      */
     phase: BudgetPhase;
     /**
-     * The coalesced rollup value for the phase.
+     * The computed rollup value for the phase.
      */
     values: PhaseValues;
 };
 
 /**
- * Engine-computed variance between two phases (`to` minus `from`), as of `computedAt`. `delta` is the difference per value field in workspace-base minor units.
+ * Computed variance between two phases (`to` minus `from`), as of `computedAt`. `delta` is the difference per value field in workspace-base minor units.
  */
 export type BudgetVariance = {
     computedAt: string;
@@ -451,9 +447,9 @@ export type BudgetVariance = {
 };
 
 /**
- * The kind of entity a document can be assigned to. v1 is single-target-per-kind (one reference per kind on the document). `budgetLine` resolves to the `Budget` permission subject internally (there is no separate `BudgetLine` subject); `contact` is workspace-scoped (contacts have no project), the rest are project-scoped.
+ * The kind of entity a document can be assigned to. v1 is single-target-per-kind (one reference per kind on the document). `contact` is workspace-scoped (contacts have no project), the rest are project-scoped.
  */
-export type DocumentTargetKind = 'transaction' | 'budgetLine' | 'purchaseOrder' | 'contact' | 'project';
+export type DocumentTargetKind = 'transaction' | 'purchaseOrder' | 'contact' | 'project';
 
 /**
  * Document processing lifecycle. A freshly dropped document is `PENDING`/`PROCESSING` until extraction finishes; `READY` means content is queryable; `FAILED` means extraction did not complete. Read-only, set by the platform, never by the client.
@@ -468,7 +464,7 @@ export type DocumentCoarseType = 'financial' | 'tax' | 'legal' | 'insurance' | '
 /**
  * A single expand key valid on document responses. Pass as a comma list via `expand` (depth ≤ 2); an unknown key returns `400 expand_invalid`. Expanded relations are permission-projected.
  */
-export type DocumentExpand = 'assignments' | 'transaction' | 'contact' | 'purchaseOrder' | 'budgetLine' | 'folder';
+export type DocumentExpand = 'assignments' | 'transaction' | 'contact' | 'purchaseOrder' | 'folder';
 
 /**
  * A typed reference to the entity a document is (or should be) assigned to. The raw internal domain `address` is never used on the public surface, targets are always `{ kind, id }`.
@@ -726,12 +722,12 @@ export type PackVisibility = 'public' | 'private' | 'shared';
 export type TagColor = 'slate' | 'gray' | 'zinc' | 'red' | 'orange' | 'amber' | 'yellow' | 'lime' | 'green' | 'emerald' | 'teal' | 'cyan' | 'sky' | 'blue' | 'indigo' | 'violet' | 'purple' | 'pink' | 'rose' | null;
 
 /**
- * Origin of a resident row. `workspace` = copied from a workspace template (source link is `sourceId`); `saturation` = derived from a Saturation incentive version (source link is `sourceIncentiveVersionId`). Incentive copies are surfaced as "incentives".
+ * Origin of a project copy. `workspace` = copied from a workspace template (tracked by `sourceId`); `saturation` = derived from a Saturation incentive version (tracked by `sourceIncentiveVersionId`). Incentive copies are surfaced as "incentives".
  */
 export type SourceType = 'workspace' | 'saturation';
 
 /**
- * Returned by `expand=sourceItem` when the source library item/version was soft-deleted. The source link contract is **never `null`**: a removed source resolves to this explicit tombstone so a reader can distinguish "source deleted" from "no source link". Synthesized from the source row's `soft-delete timestamp`, not from the (nullable) reference.
+ * Returned by `expand=sourceItem` when the source library item/version was deleted. Source tracking is never `null`: a removed source resolves to this explicit tombstone so a reader can distinguish "source deleted" from "no source". Reflects that the source was deleted rather than that no source exists.
  */
 export type SourceTombstone = {
     id: Id;
@@ -744,7 +740,7 @@ export type SourceTombstone = {
 export type LibraryExpand = 'sourceItem';
 
 /**
- * Allowed `expand` keys on a project-resident incentive.
+ * Allowed `expand` keys on a project incentive.
  */
 export type ProjectIncentiveExpand = 'sourceItem' | 'components';
 
@@ -951,7 +947,7 @@ export type IncentivePack = {
 };
 
 /**
- * A program (rule) inside an incentive pack, the unit a project adds to become a resident incentive. Only `published` programs/versions are addable.
+ * A program (rule) inside an incentive pack, the unit a project adds to become a project incentive. Only `published` programs/versions are addable.
  */
 export type IncentiveProgram = {
     id: Id;
@@ -974,7 +970,7 @@ export type IncentiveProgram = {
 };
 
 /**
- * A project-resident incentive. Provenance is `sourceIncentiveVersionId` with `sourceType: saturation` (`sourceId` is null for these). `expand=sourceItem` resolves the version; `expand=components` inlines its component rows.
+ * A project incentive. The source is tracked by `sourceIncentiveVersionId` with `sourceType: saturation` (`sourceId` is null for these). `expand=sourceItem` resolves the version; `expand=components` inlines its component rows.
  */
 export type ProjectIncentive = {
     id: Id;
@@ -988,7 +984,7 @@ export type ProjectIncentive = {
      */
     sourceId?: Id | null;
     /**
-     * The incentive version this resident incentive was derived from.
+     * The incentive version this project incentive was derived from.
      */
     sourceIncentiveVersionId?: Id | null;
     /**
@@ -1010,7 +1006,7 @@ export type ProjectIncentive = {
 };
 
 /**
- * A component row of a resident incentive.
+ * A component row of a project incentive.
  */
 export type IncentiveComponent = {
     id: Id;
@@ -1020,7 +1016,7 @@ export type IncentiveComponent = {
 };
 
 /**
- * Add an incentive program (its current published version) into the project. Keyed on `(projectId, sourceIncentiveVersionId)`; idempotent. Rejected (`400 validation`) when the version/program/pack is not `published`, the pack is `deprecated`, or the pack is neither workspace-enabled nor workspace-owned.
+ * Add an incentive program (its current published version) into the project. Idempotent per project and incentive version. Rejected (`400 validation`) when the version/program/pack is not `published`, the pack is `deprecated`, or the pack is neither workspace-enabled nor workspace-owned.
  */
 export type ProjectIncentiveAdd = {
     /**
@@ -1034,7 +1030,7 @@ export type ProjectIncentiveAdd = {
 };
 
 /**
- * Patch a resident incentive (e.g. apply / un-apply, adjust). Provenance is read-only.
+ * Patch a project incentive (e.g. apply / un-apply, adjust). Source tracking is read-only.
  */
 export type ProjectIncentiveUpdate = {
     name?: string;
@@ -1067,7 +1063,7 @@ export type FringeTemplateWrite = {
 };
 
 /**
- * A project-resident fringe copy. Carries `sourceId` (the template it was copied from) with `sourceType: workspace`. Editing diverges it without breaking lineage.
+ * A project fringe copy. Carries `sourceId` (the template it was copied from) with `sourceType: workspace`. Editing it diverges the copy while keeping the link to its source.
  */
 export type FringeCopy = {
     id: Id;
@@ -1108,7 +1104,7 @@ export type GlobalTemplateWrite = {
 };
 
 /**
- * A project-resident global copy with `sourceId` source link.
+ * A project global copy. Carries `sourceId` source tracking.
  */
 export type GlobalCopy = {
     id: Id;
@@ -1149,7 +1145,7 @@ export type CurrencyTemplateWrite = {
 };
 
 /**
- * A project-resident currency copy with `sourceId` source link.
+ * A project currency copy. Carries `sourceId` source tracking.
  */
 export type CurrencyCopy = {
     id: Id;
@@ -1163,7 +1159,7 @@ export type CurrencyCopy = {
 };
 
 /**
- * A workspace fringe-tag template, the 5th entity (groups fringes). Same `projectId`/`sourceId`/`@@unique([projectId,sourceId])` pattern as the other templates.
+ * A workspace fringe-tag template (groups fringes). Uses the same `projectId` / `sourceId` pattern as the other templates.
  */
 export type FringeTagTemplate = {
     id: Id;
@@ -1182,7 +1178,7 @@ export type FringeTagTemplateWrite = {
 };
 
 /**
- * A project-resident fringe-tag copy with `sourceId` source link.
+ * A project fringe-tag copy. Carries `sourceId` source tracking.
  */
 export type FringeTagCopy = {
     id: Id;
@@ -1195,7 +1191,7 @@ export type FringeTagCopy = {
 };
 
 /**
- * A workspace tag. NOT, there is no `projectId` or `sourceId`. A project gets tags via an association edge (see project tags), never a project copy.
+ * A workspace tag. It has no `projectId` or `sourceId`. A project gets tags via an association (see project tags), never a project copy.
  */
 export type Tag = {
     id: Id;
@@ -1234,7 +1230,7 @@ export type TagUpdate = {
 };
 
 /**
- * Attach a workspace tag to a project (creates/reactivates the `is linked to` edge). If the tag id does not exist, supply `tag` to create the workspace tag first. There is NO `/detach` in v1, the edge is auto-reconciled from line/transaction tag assignments, so a manual detach would be silently re-created.
+ * Attach a workspace tag to a project (creates or reactivates the association). If the tag id does not exist, supply `tag` to create the workspace tag first. There is no `/detach` in v1: the association is auto-reconciled from line/transaction tag assignments, so a manual detach would be silently re-created.
  */
 export type ProjectTagAttach = {
     tag?: TagCreate;
@@ -1304,7 +1300,7 @@ export type RatePackCollection = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
      */
     truncated?: boolean;
 };
@@ -1317,7 +1313,7 @@ export type RatePackItemCollection = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
      */
     truncated?: boolean;
 };
@@ -1330,7 +1326,7 @@ export type IncentivePackCollection = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
      */
     truncated?: boolean;
 };
@@ -1343,7 +1339,7 @@ export type IncentiveProgramCollection = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
      */
     truncated?: boolean;
 };
@@ -1356,7 +1352,7 @@ export type ProjectRatePackCollection = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
      */
     truncated?: boolean;
 };
@@ -1369,7 +1365,7 @@ export type ProjectIncentiveCollection = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
      */
     truncated?: boolean;
 };
@@ -1382,7 +1378,7 @@ export type FringeTemplateCollection = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
      */
     truncated?: boolean;
 };
@@ -1395,7 +1391,7 @@ export type FringeCopyCollection = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
      */
     truncated?: boolean;
 };
@@ -1408,7 +1404,7 @@ export type GlobalTemplateCollection = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
      */
     truncated?: boolean;
 };
@@ -1421,7 +1417,7 @@ export type GlobalCopyCollection = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
      */
     truncated?: boolean;
 };
@@ -1434,7 +1430,7 @@ export type CurrencyTemplateCollection = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
      */
     truncated?: boolean;
 };
@@ -1447,7 +1443,7 @@ export type CurrencyCopyCollection = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
      */
     truncated?: boolean;
 };
@@ -1460,7 +1456,7 @@ export type FringeTagTemplateCollection = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
      */
     truncated?: boolean;
 };
@@ -1473,7 +1469,7 @@ export type FringeTagCopyCollection = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
      */
     truncated?: boolean;
 };
@@ -1486,7 +1482,7 @@ export type TagCollection = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
      */
     truncated?: boolean;
 };
@@ -1506,7 +1502,7 @@ export type CustomUnitCollection = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
      */
     truncated?: boolean;
 };
@@ -1530,7 +1526,7 @@ export type IncentivePackEnableLink = {
 };
 
 /**
- * Project lifecycle (the single authoritative definition; the bootstrap project list under meta-auth references this same schema). `active` is a committed, working project; `staged` is a draft created by a planner/import/onboarding flow not yet committed; `archived` is closed but retained. Marked extensible so a future lifecycle value does not break clients.
+ * Project status. `active` is a committed, working project; `staged` is a draft not yet committed (created by an import or onboarding flow); `archived` is closed but retained. Marked extensible so a future status value does not break clients.
  */
 export type ProjectStatus = 'active' | 'staged' | 'archived';
 
@@ -1575,7 +1571,7 @@ export type Project = {
 };
 
 /**
- * Create a project. Server-owned fields (`id`, `workspaceId`, `status` lifecycle internals, timestamps, library-backfill markers) are never client-writable, sending one returns `422 field_read_only`.
+ * Create a project. Server-owned fields (`id`, `workspaceId`, `status`, timestamps) are never client-writable; sending one returns `422 field_read_only`.
  */
 export type ProjectCreate = {
     name: string;
@@ -1593,7 +1589,7 @@ export type ProjectCreate = {
 };
 
 /**
- * Patch a project (partial; only the supplied fields change). `status` accepts only `active`/`archived` here, `staged` is an internal lifecycle state set by planner/import flows, not a client-settable value.
+ * Patch a project (partial; only the supplied fields change). `status` accepts only `active`/`archived` here; `staged` is set by import and onboarding flows and is not client-settable.
  */
 export type ProjectUpdate = {
     name?: string;
@@ -1616,7 +1612,7 @@ export type ProjectList = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or an expand returned fewer rows than `limit`.
      */
     truncated?: boolean;
 };
@@ -1682,7 +1678,7 @@ export type SpaceList = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or an expand returned fewer rows than `limit`.
      */
     truncated?: boolean;
 };
@@ -1743,17 +1739,17 @@ export type Contact = {
     createdAt: string;
     updatedAt: string;
     /**
-     * Present only when `expand=documents`. Documents assigned to this contact, permission-projected (may be partial, see the envelope's `truncated` flag).
+     * Present only when `expand=documents`. Documents assigned to this contact, filtered by your permissions (may be partial; see the `truncated` flag).
      */
     documents?: Array<Id>;
     /**
-     * Present only when `expand=transactions`. Transactions whose contact is this contact, permission-projected across the caller's accessible projects.
+     * Present only when `expand=transactions`. Transactions for this contact across the projects you can access, filtered by your permissions.
      */
     transactions?: Array<Id>;
 };
 
 /**
- * Create a contact. The full tax / bank numbers cannot be set through this endpoint; they are extracted from documents internally. `id`, `workspaceId`, hashes, `displayName` (derived) and timestamps are server-owned.
+ * Create a contact. Full tax and bank numbers cannot be set through this endpoint; they are extracted from documents. `id`, `workspaceId`, `displayName` (derived) and timestamps are server-owned.
  */
 export type ContactCreate = {
     name: string;
@@ -1801,13 +1797,13 @@ export type ContactList = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or an expand returned fewer rows than `limit`.
      */
     truncated?: boolean;
 };
 
 /**
- * Typed per-resource expand allow-list for contacts ().
+ * The expand values allowed for contacts.
  */
 export type ContactExpand = 'documents' | 'transactions';
 
@@ -1817,7 +1813,7 @@ export type ContactExpand = 'documents' | 'transactions';
 export type CommentTargetKind = 'project' | 'budgetLine' | 'transaction' | 'purchaseOrder' | 'contact' | 'document';
 
 /**
- * A typed entity reference the comment is anchored to (`{ kind, id }`), the same typed-target shape used for document assignment, never a raw internal address.
+ * The entity the comment is anchored to, given as `{ kind, id }`. The same target shape is used for document assignment.
  */
 export type CommentTarget = {
     kind: CommentTargetKind;
@@ -1853,7 +1849,7 @@ export type Comment = {
 };
 
 /**
- * Create a comment. `projectId` is taken from the target's project; `authorId`, `authorName` and timestamps are server-owned (the author is the token's principal).
+ * Create a comment. `projectId` is taken from the target's project; `authorId`, `authorName` and timestamps are server-owned (the author is the authenticated caller).
  */
 export type CommentCreate = {
     content: string;
@@ -1883,7 +1879,7 @@ export type CommentList = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or an expand returned fewer rows than `limit`.
      */
     truncated?: boolean;
 };
@@ -1937,13 +1933,13 @@ export type ViewList = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or an expand returned fewer rows than `limit`.
      */
     truncated?: boolean;
 };
 
 /**
- * The resolved rows of a view, the view's persisted filter applied, with any inline `expand` / flat filters layered on top. The row shape matches the view's `subjectType` resource; pagination is the standard envelope.
+ * The resolved rows of a view, with the view's saved filter applied and any inline `expand` / flat filters layered on top. The row shape matches the view's `subjectType` resource; pagination follows the standard response format.
  */
 export type ViewData = {
     /**
@@ -1962,7 +1958,7 @@ export type ViewData = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or an expand returned fewer rows than `limit`.
      */
     truncated?: boolean;
 };
@@ -2070,22 +2066,22 @@ export type WorkspaceCollection = {
 };
 
 /**
- * The flow-derived, **read-only** purchase-order status. A client never writes it: it advances through the action verbs (`/submit`, `/cancel-submission`, `/void`) and through internal commit / finalize / payment flows (linking a transaction → `committed`, recording payment → `paid`). The richer ~21-state internal lifecycle is a separate computed projection exposed only at `GET.../{purchaseOrderId}/lifecycle` (or `expand=lifecycle`), its states (`payment_processing`, `variance_review`, `closed`, `canceled`, …) never appear here.
+ * The read-only purchase-order status. A client never writes it: it advances through the action endpoints (`/submit`, `/cancel-submission`, `/void`) and through commit / finalize / payment activity (linking a transaction sets `committed`, recording payment sets `paid`). The more granular lifecycle is returned separately at `GET.../{purchaseOrderId}/lifecycle` (or `expand=lifecycle`); its states (`payment_processing`, `variance_review`, `closed`, `canceled`, and others) never appear here.
  */
 export type PurchaseOrderStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'committed' | 'paid' | 'void';
 
 /**
- * The granular internal lifecycle state (21 values) the lifecycle engine resolves. Exposed **only** inside the `PurchaseOrderLifecycle` projection, never on the base resource.
+ * The granular lifecycle state (21 values). Returned only inside the `PurchaseOrderLifecycle` object, never on the base resource.
  */
 export type PurchaseOrderLifecycleState = 'draft' | 'po_approval_pending' | 'po_rejected' | 'approved_awaiting_invoice' | 'invoice_received' | 'invoice_requested' | 'payment_requested' | 'payment_approval_pending' | 'payment_approved' | 'payment_sent' | 'payment_processing' | 'payment_failed' | 'payment_rejected' | 'partially_paid' | 'paid' | 'variance_review' | 'split_review' | 'transaction_match_review' | 'closed' | 'canceled' | 'void';
 
 /**
- * Severity band the lifecycle engine assigns to the current state.
+ * Severity band for the current lifecycle state.
  */
 export type PurchaseOrderLifecycleSeverity = 'info' | 'warning' | 'critical';
 
 /**
- * Confidence the invoice/transaction matcher assigns to a candidate. Surfaced honestly (never flattened), `manual_review` means a human must confirm.
+ * Confidence that a candidate invoice or transaction matches this PO. `manual_review` means a human must confirm.
  */
 export type PurchaseOrderMatchConfidence = 'exact' | 'suggested' | 'manual_review';
 
@@ -2100,7 +2096,7 @@ export type PurchaseOrderExpand = 'items' | 'contact' | 'transactions' | 'docume
 export type PurchaseOrderSort = 'number' | 'title' | 'date' | 'status' | 'sort' | 'createdAt' | 'updatedAt';
 
 /**
- * A purchase order, a project resource. This is a **positive allow-list** projection: internal / flow / activity columns (`currentFlowInstanceId`, `submissionCount`, `flowSummary`, `flowUpdatedAt`, `activity*`, `soft-delete timestamp`) are excluded by construction and never leak. `status` is read-only and flow-derived.
+ * A purchase order, scoped to a project. Internal bookkeeping fields are not part of this resource and are never returned. `status` is read-only and derived from PO activity.
  */
 export type PurchaseOrder = {
     id: Id;
@@ -2111,12 +2107,12 @@ export type PurchaseOrder = {
      */
     number?: string | null;
     /**
-     * Short PO title. The only text-indexed field, so `q` search targets it.
+     * Short PO title. This is the field that `q` search matches against.
      */
     title?: string | null;
     status: PurchaseOrderStatus;
     /**
-     * The vendor contact (`con_…`). Setting it upserts a `vendor_of` contact edge.
+     * The vendor contact (`con_…`). Setting it marks the contact as a vendor for this PO.
      */
     contactId?: string | null;
     /**
@@ -2144,7 +2140,7 @@ export type PurchaseOrder = {
      */
     total?: Money;
     /**
-     * ISO-8601 creation timestamp (epoch serialized at the boundary).
+     * ISO-8601 creation timestamp.
      */
     createdAt: string;
     /**
@@ -2218,7 +2214,7 @@ export type PurchaseOrderItem = {
 };
 
 /**
- * The read-only computed lifecycle projection produced by the lifecycle engine. Surfaces the granular ~21-state lifecycle, the encumbrance / variance amounts, and the matching + source signals that drove the state, without ever mutating the 7-value base `status`.
+ * The read-only computed lifecycle for a purchase order. Returns the granular 21-state lifecycle, the encumbrance / variance amounts, and the matching and source signals behind the state. It never changes the 7-value base `status`.
  */
 export type PurchaseOrderLifecycle = {
     state: PurchaseOrderLifecycleState;
@@ -2240,7 +2236,7 @@ export type PurchaseOrderLifecycle = {
         varianceAmount?: number;
     };
     /**
-     * Invoice / transaction matcher output. Confidence is surfaced honestly.
+     * Invoice and transaction matching results.
      */
     matching: {
         confidence?: PurchaseOrderMatchConfidence;
@@ -2250,7 +2246,7 @@ export type PurchaseOrderLifecycle = {
         reviewReasons?: Array<string>;
     };
     /**
-     * The id sets that fed the lifecycle resolution (id-only, never inlined data).
+     * The id sets behind the current lifecycle state (ids only; the referenced records are not inlined).
      */
     sourceSignals: {
         payableSignalIds?: Array<string>;
@@ -2263,7 +2259,7 @@ export type PurchaseOrderLifecycle = {
 };
 
 /**
- * Create a purchase order. The server forces `status='draft'`, `submissionCount=0` and sets `createdById`; naming any server-owned field (`status`, `createdById`, `workspaceId`, `projectId`, or any `flow*` / `activity*` field) returns `422 field_read_only` and mutates nothing.
+ * Create a purchase order. The server sets `status='draft'` and `createdById`; naming any server-owned field (`status`, `createdById`, `workspaceId`, `projectId`, or any internal bookkeeping field) returns `422 field_read_only` and changes nothing.
  */
 export type PurchaseOrderCreate = {
     /**
@@ -2275,7 +2271,7 @@ export type PurchaseOrderCreate = {
      */
     title?: string;
     /**
-     * Vendor contact (`con_…`); upserts a `vendor_of` edge.
+     * Vendor contact (`con_…`); marks the contact as a vendor for this PO.
      */
     contactId?: string;
     /**
@@ -2295,7 +2291,7 @@ export type PurchaseOrderCreate = {
 };
 
 /**
- * Partial update of a purchase order. Allowed only while `status ∈ {draft, rejected}`; otherwise `409 po_invalid_status`. `status` and the PO's owning `projectId` are **server-owned**: naming `status`, `projectId`, `workspaceId`, `createdById`, or any `flow*` / `activity*` column returns `422 field_read_only` and mutates nothing. A PO never moves projects via this update.
+ * Partial update of a purchase order. Allowed only while `status` is `draft` or `rejected`; otherwise `409 po_invalid_status`. `status` and the PO''s owning `projectId` are server-owned: naming `status`, `projectId`, `workspaceId`, `createdById`, or any internal bookkeeping field returns `422 field_read_only` and changes nothing. A PO never moves projects via this update.
  */
 export type PurchaseOrderUpdate = {
     number?: string | null;
@@ -2342,7 +2338,7 @@ export type PurchaseOrderList = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or expansion returned fewer than `limit` items for this page.
      */
     truncated?: boolean;
 };
@@ -2358,13 +2354,13 @@ export type PurchaseOrderItemList = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * True when permission filtering or expansion returned fewer than `limit` items for this page.
      */
     truncated?: boolean;
 };
 
 /**
- * The entity kinds the public Search can match in v1. Each is index-backed by a the search index. `rate-pack-item` and `project` are deliberately NOT searchable in v1, they have no the search index (their in-app search is the in-app search index) and would each require an schema addition; treat as deferred. Note: `contacts` are workspace-level only (no project association), so a project-scoped token never matches them, see `SearchResponse.searchedTypes`.
+ * The entity kinds the public Search can match in v1. `rate-pack-item` and `project` are deliberately NOT searchable in v1 and would each require additional work; treat as deferred. Note: `contacts` are workspace-level only (no project association), so a project-scoped token never matches them, see `SearchResponse.searchedTypes`.
  */
 export type SearchKind = 'transactions' | 'documents' | 'contacts' | 'budget-lines' | 'purchase-orders';
 
@@ -2386,13 +2382,13 @@ export type SearchHit = {
      */
     snippet?: string;
     /**
-     * Trigram similarity of the match in `[0, 1]` (higher is closer). Results are ordered by a deterministic `(score DESC, kind, id)` keyset, so equal scores tiebreak stably on `(kind, id)`.
+     * Similarity of the match in `[0, 1]` (higher is closer). Results are returned in a stable order: highest score first, with equal scores tiebroken on `(kind, id)`.
      */
     score: number;
 };
 
 /**
- * A page of mixed-type Search results. `data` is ordered by the global `(score DESC, kind, id)` keyset; `searchedTypes` echoes which kinds were actually queried so partial coverage is visible and never a silent empty.
+ * A page of mixed-type Search results. `data` is returned in a stable order: highest score first, with equal scores tiebroken on `(kind, id)`. `searchedTypes` echoes which kinds were actually queried so partial coverage is visible and never a silent empty.
  */
 export type SearchResponse = {
     /**
@@ -2408,11 +2404,11 @@ export type SearchResponse = {
      */
     count?: number;
     /**
-     * `true` when the page was bounded short of `limit` by the in-query permission / project- visibility filter (a permission-projected under-fetch). Surfaces the under-fetch rather than hiding it (fail-loud); keep paging with `nextCursor`.
+     * `true` when the page returned fewer than `limit` results because the permission / project-visibility filter removed matches you cannot read. Keep paging with `nextCursor`.
      */
     truncated?: boolean;
     /**
-     * The kinds that were actually searched for this request, computed as `requested ∩ supported ∩ authorized`. A requested kind is dropped here (not silently returned empty) when it has no the search index, or when the token's permission scope fully denies it, e.g. a project-scoped token drops `contacts` (workspace-level only, never project-visible). Compare against your requested `types` to detect partial coverage.
+     * The kinds that were actually searched for this request, computed as `requested ∩ supported ∩ authorized`. A requested kind is dropped here (not silently returned empty) when it is not searchable in v1, or when the token's permission scope fully denies it, e.g. a project-scoped token drops `contacts` (workspace-level only, never project-visible). Compare against your requested `types` to detect partial coverage.
      */
     searchedTypes: Array<SearchKind>;
 };
@@ -2434,7 +2430,7 @@ export type TransactionType = 'bank.deposit' | 'bank.withdrawal' | 'bank.ach' | 
 export type TransactionJournalType = 'Invoice' | 'Projection' | 'Cash' | 'Check' | 'Wire' | 'ACH' | 'CreditCard' | 'TimeCard' | 'ETransfer';
 
 /**
- * Where the record is in life, a CLOSED 7-value public enum. `posted` means money moved (unifies bank "settled" and expense "paid"). This is decoupled from the internal status vocabulary: legacy `refund`/`disputed` are surfaced as a `type` movement (`card.refund` / `card.dispute`) plus `isReversal=true`, never as a status. Not every status is reachable for every `source`, see `statusReachability` on the collection and the `status_unreachable_for_source` (409) error.
+ * Where the record is in life, a CLOSED 7-value public enum. `posted` means money moved (unifies bank "settled" and expense "paid"). Refunds and disputes are surfaced as a `type` movement (`card.refund` / `card.dispute`) plus `isReversal=true`, never as a status. Not every status is reachable for every `source`, see `statusReachability` on the collection and the `status_unreachable_for_source` (409) error.
  */
 export type TransactionStatus = 'unpaid' | 'pending' | 'posted' | 'void' | 'needs_review' | 'projected' | 'rejected';
 
@@ -2462,7 +2458,7 @@ export type TransactionItem = {
      */
     id: Id;
     /**
-     * Fractional-index line number, server-assigned via the shared `getNextLineNumber` helper so itemization order is consistent with auto-itemize.
+     * Fractional-index line number, server-assigned so itemization order is consistent with auto-itemize.
      */
     lineNumber: string;
     /**
@@ -2562,7 +2558,7 @@ export type Transaction = {
     id: Id;
     source: TransactionSource;
     /**
-     * Opaque external source link reference for a sourced row (the rail's own id); `null` for journals. NOT a joinable resource, `ZeroTransaction` is itself the authoritative read surface.
+     * Opaque external source link reference for a sourced row (the rail's own id); `null` for journals. Not a joinable resource; the transaction record is itself the source of truth for reads.
      */
     sourceId?: string | null;
     type?: TransactionType | null;
@@ -2793,7 +2789,7 @@ export type StatusReachabilityMatrix = {
 };
 
 /**
- * The metered activity origin. One unified meter serves all three: `api` = public-API requests, `agent` = agent runs, `document` = document extraction. Lets API and agent usage sit in one view, splittable on demand.
+ * The activity origin: `api` = public-API requests, `agent` = agent runs, `document` = document extraction. Lets you view API and agent usage together or split them out.
  */
 export type UsageSource = 'api' | 'agent' | 'document';
 
@@ -2808,7 +2804,7 @@ export type UsageGroupBy = 'operation' | 'token' | 'agent' | 'source' | 'day' | 
 export type UsageBucketGranularity = 'hour' | 'day';
 
 /**
- * The metering namespace an event prices in, a separate vocabulary from the AI-only credit cost formula (so most API classes price to zero without polluting the formula). Open at the string level; the documented v1 members are listed. Used both as the `?operationClass` filter and as a row dimension.
+ * The pricing class an event falls under. Most API classes price to zero; only AI-backed operations incur credits. The value is an open string; the documented v1 members are listed. Used both as the `?operationClass` filter and as a row dimension.
  */
 export type UsageOperationClass = string;
 
@@ -2818,11 +2814,11 @@ export type UsageOperationClass = string;
 export type UsageCreditEntryKind = 'consumed' | 'grant' | 'purchase' | 'adjustment';
 
 /**
- * One pre-aggregated usage row (never a usage event). The shape is uniform across `groupBy` values; the active dimension is echoed in `key` / `keyKind` so the same array renders any grouping. Counts / latency / error-rate / rate-limit-hits come from the raw or rollup streams; `credits` is the settled usage-credit total from the usage-credit ledger ONLY.
+ * One pre-aggregated usage row (never a single usage event). The shape is uniform across `groupBy` values; the active dimension is echoed in `key` / `keyKind` so the same array renders any grouping. Counts, latency, error rate, and rate-limit hits are request metrics; `credits` is the settled usage-credit total.
  */
 export type UsageRollupRow = {
     /**
-     * The workspace the rollup belongs to (`ws_…`). Never the internal workspaceId.
+     * The workspace the rollup belongs to (`ws_…`).
      */
     workspaceId: Id;
     /**
@@ -2849,15 +2845,15 @@ export type UsageRollupRow = {
     bucket: string;
     bucketGranularity: UsageBucketGranularity;
     /**
-     * Number of metered events in this row.
+     * Number of recorded events in this row.
      */
     count: number;
     /**
-     * Median request latency in milliseconds for this row. Telemetry, not money; absent for rows whose source has no per-request latency (e.g. some agent rows).
+     * Median request latency in milliseconds for this row. A performance metric, not a billing value; absent for rows whose source has no per-request latency (e.g. some agent rows).
      */
     latencyP50?: number;
     /**
-     * 95th-percentile request latency in milliseconds for this row. Telemetry, not money.
+     * 95th-percentile request latency in milliseconds for this row. A performance metric, not a billing value.
      */
     latencyP95?: number;
     /**
@@ -2869,13 +2865,13 @@ export type UsageRollupRow = {
      */
     rateLimitHits: number;
     /**
-     * Settled **usage credits** for this row, summed from the usage-credit ledger ONLY. `0` for most reads/writes (only AI-backed ops price). Never derived from usage records.
+     * Settled **usage credits** for this row. `0` for most reads and writes; only AI-backed operations incur credits.
      */
     credits: number;
 };
 
 /**
- * A page of usage rollup rows for the requested window / grouping, plus the resolved query window plus the flat pagination fields. All rows are permission-projected to the caller's reach.
+ * A page of usage rollup rows for the requested window and grouping, plus the resolved query window and pagination fields. All rows are limited to what the caller has permission to see.
  */
 export type UsageRollupResponse = {
     /**
@@ -2890,7 +2886,7 @@ export type UsageRollupResponse = {
      */
     count?: number;
     /**
-     * True when a permission-projected under-fetch bounded the page short of `limit`.
+     * True when permission filtering reduced the page below `limit`.
      */
     truncated?: boolean;
 };
@@ -2910,7 +2906,7 @@ export type UsageWindow = {
 };
 
 /**
- * One ledger-derived **usage-credit** settlement row for the window, summed from the usage-credit ledger. This is the money source of truth (never a recorded usage charge). Balance elsewhere is a pure projection over ledger amounts, not a stored row.
+ * One **usage-credit** entry for the window, from the usage-credit ledger. This is the authoritative billing record. Balance is computed by summing ledger amounts, not stored as a separate row.
  */
 export type UsageCreditRow = {
     /**
@@ -2923,12 +2919,12 @@ export type UsageCreditRow = {
      */
     amount: number;
     /**
-     * The projected usage-credit balance immediately after this row, when available. Informational; canonical balance is the sum of settled ledger amounts.
+     * The usage-credit balance immediately after this entry, when available. Informational; the authoritative balance is the sum of all settled ledger amounts.
      */
     balanceAfter?: number;
     source: UsageSource;
     /**
-     * The settlement key this debit was upserted on, the `{periodStart}:{operationClass}` triple identity that makes a re-run converge instead of double-charging.
+     * The idempotency key for this entry, formed as `{periodStart}:{operationClass}`, so a re-run updates the same entry instead of double-charging.
      */
     sourceId?: string;
     operationClass?: UsageOperationClass;
@@ -2945,7 +2941,7 @@ export type UsageCreditRow = {
 };
 
 /**
- * The ledger-derived usage-credit burn for the window: the per-settlement rows plus a summed total and the projected balance, all from the usage-credit ledger ONLY.
+ * The usage-credit burn for the window: the individual entries plus a summed total and the resulting balance, from the usage-credit ledger.
  */
 export type UsageCreditsResponse = {
     /**
@@ -2954,11 +2950,11 @@ export type UsageCreditsResponse = {
     data: Array<UsageCreditRow>;
     window: UsageWindow;
     /**
-     * Net usage credits over the window, the sum of settled ledger amounts across the returned rows (negative = net burn). The money source of truth.
+     * Net usage credits over the window, the sum of settled ledger amounts across the returned rows (negative = net burn). The authoritative billing total.
      */
     totalCredits: number;
     /**
-     * The workspace's current projected usage-credit balance, the sum of all settled ledger amounts (a projection, never a stored balance row).
+     * The workspace's current usage-credit balance, computed as the sum of all settled ledger amounts (never a stored balance row).
      */
     balance?: number;
     nextCursor?: NextCursor;
@@ -2967,7 +2963,7 @@ export type UsageCreditsResponse = {
      */
     count?: number;
     /**
-     * True when a permission-projected under-fetch bounded the page short of `limit`.
+     * True when permission filtering reduced the page below `limit`.
      */
     truncated?: boolean;
 };
@@ -2983,15 +2979,15 @@ export type UsageOperationRow = {
     operationClass: UsageOperationClass;
     source: UsageSource;
     /**
-     * Number of metered events for this operation in the window.
+     * Number of recorded events for this operation in the window.
      */
     count: number;
     /**
-     * Median latency in milliseconds. Telemetry, not money.
+     * Median latency in milliseconds. A performance metric, not a billing value.
      */
     latencyP50?: number;
     /**
-     * 95th-percentile latency in milliseconds. Telemetry, not money.
+     * 95th-percentile latency in milliseconds. A performance metric, not a billing value.
      */
     latencyP95?: number;
     /**
@@ -3003,13 +2999,13 @@ export type UsageOperationRow = {
      */
     rateLimitHits: number;
     /**
-     * Settled **usage credits** for this operation, from the usage-credit ledger ONLY.
+     * Settled **usage credits** for this operation.
      */
     credits: number;
 };
 
 /**
- * The per-operation usage breakdown for the window, permission-projected to the caller's reach.
+ * The per-operation usage breakdown for the window, limited to what the caller has permission to see.
  */
 export type UsageOperationsResponse = {
     /**
@@ -3023,7 +3019,7 @@ export type UsageOperationsResponse = {
      */
     count?: number;
     /**
-     * True when a permission-projected under-fetch bounded the page short of `limit`.
+     * True when permission filtering reduced the page below `limit`.
      */
     truncated?: boolean;
 };
@@ -3034,7 +3030,7 @@ export type UsageOperationsResponse = {
 export type WebhookEvent = 'transaction.created' | 'transaction.updated' | 'budget.changed' | 'purchaseOrder.created' | 'purchaseOrder.pending' | 'purchaseOrder.approved' | 'purchaseOrder.rejected' | 'purchaseOrder.committed' | 'purchaseOrder.paid' | 'purchaseOrder.void' | 'document.created' | 'document.assigned' | 'document.unassigned' | 'document.deleted' | 'incentive.added' | 'pack.installed' | 'pack.uninstalled';
 
 /**
- * Delivery payload shape. `thin` (default) sends the id-only envelope and the consumer re-fetches the object (smallest payloads, inherently privacy-safe). `full` inlines the same object `GET` would return, permission-projected to the subscription's owning identity and re-resolved at delivery, if that identity's access narrowed between enqueue and delivery the delivery is dropped or downgraded to `thin`, never leaking a field it can no longer read.
+ * Delivery payload shape. `thin` (default) sends an id-only payload and the consumer re-fetches the object (smallest payloads, privacy-safe). `full` inlines the same object `GET` would return, filtered to the permissions of the subscription's owning identity and re-checked at delivery time; if that identity's access narrowed between enqueue and delivery, the delivery is dropped or downgraded to `thin`, never leaking a field it can no longer read.
  */
 export type WebhookPayloadStyle = 'thin' | 'full';
 
@@ -3164,7 +3160,7 @@ export type WebhookUpdate = {
 };
 
 /**
- * One delivery attempt of an event to a subscription, recorded for debugging. The `id` is stable across retries of the same delivery; a re-coalesced delivery gets a new `id`.
+ * One delivery attempt of an event to a subscription, recorded for debugging. The `id` is stable across retries of the same delivery; a redelivery gets a new `id`.
  */
 export type WebhookDelivery = {
     /**
@@ -3213,7 +3209,7 @@ export type WebhookDelivery = {
 };
 
 /**
- * The body POSTed to a subscriber's `url` (documented for consumers, not a request/response body of this API). `thin` (default) carries only the envelope + `data: { kind, id }`; the consumer re-fetches by id (re-checking its own permission). `full` adds an `object` with the permission-projected resource inlined. Every delivery carries four HTTP request headers the consumer should verify:
+ * The body POSTed to a subscriber's `url` (documented for consumers, not a request/response body of this API). `thin` (default) carries only the top-level fields + `data: { kind, id }`; the consumer re-fetches by id (re-checking its own permission). `full` adds an `object` with the resource inlined, filtered to the consumer's permissions. Every delivery carries four HTTP request headers the consumer should verify:
  * - `X-Saturation-Signature`, `hmac_sha256(secret, X-Saturation-Timestamp + '.' + rawBody)`, hex-encoded. Verify with a constant-time compare before trusting the body. - `X-Saturation-Timestamp`, ISO-8601 send time, signed alongside the body. Reject deliveries older than your tolerance window (5 minutes recommended) to block replay. - `X-Saturation-Event`, the `event` type (mirrors `event` in the body), for cheap routing before parsing. - `X-Saturation-Delivery-Id`, the stable delivery `id` (`whd_…`); use it as the at-least-once dedupe key, since the same delivery may arrive more than once under retry.
  */
 export type WebhookEventPayload = {
@@ -3363,7 +3359,7 @@ export type BudgetLineExpand2 = Array<BudgetLineExpand>;
 export type LibraryExpand2 = Array<LibraryExpand>;
 
 /**
- * Comma list of related data to inline on a project-resident incentive (depth ≤ 2). Unknown key returns `400 expand_invalid`.
+ * Comma list of related data to inline on a project incentive (depth ≤ 2). Unknown key returns `400 expand_invalid`.
  */
 export type ProjectIncentiveExpand2 = Array<ProjectIncentiveExpand>;
 
@@ -3413,12 +3409,12 @@ export type UsageTo = string;
 export type UsageGroupBy2 = UsageGroupBy;
 
 /**
- * Filter to a single metered source (`api | agent | document`). Omit for the unified view across all three.
+ * Filter to a single source (`api | agent | document`). Omit for the combined view across all three.
  */
 export type UsageSource2 = UsageSource;
 
 /**
- * Filter to a single metering operation class (e.g. `api.read`, `agent.run`). A namespace distinct from the AI-only credit cost formula.
+ * Filter to a single operation class (e.g. `api.read`, `agent.run`).
  */
 export type UsageOperationClass2 = UsageOperationClass;
 
@@ -3578,7 +3574,7 @@ export type BudgetGetTotalsError = BudgetGetTotalsErrors[keyof BudgetGetTotalsEr
 
 export type BudgetGetTotalsResponses = {
     /**
-     * Engine-coalesced totals for the (optionally filtered) slice.
+     * Totals for the (optionally filtered) slice.
      */
     200: BudgetTotals;
 };
@@ -4546,7 +4542,7 @@ export type DocumentsListData = {
          */
         folder?: Id;
         /**
-         * Restrict to documents assigned to a specific target, expressed as `kind:id` (e.g. `transaction:txn_8f2a1c9e`, `budgetLine:lin_3d77`).
+         * Restrict to documents assigned to a specific target, expressed as `kind:id` (e.g. `transaction:txn_8f2a1c9e`).
          */
         assignedTo?: string;
         /**
@@ -4570,7 +4566,7 @@ export type DocumentsListData = {
          */
         coarseType?: DocumentCoarseType;
         /**
-         * Trigram search over document name / description.
+         * Search over document name / description.
          */
         q?: string;
     };
@@ -5229,85 +5225,6 @@ export type DocumentsListByTransactionResponses = {
 };
 
 export type DocumentsListByTransactionResponse = DocumentsListByTransactionResponses[keyof DocumentsListByTransactionResponses];
-
-export type DocumentsListByBudgetLineData = {
-    body?: never;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
-         * Budget line id (`lin_…`).
-         */
-        lineId: Id;
-    };
-    query?: {
-        /**
-         * Maximum number of items to return on a page. Capped at 100.
-         */
-        limit?: number;
-        /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
-         */
-        cursor?: string;
-        /**
-         * Field to sort by (replaces legacy `sortBy`). A non-unique sort field appends `,id` as the tiebreaker. Allowed fields are typed per resource.
-         */
-        sort?: string;
-        /**
-         * Sort direction (replaces legacy `sortOrder`).
-         */
-        order?: 'asc' | 'desc';
-        /**
-         * Comma list of related data to inline on documents (depth ≤ 2). Unknown key returns `400 expand_invalid`.
-         */
-        expand?: Array<DocumentExpand>;
-        /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
-         */
-        withCount?: boolean;
-    };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/budget/lines/{lineId}/documents';
-};
-
-export type DocumentsListByBudgetLineErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type DocumentsListByBudgetLineError = DocumentsListByBudgetLineErrors[keyof DocumentsListByBudgetLineErrors];
-
-export type DocumentsListByBudgetLineResponses = {
-    /**
-     * A paginated page of the budget line's documents.
-     */
-    200: DocumentCollection;
-};
-
-export type DocumentsListByBudgetLineResponse = DocumentsListByBudgetLineResponses[keyof DocumentsListByBudgetLineResponses];
 
 export type DocumentsListByPurchaseOrderData = {
     body?: never;
@@ -7946,7 +7863,7 @@ export type LibraryAddRatePackError = LibraryAddRatePackErrors[keyof LibraryAddR
 
 export type LibraryAddRatePackResponses = {
     /**
-     * The resident rate pack link.
+     * The rate pack added to the project.
      */
     200: ProjectRatePack;
 };
@@ -7975,7 +7892,7 @@ export type LibraryListProjectIncentivesData = {
          */
         cursor?: string;
         /**
-         * Comma list of related data to inline on a project-resident incentive (depth ≤ 2). Unknown key returns `400 expand_invalid`.
+         * Comma list of related data to inline on a project incentive (depth ≤ 2). Unknown key returns `400 expand_invalid`.
          */
         expand?: Array<ProjectIncentiveExpand>;
         isApplied?: boolean;
@@ -8012,7 +7929,7 @@ export type LibraryListProjectIncentivesError = LibraryListProjectIncentivesErro
 
 export type LibraryListProjectIncentivesResponses = {
     /**
-     * A page of resident incentives.
+     * A page of project incentives.
      */
     200: ProjectIncentiveCollection;
 };
@@ -8062,11 +7979,11 @@ export type LibraryAddProjectIncentiveError = LibraryAddProjectIncentiveErrors[k
 
 export type LibraryAddProjectIncentiveResponses = {
     /**
-     * The resident incentive (existing, when idempotent re-add).
+     * The project incentive (existing, when idempotent re-add).
      */
     200: ProjectIncentive;
     /**
-     * The newly created resident incentive.
+     * The newly created project incentive.
      */
     201: ProjectIncentive;
 };
@@ -8135,7 +8052,7 @@ export type LibraryGetProjectIncentiveData = {
     };
     query?: {
         /**
-         * Comma list of related data to inline on a project-resident incentive (depth ≤ 2). Unknown key returns `400 expand_invalid`.
+         * Comma list of related data to inline on a project incentive (depth ≤ 2). Unknown key returns `400 expand_invalid`.
          */
         expand?: Array<ProjectIncentiveExpand>;
     };
@@ -8169,7 +8086,7 @@ export type LibraryGetProjectIncentiveError = LibraryGetProjectIncentiveErrors[k
 
 export type LibraryGetProjectIncentiveResponses = {
     /**
-     * The resident incentive.
+     * The project incentive.
      */
     200: ProjectIncentive;
 };
@@ -8224,7 +8141,7 @@ export type LibraryUpdateProjectIncentiveError = LibraryUpdateProjectIncentiveEr
 
 export type LibraryUpdateProjectIncentiveResponses = {
     /**
-     * The updated resident incentive.
+     * The updated project incentive.
      */
     200: ProjectIncentive;
 };
@@ -8295,7 +8212,7 @@ export type LibraryListProjectFringesError = LibraryListProjectFringesErrors[key
 
 export type LibraryListProjectFringesResponses = {
     /**
-     * A page of resident fringe copies.
+     * A page of project fringe copies.
      */
     200: FringeCopyCollection;
 };
@@ -8579,7 +8496,7 @@ export type LibraryListProjectGlobalsError = LibraryListProjectGlobalsErrors[key
 
 export type LibraryListProjectGlobalsResponses = {
     /**
-     * A page of resident global copies.
+     * A page of project global copies.
      */
     200: GlobalCopyCollection;
 };
@@ -8860,7 +8777,7 @@ export type LibraryListProjectCurrenciesError = LibraryListProjectCurrenciesErro
 
 export type LibraryListProjectCurrenciesResponses = {
     /**
-     * A page of resident currency copies.
+     * A page of project currency copies.
      */
     200: CurrencyCopyCollection;
 };
@@ -9141,7 +9058,7 @@ export type LibraryListProjectFringeTagsError = LibraryListProjectFringeTagsErro
 
 export type LibraryListProjectFringeTagsResponses = {
     /**
-     * A page of resident fringe-tag copies.
+     * A page of project fringe-tag copies.
      */
     200: FringeTagCopyCollection;
 };
@@ -12041,7 +11958,7 @@ export type SearchWorkspaceData = {
     };
     query: {
         /**
-         * The search query (renamed from the legacy `query` param). Trigram-matched against each kind's indexed text. 1, 500 characters.
+         * The search query. 1 to 500 characters.
          */
         q: string;
         /**
@@ -12108,7 +12025,7 @@ export type SearchProjectData = {
     };
     query: {
         /**
-         * The search query (renamed from the legacy `query` param). 1, 500 characters.
+         * The search query. 1 to 500 characters.
          */
         q: string;
         /**
@@ -12227,7 +12144,7 @@ export type TransactionsListData = {
          */
         hasDocuments?: boolean;
         /**
-         * Trigram full-text search over `description`.
+         * Full-text search over `description`.
          */
         q?: string;
         /**
@@ -12985,11 +12902,11 @@ export type UsageListRollupsData = {
          */
         groupBy?: UsageGroupBy;
         /**
-         * Filter to a single metered source (`api | agent | document`). Omit for the unified view across all three.
+         * Filter to a single source (`api | agent | document`). Omit for the combined view across all three.
          */
         source?: UsageSource;
         /**
-         * Filter to a single metering operation class (e.g. `api.read`, `agent.run`). A namespace distinct from the AI-only credit cost formula.
+         * Filter to a single operation class (e.g. `api.read`, `agent.run`).
          */
         operationClass?: UsageOperationClass;
         /**
@@ -13072,11 +12989,11 @@ export type UsageListProjectRollupsData = {
          */
         groupBy?: UsageGroupBy;
         /**
-         * Filter to a single metered source (`api | agent | document`). Omit for the unified view across all three.
+         * Filter to a single source (`api | agent | document`). Omit for the combined view across all three.
          */
         source?: UsageSource;
         /**
-         * Filter to a single metering operation class (e.g. `api.read`, `agent.run`). A namespace distinct from the AI-only credit cost formula.
+         * Filter to a single operation class (e.g. `api.read`, `agent.run`).
          */
         operationClass?: UsageOperationClass;
         /**
@@ -13151,11 +13068,11 @@ export type UsageListCreditsData = {
          */
         to?: string;
         /**
-         * Filter to a single metered source (`api | agent | document`). Omit for the unified view across all three.
+         * Filter to a single source (`api | agent | document`). Omit for the combined view across all three.
          */
         source?: UsageSource;
         /**
-         * Filter to a single metering operation class (e.g. `api.read`, `agent.run`). A namespace distinct from the AI-only credit cost formula.
+         * Filter to a single operation class (e.g. `api.read`, `agent.run`).
          */
         operationClass?: UsageOperationClass;
         /**
@@ -13226,11 +13143,11 @@ export type UsageListOperationsData = {
          */
         to?: string;
         /**
-         * Filter to a single metered source (`api | agent | document`). Omit for the unified view across all three.
+         * Filter to a single source (`api | agent | document`). Omit for the combined view across all three.
          */
         source?: UsageSource;
         /**
-         * Filter to a single metering operation class (e.g. `api.read`, `agent.run`). A namespace distinct from the AI-only credit cost formula.
+         * Filter to a single operation class (e.g. `api.read`, `agent.run`).
          */
         operationClass?: UsageOperationClass;
         /**

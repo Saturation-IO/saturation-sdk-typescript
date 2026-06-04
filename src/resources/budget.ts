@@ -38,7 +38,6 @@ const budgetLineExpandMap = {
   phaseData: 'phaseData',
   contact: 'contact',
   sourceItem: 'sourceItem',
-  documents: 'documents',
 } satisfies ExpandMap<BudgetLineExpand>;
 type BudgetLineExpandMap = typeof budgetLineExpandMap;
 

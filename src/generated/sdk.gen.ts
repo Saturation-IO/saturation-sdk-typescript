@@ -2,7 +2,7 @@
 
 import { client } from './client.gen.js';
 import { type Client, formDataBodySerializer, type Options as Options2, type TDataShape } from './client/index.js';
-import type { BudgetCreateLineData, BudgetCreateLineErrors, BudgetCreateLineResponses, BudgetCreatePhaseData, BudgetCreatePhaseErrors, BudgetCreatePhaseResponses, BudgetDeleteLineData, BudgetDeleteLineErrors, BudgetDeleteLineResponses, BudgetDeletePhaseData, BudgetDeletePhaseErrors, BudgetDeletePhaseResponses, BudgetGetCellData, BudgetGetCellErrors, BudgetGetCellResponses, BudgetGetLineData, BudgetGetLineErrors, BudgetGetLineResponses, BudgetGetPhaseData, BudgetGetPhaseErrors, BudgetGetPhaseResponses, BudgetGetRollupData, BudgetGetRollupErrors, BudgetGetRollupResponses, BudgetGetTotalsData, BudgetGetTotalsErrors, BudgetGetTotalsResponses, BudgetGetTreeData, BudgetGetTreeErrors, BudgetGetTreeResponses, BudgetGetVarianceData, BudgetGetVarianceErrors, BudgetGetVarianceResponses, BudgetListAccountsData, BudgetListAccountsErrors, BudgetListAccountsResponses, BudgetListLinesData, BudgetListLinesErrors, BudgetListLinesResponses, BudgetListPhasesData, BudgetListPhasesErrors, BudgetListPhasesResponses, BudgetUpdateLineData, BudgetUpdateLineErrors, BudgetUpdateLineResponses, BudgetUpdatePhaseData, BudgetUpdatePhaseErrors, BudgetUpdatePhaseResponses, DocumentsAssignData, DocumentsAssignErrors, DocumentsAssignResponses, DocumentsDeleteData, DocumentsDeleteErrors, DocumentsDeleteResponses, DocumentsDropData, DocumentsDropErrors, DocumentsDropResponses, DocumentsGetContentData, DocumentsGetContentErrors, DocumentsGetContentResponses, DocumentsGetData, DocumentsGetErrors, DocumentsGetExtractionData, DocumentsGetExtractionErrors, DocumentsGetExtractionResponses, DocumentsGetResponses, DocumentsListAssignmentsData, DocumentsListAssignmentsErrors, DocumentsListAssignmentsResponses, DocumentsListByBudgetLineData, DocumentsListByBudgetLineErrors, DocumentsListByBudgetLineResponses, DocumentsListByContactData, DocumentsListByContactErrors, DocumentsListByContactResponses, DocumentsListByProjectData, DocumentsListByProjectErrors, DocumentsListByProjectResponses, DocumentsListByPurchaseOrderData, DocumentsListByPurchaseOrderErrors, DocumentsListByPurchaseOrderResponses, DocumentsListByTransactionData, DocumentsListByTransactionErrors, DocumentsListByTransactionResponses, DocumentsListData, DocumentsListErrors, DocumentsListResponses, DocumentsUnassignData, DocumentsUnassignErrors, DocumentsUnassignResponses, DocumentsUpdateData, DocumentsUpdateErrors, DocumentsUpdateResponses, LibraryAddProjectCurrencyData, LibraryAddProjectCurrencyErrors, LibraryAddProjectCurrencyResponses, LibraryAddProjectFringeData, LibraryAddProjectFringeErrors, LibraryAddProjectFringeResponses, LibraryAddProjectFringeTagData, LibraryAddProjectFringeTagErrors, LibraryAddProjectFringeTagResponses, LibraryAddProjectGlobalData, LibraryAddProjectGlobalErrors, LibraryAddProjectGlobalResponses, LibraryAddProjectIncentiveData, LibraryAddProjectIncentiveErrors, LibraryAddProjectIncentiveResponses, LibraryAddProjectTagData, LibraryAddProjectTagErrors, LibraryAddProjectTagResponses, LibraryAddRatePackData, LibraryAddRatePackErrors, LibraryAddRatePackResponses, LibraryCreateCurrencyTemplateData, LibraryCreateCurrencyTemplateErrors, LibraryCreateCurrencyTemplateResponses, LibraryCreateCustomUnitData, LibraryCreateCustomUnitErrors, LibraryCreateCustomUnitResponses, LibraryCreateFringeTagTemplateData, LibraryCreateFringeTagTemplateErrors, LibraryCreateFringeTagTemplateResponses, LibraryCreateFringeTemplateData, LibraryCreateFringeTemplateErrors, LibraryCreateFringeTemplateResponses, LibraryCreateGlobalTemplateData, LibraryCreateGlobalTemplateErrors, LibraryCreateGlobalTemplateResponses, LibraryCreateRatePackData, LibraryCreateRatePackErrors, LibraryCreateRatePackItemData, LibraryCreateRatePackItemErrors, LibraryCreateRatePackItemResponses, LibraryCreateRatePackResponses, LibraryCreateTagData, LibraryCreateTagErrors, LibraryCreateTagResponses, LibraryDeleteCurrencyTemplateData, LibraryDeleteCurrencyTemplateErrors, LibraryDeleteCurrencyTemplateResponses, LibraryDeleteCustomUnitData, LibraryDeleteCustomUnitErrors, LibraryDeleteCustomUnitResponses, LibraryDeleteFringeTagTemplateData, LibraryDeleteFringeTagTemplateErrors, LibraryDeleteFringeTagTemplateResponses, LibraryDeleteFringeTemplateData, LibraryDeleteFringeTemplateErrors, LibraryDeleteFringeTemplateResponses, LibraryDeleteGlobalTemplateData, LibraryDeleteGlobalTemplateErrors, LibraryDeleteGlobalTemplateResponses, LibraryDeleteProjectCurrencyData, LibraryDeleteProjectCurrencyErrors, LibraryDeleteProjectCurrencyResponses, LibraryDeleteProjectFringeData, LibraryDeleteProjectFringeErrors, LibraryDeleteProjectFringeResponses, LibraryDeleteProjectFringeTagData, LibraryDeleteProjectFringeTagErrors, LibraryDeleteProjectFringeTagResponses, LibraryDeleteProjectGlobalData, LibraryDeleteProjectGlobalErrors, LibraryDeleteProjectGlobalResponses, LibraryDeleteProjectIncentiveData, LibraryDeleteProjectIncentiveErrors, LibraryDeleteProjectIncentiveResponses, LibraryDeleteRatePackData, LibraryDeleteRatePackErrors, LibraryDeleteRatePackItemData, LibraryDeleteRatePackItemErrors, LibraryDeleteRatePackItemResponses, LibraryDeleteRatePackResponses, LibraryDeleteTagData, LibraryDeleteTagErrors, LibraryDeleteTagResponses, LibraryDisableIncentivePackData, LibraryDisableIncentivePackErrors, LibraryDisableIncentivePackResponses, LibraryDisableRatePackData, LibraryDisableRatePackErrors, LibraryDisableRatePackResponses, LibraryEnableIncentivePackData, LibraryEnableIncentivePackErrors, LibraryEnableIncentivePackResponses, LibraryEnableRatePackData, LibraryEnableRatePackErrors, LibraryEnableRatePackResponses, LibraryGetCurrencyTemplateData, LibraryGetCurrencyTemplateErrors, LibraryGetCurrencyTemplateResponses, LibraryGetFringeTagTemplateData, LibraryGetFringeTagTemplateErrors, LibraryGetFringeTagTemplateResponses, LibraryGetFringeTemplateData, LibraryGetFringeTemplateErrors, LibraryGetFringeTemplateResponses, LibraryGetGlobalTemplateData, LibraryGetGlobalTemplateErrors, LibraryGetGlobalTemplateResponses, LibraryGetIncentivePackData, LibraryGetIncentivePackErrors, LibraryGetIncentivePackResponses, LibraryGetProjectCurrencyData, LibraryGetProjectCurrencyErrors, LibraryGetProjectCurrencyResponses, LibraryGetProjectFringeData, LibraryGetProjectFringeErrors, LibraryGetProjectFringeResponses, LibraryGetProjectFringeTagData, LibraryGetProjectFringeTagErrors, LibraryGetProjectFringeTagResponses, LibraryGetProjectGlobalData, LibraryGetProjectGlobalErrors, LibraryGetProjectGlobalResponses, LibraryGetProjectIncentiveData, LibraryGetProjectIncentiveErrors, LibraryGetProjectIncentiveResponses, LibraryGetRatePackData, LibraryGetRatePackErrors, LibraryGetRatePackResponses, LibraryGetTagData, LibraryGetTagErrors, LibraryGetTagResponses, LibraryListCurrencyTemplatesData, LibraryListCurrencyTemplatesErrors, LibraryListCurrencyTemplatesResponses, LibraryListCustomUnitsData, LibraryListCustomUnitsErrors, LibraryListCustomUnitsResponses, LibraryListFringeTagTemplatesData, LibraryListFringeTagTemplatesErrors, LibraryListFringeTagTemplatesResponses, LibraryListFringeTemplatesData, LibraryListFringeTemplatesErrors, LibraryListFringeTemplatesResponses, LibraryListGlobalTemplatesData, LibraryListGlobalTemplatesErrors, LibraryListGlobalTemplatesResponses, LibraryListIncentivePacksData, LibraryListIncentivePacksErrors, LibraryListIncentivePacksResponses, LibraryListIncentiveProgramsData, LibraryListIncentiveProgramsErrors, LibraryListIncentiveProgramsResponses, LibraryListProjectCurrenciesData, LibraryListProjectCurrenciesErrors, LibraryListProjectCurrenciesResponses, LibraryListProjectFringesData, LibraryListProjectFringesErrors, LibraryListProjectFringesResponses, LibraryListProjectFringeTagsData, LibraryListProjectFringeTagsErrors, LibraryListProjectFringeTagsResponses, LibraryListProjectGlobalsData, LibraryListProjectGlobalsErrors, LibraryListProjectGlobalsResponses, LibraryListProjectIncentivesData, LibraryListProjectIncentivesErrors, LibraryListProjectIncentivesResponses, LibraryListProjectRatePacksData, LibraryListProjectRatePacksErrors, LibraryListProjectRatePacksResponses, LibraryListProjectTagsData, LibraryListProjectTagsErrors, LibraryListProjectTagsResponses, LibraryListRatePackItemsData, LibraryListRatePackItemsErrors, LibraryListRatePackItemsResponses, LibraryListRatePacksData, LibraryListRatePacksErrors, LibraryListRatePacksResponses, LibraryListTagsData, LibraryListTagsErrors, LibraryListTagsResponses, LibraryListUnitsData, LibraryListUnitsErrors, LibraryListUnitsResponses, LibraryRemoveProjectTagData, LibraryRemoveProjectTagErrors, LibraryRemoveProjectTagResponses, LibraryRemoveRatePackData, LibraryRemoveRatePackErrors, LibraryRemoveRatePackResponses, LibraryUpdateCurrencyTemplateData, LibraryUpdateCurrencyTemplateErrors, LibraryUpdateCurrencyTemplateResponses, LibraryUpdateCustomUnitData, LibraryUpdateCustomUnitErrors, LibraryUpdateCustomUnitResponses, LibraryUpdateFringeTagTemplateData, LibraryUpdateFringeTagTemplateErrors, LibraryUpdateFringeTagTemplateResponses, LibraryUpdateFringeTemplateData, LibraryUpdateFringeTemplateErrors, LibraryUpdateFringeTemplateResponses, LibraryUpdateGlobalTemplateData, LibraryUpdateGlobalTemplateErrors, LibraryUpdateGlobalTemplateResponses, LibraryUpdateProjectCurrencyData, LibraryUpdateProjectCurrencyErrors, LibraryUpdateProjectCurrencyResponses, LibraryUpdateProjectFringeData, LibraryUpdateProjectFringeErrors, LibraryUpdateProjectFringeResponses, LibraryUpdateProjectFringeTagData, LibraryUpdateProjectFringeTagErrors, LibraryUpdateProjectFringeTagResponses, LibraryUpdateProjectGlobalData, LibraryUpdateProjectGlobalErrors, LibraryUpdateProjectGlobalResponses, LibraryUpdateProjectIncentiveData, LibraryUpdateProjectIncentiveErrors, LibraryUpdateProjectIncentiveResponses, LibraryUpdateRatePackData, LibraryUpdateRatePackErrors, LibraryUpdateRatePackItemData, LibraryUpdateRatePackItemErrors, LibraryUpdateRatePackItemResponses, LibraryUpdateRatePackResponses, LibraryUpdateTagData, LibraryUpdateTagErrors, LibraryUpdateTagResponses, MasterDataCreateCommentData, MasterDataCreateCommentErrors, MasterDataCreateCommentResponses, MasterDataCreateContactData, MasterDataCreateContactErrors, MasterDataCreateContactResponses, MasterDataCreateProjectData, MasterDataCreateProjectErrors, MasterDataCreateProjectResponses, MasterDataCreateSpaceData, MasterDataCreateSpaceErrors, MasterDataCreateSpaceResponses, MasterDataDeleteCommentData, MasterDataDeleteCommentErrors, MasterDataDeleteCommentResponses, MasterDataDeleteContactData, MasterDataDeleteContactErrors, MasterDataDeleteContactResponses, MasterDataDeleteProjectData, MasterDataDeleteProjectErrors, MasterDataDeleteProjectResponses, MasterDataDeleteSpaceData, MasterDataDeleteSpaceErrors, MasterDataDeleteSpaceResponses, MasterDataGetContactData, MasterDataGetContactErrors, MasterDataGetContactResponses, MasterDataGetProjectData, MasterDataGetProjectErrors, MasterDataGetProjectResponses, MasterDataGetViewData, MasterDataGetViewDataData, MasterDataGetViewDataErrors, MasterDataGetViewDataResponses, MasterDataGetViewErrors, MasterDataGetViewResponses, MasterDataListCommentsData, MasterDataListCommentsErrors, MasterDataListCommentsResponses, MasterDataListContactsData, MasterDataListContactsErrors, MasterDataListContactsResponses, MasterDataListProjectsData, MasterDataListProjectsErrors, MasterDataListProjectsResponses, MasterDataListSpacesData, MasterDataListSpacesErrors, MasterDataListSpacesResponses, MasterDataListViewsData, MasterDataListViewsErrors, MasterDataListViewsResponses, MasterDataUpdateCommentData, MasterDataUpdateCommentErrors, MasterDataUpdateCommentResponses, MasterDataUpdateContactData, MasterDataUpdateContactErrors, MasterDataUpdateContactResponses, MasterDataUpdateProjectData, MasterDataUpdateProjectErrors, MasterDataUpdateProjectResponses, MasterDataUpdateSpaceData, MasterDataUpdateSpaceErrors, MasterDataUpdateSpaceResponses, MetaAuthGetMeData, MetaAuthGetMeErrors, MetaAuthGetMeResponses, MetaAuthGetWorkspaceData, MetaAuthGetWorkspaceErrors, MetaAuthGetWorkspaceResponses, MetaAuthHealthData, MetaAuthHealthErrors, MetaAuthHealthResponses, MetaAuthListWorkspacesData, MetaAuthListWorkspacesErrors, MetaAuthListWorkspacesResponses, PurchaseOrdersCancelSubmissionData, PurchaseOrdersCancelSubmissionErrors, PurchaseOrdersCancelSubmissionResponses, PurchaseOrdersCreateData, PurchaseOrdersCreateErrors, PurchaseOrdersCreateItemData, PurchaseOrdersCreateItemErrors, PurchaseOrdersCreateItemResponses, PurchaseOrdersCreateResponses, PurchaseOrdersDeleteData, PurchaseOrdersDeleteErrors, PurchaseOrdersDeleteItemData, PurchaseOrdersDeleteItemErrors, PurchaseOrdersDeleteItemResponses, PurchaseOrdersDeleteResponses, PurchaseOrdersFinalizeData, PurchaseOrdersFinalizeErrors, PurchaseOrdersFinalizeResponses, PurchaseOrdersGetData, PurchaseOrdersGetErrors, PurchaseOrdersGetResponses, PurchaseOrdersLifecycleData, PurchaseOrdersLifecycleErrors, PurchaseOrdersLifecycleResponses, PurchaseOrdersLinkData, PurchaseOrdersLinkErrors, PurchaseOrdersLinkResponses, PurchaseOrdersListData, PurchaseOrdersListErrors, PurchaseOrdersListItemsData, PurchaseOrdersListItemsErrors, PurchaseOrdersListItemsResponses, PurchaseOrdersListResponses, PurchaseOrdersListTransactionsData, PurchaseOrdersListTransactionsErrors, PurchaseOrdersListTransactionsResponses, PurchaseOrdersSubmitData, PurchaseOrdersSubmitErrors, PurchaseOrdersSubmitResponses, PurchaseOrdersUnlinkData, PurchaseOrdersUnlinkErrors, PurchaseOrdersUnlinkResponses, PurchaseOrdersUpdateData, PurchaseOrdersUpdateErrors, PurchaseOrdersUpdateItemData, PurchaseOrdersUpdateItemErrors, PurchaseOrdersUpdateItemResponses, PurchaseOrdersUpdateResponses, PurchaseOrdersVoidData, PurchaseOrdersVoidErrors, PurchaseOrdersVoidResponses, SearchProjectData, SearchProjectErrors, SearchProjectResponses, SearchWorkspaceData, SearchWorkspaceErrors, SearchWorkspaceResponses, TransactionsBatchCreateData, TransactionsBatchCreateErrors, TransactionsBatchCreateResponses, TransactionsCreateData, TransactionsCreateErrors, TransactionsCreateResponses, TransactionsDeleteData, TransactionsDeleteErrors, TransactionsDeleteResponses, TransactionsGetData, TransactionsGetErrors, TransactionsGetResponses, TransactionsItemsCreateData, TransactionsItemsCreateErrors, TransactionsItemsCreateResponses, TransactionsItemsDeleteData, TransactionsItemsDeleteErrors, TransactionsItemsDeleteResponses, TransactionsItemsListData, TransactionsItemsListErrors, TransactionsItemsListResponses, TransactionsItemsUpdateData, TransactionsItemsUpdateErrors, TransactionsItemsUpdateResponses, TransactionsListData, TransactionsListErrors, TransactionsListResponses, TransactionsStatsData, TransactionsStatsErrors, TransactionsStatsResponses, TransactionsTypesData, TransactionsTypesErrors, TransactionsTypesResponses, TransactionsUpdateData, TransactionsUpdateErrors, TransactionsUpdateResponses, UsageListCreditsData, UsageListCreditsErrors, UsageListCreditsResponses, UsageListOperationsData, UsageListOperationsErrors, UsageListOperationsResponses, UsageListProjectRollupsData, UsageListProjectRollupsErrors, UsageListProjectRollupsResponses, UsageListRollupsData, UsageListRollupsErrors, UsageListRollupsResponses, WebhooksCreateData, WebhooksCreateErrors, WebhooksCreateResponses, WebhooksDeleteData, WebhooksDeleteErrors, WebhooksDeleteResponses, WebhooksGetData, WebhooksGetErrors, WebhooksGetResponses, WebhooksListData, WebhooksListDeliveriesData, WebhooksListDeliveriesErrors, WebhooksListDeliveriesResponses, WebhooksListErrors, WebhooksListResponses, WebhooksPingData, WebhooksPingErrors, WebhooksPingResponses, WebhooksUpdateData, WebhooksUpdateErrors, WebhooksUpdateResponses } from './types.gen.js';
+import type { BudgetCreateLineData, BudgetCreateLineErrors, BudgetCreateLineResponses, BudgetCreatePhaseData, BudgetCreatePhaseErrors, BudgetCreatePhaseResponses, BudgetDeleteLineData, BudgetDeleteLineErrors, BudgetDeleteLineResponses, BudgetDeletePhaseData, BudgetDeletePhaseErrors, BudgetDeletePhaseResponses, BudgetGetCellData, BudgetGetCellErrors, BudgetGetCellResponses, BudgetGetLineData, BudgetGetLineErrors, BudgetGetLineResponses, BudgetGetPhaseData, BudgetGetPhaseErrors, BudgetGetPhaseResponses, BudgetGetRollupData, BudgetGetRollupErrors, BudgetGetRollupResponses, BudgetGetTotalsData, BudgetGetTotalsErrors, BudgetGetTotalsResponses, BudgetGetTreeData, BudgetGetTreeErrors, BudgetGetTreeResponses, BudgetGetVarianceData, BudgetGetVarianceErrors, BudgetGetVarianceResponses, BudgetListAccountsData, BudgetListAccountsErrors, BudgetListAccountsResponses, BudgetListLinesData, BudgetListLinesErrors, BudgetListLinesResponses, BudgetListPhasesData, BudgetListPhasesErrors, BudgetListPhasesResponses, BudgetUpdateLineData, BudgetUpdateLineErrors, BudgetUpdateLineResponses, BudgetUpdatePhaseData, BudgetUpdatePhaseErrors, BudgetUpdatePhaseResponses, DocumentsAssignData, DocumentsAssignErrors, DocumentsAssignResponses, DocumentsDeleteData, DocumentsDeleteErrors, DocumentsDeleteResponses, DocumentsDropData, DocumentsDropErrors, DocumentsDropResponses, DocumentsGetContentData, DocumentsGetContentErrors, DocumentsGetContentResponses, DocumentsGetData, DocumentsGetErrors, DocumentsGetExtractionData, DocumentsGetExtractionErrors, DocumentsGetExtractionResponses, DocumentsGetResponses, DocumentsListAssignmentsData, DocumentsListAssignmentsErrors, DocumentsListAssignmentsResponses, DocumentsListByContactData, DocumentsListByContactErrors, DocumentsListByContactResponses, DocumentsListByProjectData, DocumentsListByProjectErrors, DocumentsListByProjectResponses, DocumentsListByPurchaseOrderData, DocumentsListByPurchaseOrderErrors, DocumentsListByPurchaseOrderResponses, DocumentsListByTransactionData, DocumentsListByTransactionErrors, DocumentsListByTransactionResponses, DocumentsListData, DocumentsListErrors, DocumentsListResponses, DocumentsUnassignData, DocumentsUnassignErrors, DocumentsUnassignResponses, DocumentsUpdateData, DocumentsUpdateErrors, DocumentsUpdateResponses, LibraryAddProjectCurrencyData, LibraryAddProjectCurrencyErrors, LibraryAddProjectCurrencyResponses, LibraryAddProjectFringeData, LibraryAddProjectFringeErrors, LibraryAddProjectFringeResponses, LibraryAddProjectFringeTagData, LibraryAddProjectFringeTagErrors, LibraryAddProjectFringeTagResponses, LibraryAddProjectGlobalData, LibraryAddProjectGlobalErrors, LibraryAddProjectGlobalResponses, LibraryAddProjectIncentiveData, LibraryAddProjectIncentiveErrors, LibraryAddProjectIncentiveResponses, LibraryAddProjectTagData, LibraryAddProjectTagErrors, LibraryAddProjectTagResponses, LibraryAddRatePackData, LibraryAddRatePackErrors, LibraryAddRatePackResponses, LibraryCreateCurrencyTemplateData, LibraryCreateCurrencyTemplateErrors, LibraryCreateCurrencyTemplateResponses, LibraryCreateCustomUnitData, LibraryCreateCustomUnitErrors, LibraryCreateCustomUnitResponses, LibraryCreateFringeTagTemplateData, LibraryCreateFringeTagTemplateErrors, LibraryCreateFringeTagTemplateResponses, LibraryCreateFringeTemplateData, LibraryCreateFringeTemplateErrors, LibraryCreateFringeTemplateResponses, LibraryCreateGlobalTemplateData, LibraryCreateGlobalTemplateErrors, LibraryCreateGlobalTemplateResponses, LibraryCreateRatePackData, LibraryCreateRatePackErrors, LibraryCreateRatePackItemData, LibraryCreateRatePackItemErrors, LibraryCreateRatePackItemResponses, LibraryCreateRatePackResponses, LibraryCreateTagData, LibraryCreateTagErrors, LibraryCreateTagResponses, LibraryDeleteCurrencyTemplateData, LibraryDeleteCurrencyTemplateErrors, LibraryDeleteCurrencyTemplateResponses, LibraryDeleteCustomUnitData, LibraryDeleteCustomUnitErrors, LibraryDeleteCustomUnitResponses, LibraryDeleteFringeTagTemplateData, LibraryDeleteFringeTagTemplateErrors, LibraryDeleteFringeTagTemplateResponses, LibraryDeleteFringeTemplateData, LibraryDeleteFringeTemplateErrors, LibraryDeleteFringeTemplateResponses, LibraryDeleteGlobalTemplateData, LibraryDeleteGlobalTemplateErrors, LibraryDeleteGlobalTemplateResponses, LibraryDeleteProjectCurrencyData, LibraryDeleteProjectCurrencyErrors, LibraryDeleteProjectCurrencyResponses, LibraryDeleteProjectFringeData, LibraryDeleteProjectFringeErrors, LibraryDeleteProjectFringeResponses, LibraryDeleteProjectFringeTagData, LibraryDeleteProjectFringeTagErrors, LibraryDeleteProjectFringeTagResponses, LibraryDeleteProjectGlobalData, LibraryDeleteProjectGlobalErrors, LibraryDeleteProjectGlobalResponses, LibraryDeleteProjectIncentiveData, LibraryDeleteProjectIncentiveErrors, LibraryDeleteProjectIncentiveResponses, LibraryDeleteRatePackData, LibraryDeleteRatePackErrors, LibraryDeleteRatePackItemData, LibraryDeleteRatePackItemErrors, LibraryDeleteRatePackItemResponses, LibraryDeleteRatePackResponses, LibraryDeleteTagData, LibraryDeleteTagErrors, LibraryDeleteTagResponses, LibraryDisableIncentivePackData, LibraryDisableIncentivePackErrors, LibraryDisableIncentivePackResponses, LibraryDisableRatePackData, LibraryDisableRatePackErrors, LibraryDisableRatePackResponses, LibraryEnableIncentivePackData, LibraryEnableIncentivePackErrors, LibraryEnableIncentivePackResponses, LibraryEnableRatePackData, LibraryEnableRatePackErrors, LibraryEnableRatePackResponses, LibraryGetCurrencyTemplateData, LibraryGetCurrencyTemplateErrors, LibraryGetCurrencyTemplateResponses, LibraryGetFringeTagTemplateData, LibraryGetFringeTagTemplateErrors, LibraryGetFringeTagTemplateResponses, LibraryGetFringeTemplateData, LibraryGetFringeTemplateErrors, LibraryGetFringeTemplateResponses, LibraryGetGlobalTemplateData, LibraryGetGlobalTemplateErrors, LibraryGetGlobalTemplateResponses, LibraryGetIncentivePackData, LibraryGetIncentivePackErrors, LibraryGetIncentivePackResponses, LibraryGetProjectCurrencyData, LibraryGetProjectCurrencyErrors, LibraryGetProjectCurrencyResponses, LibraryGetProjectFringeData, LibraryGetProjectFringeErrors, LibraryGetProjectFringeResponses, LibraryGetProjectFringeTagData, LibraryGetProjectFringeTagErrors, LibraryGetProjectFringeTagResponses, LibraryGetProjectGlobalData, LibraryGetProjectGlobalErrors, LibraryGetProjectGlobalResponses, LibraryGetProjectIncentiveData, LibraryGetProjectIncentiveErrors, LibraryGetProjectIncentiveResponses, LibraryGetRatePackData, LibraryGetRatePackErrors, LibraryGetRatePackResponses, LibraryGetTagData, LibraryGetTagErrors, LibraryGetTagResponses, LibraryListCurrencyTemplatesData, LibraryListCurrencyTemplatesErrors, LibraryListCurrencyTemplatesResponses, LibraryListCustomUnitsData, LibraryListCustomUnitsErrors, LibraryListCustomUnitsResponses, LibraryListFringeTagTemplatesData, LibraryListFringeTagTemplatesErrors, LibraryListFringeTagTemplatesResponses, LibraryListFringeTemplatesData, LibraryListFringeTemplatesErrors, LibraryListFringeTemplatesResponses, LibraryListGlobalTemplatesData, LibraryListGlobalTemplatesErrors, LibraryListGlobalTemplatesResponses, LibraryListIncentivePacksData, LibraryListIncentivePacksErrors, LibraryListIncentivePacksResponses, LibraryListIncentiveProgramsData, LibraryListIncentiveProgramsErrors, LibraryListIncentiveProgramsResponses, LibraryListProjectCurrenciesData, LibraryListProjectCurrenciesErrors, LibraryListProjectCurrenciesResponses, LibraryListProjectFringesData, LibraryListProjectFringesErrors, LibraryListProjectFringesResponses, LibraryListProjectFringeTagsData, LibraryListProjectFringeTagsErrors, LibraryListProjectFringeTagsResponses, LibraryListProjectGlobalsData, LibraryListProjectGlobalsErrors, LibraryListProjectGlobalsResponses, LibraryListProjectIncentivesData, LibraryListProjectIncentivesErrors, LibraryListProjectIncentivesResponses, LibraryListProjectRatePacksData, LibraryListProjectRatePacksErrors, LibraryListProjectRatePacksResponses, LibraryListProjectTagsData, LibraryListProjectTagsErrors, LibraryListProjectTagsResponses, LibraryListRatePackItemsData, LibraryListRatePackItemsErrors, LibraryListRatePackItemsResponses, LibraryListRatePacksData, LibraryListRatePacksErrors, LibraryListRatePacksResponses, LibraryListTagsData, LibraryListTagsErrors, LibraryListTagsResponses, LibraryListUnitsData, LibraryListUnitsErrors, LibraryListUnitsResponses, LibraryRemoveProjectTagData, LibraryRemoveProjectTagErrors, LibraryRemoveProjectTagResponses, LibraryRemoveRatePackData, LibraryRemoveRatePackErrors, LibraryRemoveRatePackResponses, LibraryUpdateCurrencyTemplateData, LibraryUpdateCurrencyTemplateErrors, LibraryUpdateCurrencyTemplateResponses, LibraryUpdateCustomUnitData, LibraryUpdateCustomUnitErrors, LibraryUpdateCustomUnitResponses, LibraryUpdateFringeTagTemplateData, LibraryUpdateFringeTagTemplateErrors, LibraryUpdateFringeTagTemplateResponses, LibraryUpdateFringeTemplateData, LibraryUpdateFringeTemplateErrors, LibraryUpdateFringeTemplateResponses, LibraryUpdateGlobalTemplateData, LibraryUpdateGlobalTemplateErrors, LibraryUpdateGlobalTemplateResponses, LibraryUpdateProjectCurrencyData, LibraryUpdateProjectCurrencyErrors, LibraryUpdateProjectCurrencyResponses, LibraryUpdateProjectFringeData, LibraryUpdateProjectFringeErrors, LibraryUpdateProjectFringeResponses, LibraryUpdateProjectFringeTagData, LibraryUpdateProjectFringeTagErrors, LibraryUpdateProjectFringeTagResponses, LibraryUpdateProjectGlobalData, LibraryUpdateProjectGlobalErrors, LibraryUpdateProjectGlobalResponses, LibraryUpdateProjectIncentiveData, LibraryUpdateProjectIncentiveErrors, LibraryUpdateProjectIncentiveResponses, LibraryUpdateRatePackData, LibraryUpdateRatePackErrors, LibraryUpdateRatePackItemData, LibraryUpdateRatePackItemErrors, LibraryUpdateRatePackItemResponses, LibraryUpdateRatePackResponses, LibraryUpdateTagData, LibraryUpdateTagErrors, LibraryUpdateTagResponses, MasterDataCreateCommentData, MasterDataCreateCommentErrors, MasterDataCreateCommentResponses, MasterDataCreateContactData, MasterDataCreateContactErrors, MasterDataCreateContactResponses, MasterDataCreateProjectData, MasterDataCreateProjectErrors, MasterDataCreateProjectResponses, MasterDataCreateSpaceData, MasterDataCreateSpaceErrors, MasterDataCreateSpaceResponses, MasterDataDeleteCommentData, MasterDataDeleteCommentErrors, MasterDataDeleteCommentResponses, MasterDataDeleteContactData, MasterDataDeleteContactErrors, MasterDataDeleteContactResponses, MasterDataDeleteProjectData, MasterDataDeleteProjectErrors, MasterDataDeleteProjectResponses, MasterDataDeleteSpaceData, MasterDataDeleteSpaceErrors, MasterDataDeleteSpaceResponses, MasterDataGetContactData, MasterDataGetContactErrors, MasterDataGetContactResponses, MasterDataGetProjectData, MasterDataGetProjectErrors, MasterDataGetProjectResponses, MasterDataGetViewData, MasterDataGetViewDataData, MasterDataGetViewDataErrors, MasterDataGetViewDataResponses, MasterDataGetViewErrors, MasterDataGetViewResponses, MasterDataListCommentsData, MasterDataListCommentsErrors, MasterDataListCommentsResponses, MasterDataListContactsData, MasterDataListContactsErrors, MasterDataListContactsResponses, MasterDataListProjectsData, MasterDataListProjectsErrors, MasterDataListProjectsResponses, MasterDataListSpacesData, MasterDataListSpacesErrors, MasterDataListSpacesResponses, MasterDataListViewsData, MasterDataListViewsErrors, MasterDataListViewsResponses, MasterDataUpdateCommentData, MasterDataUpdateCommentErrors, MasterDataUpdateCommentResponses, MasterDataUpdateContactData, MasterDataUpdateContactErrors, MasterDataUpdateContactResponses, MasterDataUpdateProjectData, MasterDataUpdateProjectErrors, MasterDataUpdateProjectResponses, MasterDataUpdateSpaceData, MasterDataUpdateSpaceErrors, MasterDataUpdateSpaceResponses, MetaAuthGetMeData, MetaAuthGetMeErrors, MetaAuthGetMeResponses, MetaAuthGetWorkspaceData, MetaAuthGetWorkspaceErrors, MetaAuthGetWorkspaceResponses, MetaAuthHealthData, MetaAuthHealthErrors, MetaAuthHealthResponses, MetaAuthListWorkspacesData, MetaAuthListWorkspacesErrors, MetaAuthListWorkspacesResponses, PurchaseOrdersCancelSubmissionData, PurchaseOrdersCancelSubmissionErrors, PurchaseOrdersCancelSubmissionResponses, PurchaseOrdersCreateData, PurchaseOrdersCreateErrors, PurchaseOrdersCreateItemData, PurchaseOrdersCreateItemErrors, PurchaseOrdersCreateItemResponses, PurchaseOrdersCreateResponses, PurchaseOrdersDeleteData, PurchaseOrdersDeleteErrors, PurchaseOrdersDeleteItemData, PurchaseOrdersDeleteItemErrors, PurchaseOrdersDeleteItemResponses, PurchaseOrdersDeleteResponses, PurchaseOrdersFinalizeData, PurchaseOrdersFinalizeErrors, PurchaseOrdersFinalizeResponses, PurchaseOrdersGetData, PurchaseOrdersGetErrors, PurchaseOrdersGetResponses, PurchaseOrdersLifecycleData, PurchaseOrdersLifecycleErrors, PurchaseOrdersLifecycleResponses, PurchaseOrdersLinkData, PurchaseOrdersLinkErrors, PurchaseOrdersLinkResponses, PurchaseOrdersListData, PurchaseOrdersListErrors, PurchaseOrdersListItemsData, PurchaseOrdersListItemsErrors, PurchaseOrdersListItemsResponses, PurchaseOrdersListResponses, PurchaseOrdersListTransactionsData, PurchaseOrdersListTransactionsErrors, PurchaseOrdersListTransactionsResponses, PurchaseOrdersSubmitData, PurchaseOrdersSubmitErrors, PurchaseOrdersSubmitResponses, PurchaseOrdersUnlinkData, PurchaseOrdersUnlinkErrors, PurchaseOrdersUnlinkResponses, PurchaseOrdersUpdateData, PurchaseOrdersUpdateErrors, PurchaseOrdersUpdateItemData, PurchaseOrdersUpdateItemErrors, PurchaseOrdersUpdateItemResponses, PurchaseOrdersUpdateResponses, PurchaseOrdersVoidData, PurchaseOrdersVoidErrors, PurchaseOrdersVoidResponses, SearchProjectData, SearchProjectErrors, SearchProjectResponses, SearchWorkspaceData, SearchWorkspaceErrors, SearchWorkspaceResponses, TransactionsBatchCreateData, TransactionsBatchCreateErrors, TransactionsBatchCreateResponses, TransactionsCreateData, TransactionsCreateErrors, TransactionsCreateResponses, TransactionsDeleteData, TransactionsDeleteErrors, TransactionsDeleteResponses, TransactionsGetData, TransactionsGetErrors, TransactionsGetResponses, TransactionsItemsCreateData, TransactionsItemsCreateErrors, TransactionsItemsCreateResponses, TransactionsItemsDeleteData, TransactionsItemsDeleteErrors, TransactionsItemsDeleteResponses, TransactionsItemsListData, TransactionsItemsListErrors, TransactionsItemsListResponses, TransactionsItemsUpdateData, TransactionsItemsUpdateErrors, TransactionsItemsUpdateResponses, TransactionsListData, TransactionsListErrors, TransactionsListResponses, TransactionsStatsData, TransactionsStatsErrors, TransactionsStatsResponses, TransactionsTypesData, TransactionsTypesErrors, TransactionsTypesResponses, TransactionsUpdateData, TransactionsUpdateErrors, TransactionsUpdateResponses, UsageListCreditsData, UsageListCreditsErrors, UsageListCreditsResponses, UsageListOperationsData, UsageListOperationsErrors, UsageListOperationsResponses, UsageListProjectRollupsData, UsageListProjectRollupsErrors, UsageListProjectRollupsResponses, UsageListRollupsData, UsageListRollupsErrors, UsageListRollupsResponses, WebhooksCreateData, WebhooksCreateErrors, WebhooksCreateResponses, WebhooksDeleteData, WebhooksDeleteErrors, WebhooksDeleteResponses, WebhooksGetData, WebhooksGetErrors, WebhooksGetResponses, WebhooksListData, WebhooksListDeliveriesData, WebhooksListDeliveriesErrors, WebhooksListDeliveriesResponses, WebhooksListErrors, WebhooksListResponses, WebhooksPingData, WebhooksPingErrors, WebhooksPingResponses, WebhooksUpdateData, WebhooksUpdateErrors, WebhooksUpdateResponses } from './types.gen.js';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -19,9 +19,9 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 };
 
 /**
- * Get the whole budget (tree + phases + coalesced totals)
+ * Get the whole budget (tree + phases + totals)
  *
- * Returns the entire budget as a flat array of lines (rebuild the tree from `parentId`), the phase columns, and engine-coalesced grand totals, all as of `computedAt`. Whole-tree, never paginated, a correct rollup needs the full subtree. Served from the engine cache (TTL backstop + change token + single-flight). `expand` is rejected; the phase matrix is always present. Above the server line ceiling returns `413 budget_too_large` pointing at `/budget/lines` + `/budget/totals`.
+ * Returns the entire budget as a flat array of lines (rebuild the tree from `parentId`), the phase columns, and grand totals, all as of `computedAt`. Whole-tree, never paginated, a correct rollup needs the full subtree. `expand` is rejected; the phase matrix is always present. Above the server line ceiling returns `413 budget_too_large` pointing at `/budget/lines` + `/budget/totals`.
  */
 export const budgetGetTree = <ThrowOnError extends boolean = false>(options: Options<BudgetGetTreeData, ThrowOnError>) => (options.client ?? client).get<BudgetGetTreeResponses, BudgetGetTreeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -30,9 +30,9 @@ export const budgetGetTree = <ThrowOnError extends boolean = false>(options: Opt
 });
 
 /**
- * Get engine-coalesced grand totals (optionally for a filtered slice)
+ * Get grand totals (optionally for a filtered slice)
  *
- * Returns the engine's grand totals as of `computedAt`. With filters (`phase`, `tags`/`tagMode`, `accountId`/`path` subtree, `dateFrom`/`dateTo`) the engine computes the slice total, e.g. "total VFX in the estimate phase". The engine computes the filtered rollup; it is never summed client-side. Slices cache per (budget, changeToken, filterHash). `expand` is rejected.
+ * Returns the engine's grand totals as of `computedAt`. With filters (`phase`, `tags`/`tagMode`, `accountId`/`path` subtree, `dateFrom`/`dateTo`) the engine computes the slice total, e.g. "total VFX in the estimate phase". Totals are computed server-side, not summed by the client. Slices cache per (budget, changeToken, filterHash). `expand` is rejected.
  */
 export const budgetGetTotals = <ThrowOnError extends boolean = false>(options: Options<BudgetGetTotalsData, ThrowOnError>) => (options.client ?? client).get<BudgetGetTotalsResponses, BudgetGetTotalsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -43,7 +43,7 @@ export const budgetGetTotals = <ThrowOnError extends boolean = false>(options: O
 /**
  * Get the engine rollup for a phase
  *
- * Returns the engine-coalesced rollup value for a single phase as of `computedAt`. `expand` is rejected.
+ * Returns the computed rollup for a single phase as of `computedAt`. `expand` is not supported.
  */
 export const budgetGetRollup = <ThrowOnError extends boolean = false>(options: Options<BudgetGetRollupData, ThrowOnError>) => (options.client ?? client).get<BudgetGetRollupResponses, BudgetGetRollupErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -63,9 +63,9 @@ export const budgetGetVariance = <ThrowOnError extends boolean = false>(options:
 });
 
 /**
- * Read a positional cell via explicit account + column
+ * Read one budget value by account and column
  *
- * Reads a single positional cell value via explicit `account` + `column` params, never a raw domain address. `account` accepts a path/code; `column` names the value column (e.g. a phase). Wildcard/subtree pattern reads stay internal-only. This is an engine-authoritative computed read on the cache, identical in freshness contract to `/budget/totals`: the value is the engine's truth as of `computedAt` (in the body), the response carries `Cache-Control: max-age=T` + an opaque `ETag` header, and a conditional GET (`If-None-Match`) re-runs the row-derived permission gate before returning `304`. `expand` is rejected (`400 expand_invalid`); a warm-up miss returns `504 budget_compute_timeout`.
+ * Reads one budget value by `account` + `column`, never a raw domain address. `account` accepts a path/code; `column` names the value column (e.g. a phase). Wildcard/subtree pattern reads stay internal-only. The value is computed server-side as of `computedAt`, with the same caching behavior as `/budget/totals`: the value is the engine's truth as of `computedAt` (in the body), the response carries `Cache-Control: max-age=T` + an opaque `ETag` header, and a conditional GET (`If-None-Match`) re-runs the row-derived permission gate before returning `304`. `expand` is rejected (`400 expand_invalid`); a warm-up miss returns `504 budget_compute_timeout`.
  */
 export const budgetGetCell = <ThrowOnError extends boolean = false>(options: Options<BudgetGetCellData, ThrowOnError>) => (options.client ?? client).get<BudgetGetCellResponses, BudgetGetCellErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -76,7 +76,7 @@ export const budgetGetCell = <ThrowOnError extends boolean = false>(options: Opt
 /**
  * List budget lines (paginated, filterable)
  *
- * Browse/edit individual stored budget lines, paginated. Filters AND-compose. `accountId` is a classifier and returns a set (an account code can sit on many rows); `path` returns exactly one row (or `409 account_path_ambiguous` if a coded path matches more than one live row). For just the rolled-up numbers use `/budget/totals`; for the full coalesced tree use `GET /budget`. Expand keys: `phases, phaseData, contact, account, sourceItem, documents`, `phaseData` is the depth-2 `lines.phaseData` per-phase line breakdown, distinct from the coalesced `phases` value matrix. (The legacy `lines.notes` expand is not ported, the note is a plain-text `line.notes` field always present inline; see `BudgetLine.notes`.)
+ * Browse/edit individual stored budget lines, paginated. Filters AND-compose. `accountId` is a classifier and returns a set (an account code can sit on many rows); `path` returns exactly one row (or `409 account_path_ambiguous` if a coded path matches more than one live row). For just the rolled-up numbers use `/budget/totals`; for the full tree use `GET /budget`. Expand keys: `phases, phaseData, contact, account, sourceItem`, `phaseData` is the depth-2 `lines.phaseData` per-phase line breakdown, distinct from the `phases` value matrix. (The legacy `lines.notes` expand is not ported, the note is a plain-text `line.notes` field always present inline; see `BudgetLine.notes`.)
  */
 export const budgetListLines = <ThrowOnError extends boolean = false>(options: Options<BudgetListLinesData, ThrowOnError>) => (options.client ?? client).get<BudgetListLinesResponses, BudgetListLinesErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -223,7 +223,7 @@ export const documentsList = <ThrowOnError extends boolean = false>(options: Opt
 /**
  * Drop a document (optionally assign atomically)
  *
- * Upload ("drop") a document once. Optionally assign it to one or more typed targets in the same atomic call via `metadata.assignTo`, the 80% "receipt onto this transaction" case. Atomic: if any target fails validation, permission, or the cross-workspace check, the request fails 4xx and NO document row (and no orphan blob) is created. In v1, multiple targets must be DISTINCT kinds (one reference per kind). The assign permission gate is `update` on each target's subject (`budgetLine` → `Budget`), not on the document.
+ * Upload ("drop") a document once. Optionally assign it to one or more typed targets in the same atomic call via `metadata.assignTo`, the 80% "receipt onto this transaction" case. Atomic: if any target fails validation, permission, or the cross-workspace check, the request fails 4xx and NO document row (and no orphan blob) is created. In v1, multiple targets must be DISTINCT kinds (one reference per kind). The assign permission gate is `update` on each target's subject, not on the document.
  * This is a billable create (it stores a blob and a document row). Accepts an optional `Idempotency-Key` header for safe retries; replaying the same key with a different body returns `409 idempotency_conflict`.
  */
 export const documentsDrop = <ThrowOnError extends boolean = false>(options: Options<DocumentsDropData, ThrowOnError>) => (options.client ?? client).post<DocumentsDropResponses, DocumentsDropErrors, ThrowOnError>({
@@ -298,7 +298,7 @@ export const documentsGetExtraction = <ThrowOnError extends boolean = false>(opt
 /**
  * Assign a document to a typed target
  *
- * Assign an already-dropped document to a typed `{ kind, id }` target. The permission gate is `update` on the target's subject (`budgetLine` → `Budget`), so you can only attach where you could already edit the thing, not on the document. Idempotent on the SAME id (`200` no-op); a same-kind assignment to a DIFFERENT id returns `409 already_assigned` unless `replace: true`. A target in a different workspace returns `404 not_found` (never silently ignored). It is deliberately indistinguishable from a target that does not exist, so cross-workspace existence is never leaked.
+ * Assign an already-dropped document to a typed `{ kind, id }` target. The permission gate is `update` on the target's subject, so you can only attach where you could already edit the thing, not on the document. Idempotent on the SAME id (`200` no-op); a same-kind assignment to a DIFFERENT id returns `409 already_assigned` unless `replace: true`. A target in a different workspace returns `404 not_found` (never silently ignored). It is deliberately indistinguishable from a target that does not exist, so cross-workspace existence is never leaked.
  */
 export const documentsAssign = <ThrowOnError extends boolean = false>(options: Options<DocumentsAssignData, ThrowOnError>) => (options.client ?? client).post<DocumentsAssignResponses, DocumentsAssignErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -357,18 +357,6 @@ export const documentsListByTransaction = <ThrowOnError extends boolean = false>
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/workspaces/{workspaceId}/projects/{projectId}/transactions/{txId}/documents',
-    ...options
-});
-
-/**
- * List documents on a budget line
- *
- * Reverse read, documents assigned to this budget line (`budgetLineId = {lineId}`). Backed by the v1 `budgetLineId` reference + `budgetLine` relationship.
- */
-export const documentsListByBudgetLine = <ThrowOnError extends boolean = false>(options: Options<DocumentsListByBudgetLineData, ThrowOnError>) => (options.client ?? client).get<DocumentsListByBudgetLineResponses, DocumentsListByBudgetLineErrors, ThrowOnError>({
-    querySerializer: { parameters: { expand: { array: { explode: false } } } },
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/workspaces/{workspaceId}/projects/{projectId}/budget/lines/{lineId}/documents',
     ...options
 });
 
@@ -484,7 +472,7 @@ export const libraryEnableRatePack = <ThrowOnError extends boolean = false>(opti
 /**
  * Search/browse a pack's current-version items
  *
- * Latest-version, non-deleted items. Access requires the pack to be enabled, owned, or PUBLIC. Keyset-paginated (cap 100).
+ * Latest-version, non-deleted items. Access requires the pack to be enabled, owned, or PUBLIC. Paginated (cap 100).
  */
 export const libraryListRatePackItems = <ThrowOnError extends boolean = false>(options: Options<LibraryListRatePackItemsData, ThrowOnError>) => (options.client ?? client).get<LibraryListRatePackItemsResponses, LibraryListRatePackItemsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -746,7 +734,7 @@ export const libraryUpdateCurrencyTemplate = <ThrowOnError extends boolean = fal
 /**
  * List workspace fringe-tag templates
  *
- * The 5th entity (groups fringes). Not in the checklist's endpoint list but required per RECONCILIATION #7, omitting it leaves fringe-group source link unexposed.
+ * Fringe groups.
  */
 export const libraryListFringeTagTemplates = <ThrowOnError extends boolean = false>(options: Options<LibraryListFringeTagTemplatesData, ThrowOnError>) => (options.client ?? client).get<LibraryListFringeTagTemplatesResponses, LibraryListFringeTagTemplatesErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -925,7 +913,7 @@ export const libraryListProjectRatePacks = <ThrowOnError extends boolean = false
 /**
  * Remove a rate pack from the project
  *
- * Soft-deletes the resident rate pack link. Idempotent.
+ * Soft-deletes the project rate pack link. Idempotent.
  */
 export const libraryRemoveRatePack = <ThrowOnError extends boolean = false>(options: Options<LibraryRemoveRatePackData, ThrowOnError>) => (options.client ?? client).delete<LibraryRemoveRatePackResponses, LibraryRemoveRatePackErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -945,7 +933,7 @@ export const libraryAddRatePack = <ThrowOnError extends boolean = false>(options
 });
 
 /**
- * List project-resident incentives
+ * List the project's incentives
  */
 export const libraryListProjectIncentives = <ThrowOnError extends boolean = false>(options: Options<LibraryListProjectIncentivesData, ThrowOnError>) => (options.client ?? client).get<LibraryListProjectIncentivesResponses, LibraryListProjectIncentivesErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -957,7 +945,7 @@ export const libraryListProjectIncentives = <ThrowOnError extends boolean = fals
 /**
  * Add an incentive program into the project
  *
- * Adds a program (its current published version) as a resident incentive. Keyed on `(projectId, sourceIncentiveVersionId)`; idempotent. Rejected (`400 validation`) when the version/program/pack is not `published`, the pack is `deprecated`, or the pack is neither workspace-enabled nor workspace-owned.
+ * Adds a program (its current published version) as a project incentive. Keyed on `(projectId, sourceIncentiveVersionId)`; idempotent. Rejected (`400 validation`) when the version/program/pack is not `published`, the pack is `deprecated`, or the pack is neither workspace-enabled nor workspace-owned.
  */
 export const libraryAddProjectIncentive = <ThrowOnError extends boolean = false>(options: Options<LibraryAddProjectIncentiveData, ThrowOnError>) => (options.client ?? client).post<LibraryAddProjectIncentiveResponses, LibraryAddProjectIncentiveErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -970,9 +958,9 @@ export const libraryAddProjectIncentive = <ThrowOnError extends boolean = false>
 });
 
 /**
- * Remove a project-resident incentive
+ * Remove a project incentive
  *
- * Soft-deletes the resident incentive. Idempotent. Re-add resurrects (see `/add`).
+ * Soft-deletes the project incentive. Idempotent. Re-add resurrects (see `/add`).
  */
 export const libraryDeleteProjectIncentive = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteProjectIncentiveData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteProjectIncentiveResponses, LibraryDeleteProjectIncentiveErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -981,7 +969,7 @@ export const libraryDeleteProjectIncentive = <ThrowOnError extends boolean = fal
 });
 
 /**
- * Get a project-resident incentive
+ * Get a project incentive
  */
 export const libraryGetProjectIncentive = <ThrowOnError extends boolean = false>(options: Options<LibraryGetProjectIncentiveData, ThrowOnError>) => (options.client ?? client).get<LibraryGetProjectIncentiveResponses, LibraryGetProjectIncentiveErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -991,9 +979,9 @@ export const libraryGetProjectIncentive = <ThrowOnError extends boolean = false>
 });
 
 /**
- * Update a project-resident incentive
+ * Update a project incentive
  *
- * Provenance fields (`sourceId`, `sourceIncentiveVersionId`, `sourceType`) are read-only.
+ * The source-tracking fields (`sourceId`, `sourceIncentiveVersionId`, `sourceType`) are read-only.
  */
 export const libraryUpdateProjectIncentive = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateProjectIncentiveData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateProjectIncentiveResponses, LibraryUpdateProjectIncentiveErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1006,7 +994,7 @@ export const libraryUpdateProjectIncentive = <ThrowOnError extends boolean = fal
 });
 
 /**
- * List project-resident fringe copies
+ * List project fringe copies
  */
 export const libraryListProjectFringes = <ThrowOnError extends boolean = false>(options: Options<LibraryListProjectFringesData, ThrowOnError>) => (options.client ?? client).get<LibraryListProjectFringesResponses, LibraryListProjectFringesErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1031,7 +1019,7 @@ export const libraryAddProjectFringe = <ThrowOnError extends boolean = false>(op
 });
 
 /**
- * Remove a project-resident fringe copy
+ * Remove a project fringe copy
  *
  * Soft-deletes the copy. Re-`add` resurrects it as-is unless `?reset=true`. Idempotent.
  */
@@ -1042,7 +1030,7 @@ export const libraryDeleteProjectFringe = <ThrowOnError extends boolean = false>
 });
 
 /**
- * Get a project-resident fringe copy
+ * Get a project fringe copy
  */
 export const libraryGetProjectFringe = <ThrowOnError extends boolean = false>(options: Options<LibraryGetProjectFringeData, ThrowOnError>) => (options.client ?? client).get<LibraryGetProjectFringeResponses, LibraryGetProjectFringeErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1052,7 +1040,7 @@ export const libraryGetProjectFringe = <ThrowOnError extends boolean = false>(op
 });
 
 /**
- * Update a project-resident fringe copy
+ * Update a project fringe copy
  *
  * Diverges the copy from its source; `sourceId`/`sourceType` are read-only.
  */
@@ -1067,7 +1055,7 @@ export const libraryUpdateProjectFringe = <ThrowOnError extends boolean = false>
 });
 
 /**
- * List project-resident global copies
+ * List project global copies
  */
 export const libraryListProjectGlobals = <ThrowOnError extends boolean = false>(options: Options<LibraryListProjectGlobalsData, ThrowOnError>) => (options.client ?? client).get<LibraryListProjectGlobalsResponses, LibraryListProjectGlobalsErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1092,7 +1080,7 @@ export const libraryAddProjectGlobal = <ThrowOnError extends boolean = false>(op
 });
 
 /**
- * Remove a project-resident global copy
+ * Remove a project global copy
  */
 export const libraryDeleteProjectGlobal = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteProjectGlobalData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteProjectGlobalResponses, LibraryDeleteProjectGlobalErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1101,7 +1089,7 @@ export const libraryDeleteProjectGlobal = <ThrowOnError extends boolean = false>
 });
 
 /**
- * Get a project-resident global copy
+ * Get a project global copy
  */
 export const libraryGetProjectGlobal = <ThrowOnError extends boolean = false>(options: Options<LibraryGetProjectGlobalData, ThrowOnError>) => (options.client ?? client).get<LibraryGetProjectGlobalResponses, LibraryGetProjectGlobalErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1111,7 +1099,7 @@ export const libraryGetProjectGlobal = <ThrowOnError extends boolean = false>(op
 });
 
 /**
- * Update a project-resident global copy
+ * Update a project global copy
  */
 export const libraryUpdateProjectGlobal = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateProjectGlobalData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateProjectGlobalResponses, LibraryUpdateProjectGlobalErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1124,7 +1112,7 @@ export const libraryUpdateProjectGlobal = <ThrowOnError extends boolean = false>
 });
 
 /**
- * List project-resident currency copies
+ * List project currency copies
  */
 export const libraryListProjectCurrencies = <ThrowOnError extends boolean = false>(options: Options<LibraryListProjectCurrenciesData, ThrowOnError>) => (options.client ?? client).get<LibraryListProjectCurrenciesResponses, LibraryListProjectCurrenciesErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1149,7 +1137,7 @@ export const libraryAddProjectCurrency = <ThrowOnError extends boolean = false>(
 });
 
 /**
- * Remove a project-resident currency copy
+ * Remove a project currency copy
  */
 export const libraryDeleteProjectCurrency = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteProjectCurrencyData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteProjectCurrencyResponses, LibraryDeleteProjectCurrencyErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1158,7 +1146,7 @@ export const libraryDeleteProjectCurrency = <ThrowOnError extends boolean = fals
 });
 
 /**
- * Get a project-resident currency copy
+ * Get a project currency copy
  */
 export const libraryGetProjectCurrency = <ThrowOnError extends boolean = false>(options: Options<LibraryGetProjectCurrencyData, ThrowOnError>) => (options.client ?? client).get<LibraryGetProjectCurrencyResponses, LibraryGetProjectCurrencyErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1168,7 +1156,7 @@ export const libraryGetProjectCurrency = <ThrowOnError extends boolean = false>(
 });
 
 /**
- * Update a project-resident currency copy
+ * Update a project currency copy
  */
 export const libraryUpdateProjectCurrency = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateProjectCurrencyData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateProjectCurrencyResponses, LibraryUpdateProjectCurrencyErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1181,7 +1169,7 @@ export const libraryUpdateProjectCurrency = <ThrowOnError extends boolean = fals
 });
 
 /**
- * List project-resident fringe-tag copies
+ * List project fringe-tag copies
  */
 export const libraryListProjectFringeTags = <ThrowOnError extends boolean = false>(options: Options<LibraryListProjectFringeTagsData, ThrowOnError>) => (options.client ?? client).get<LibraryListProjectFringeTagsResponses, LibraryListProjectFringeTagsErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1206,7 +1194,7 @@ export const libraryAddProjectFringeTag = <ThrowOnError extends boolean = false>
 });
 
 /**
- * Remove a project-resident fringe-tag copy
+ * Remove a project fringe-tag copy
  */
 export const libraryDeleteProjectFringeTag = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteProjectFringeTagData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteProjectFringeTagResponses, LibraryDeleteProjectFringeTagErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1215,7 +1203,7 @@ export const libraryDeleteProjectFringeTag = <ThrowOnError extends boolean = fal
 });
 
 /**
- * Get a project-resident fringe-tag copy
+ * Get a project fringe-tag copy
  */
 export const libraryGetProjectFringeTag = <ThrowOnError extends boolean = false>(options: Options<LibraryGetProjectFringeTagData, ThrowOnError>) => (options.client ?? client).get<LibraryGetProjectFringeTagResponses, LibraryGetProjectFringeTagErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1225,7 +1213,7 @@ export const libraryGetProjectFringeTag = <ThrowOnError extends boolean = false>
 });
 
 /**
- * Update a project-resident fringe-tag copy
+ * Update a project fringe-tag copy
  */
 export const libraryUpdateProjectFringeTag = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateProjectFringeTagData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateProjectFringeTagResponses, LibraryUpdateProjectFringeTagErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1277,7 +1265,7 @@ export const libraryAddProjectTag = <ThrowOnError extends boolean = false>(optio
 /**
  * List projects
  *
- * List the workspace's projects, permission-filtered to those the token can read. Keyset-paginated (cap-100). Soft-deleted projects are hidden unless `includeDeleted=true`. Legacy parity note: the project filter set is intentionally narrower than legacy. The high-value facets are kept (`status`, `spaceId`, `q`); the legacy `labels[]` project-label filter is NOT ported, Next has no project-label primitive (projects are grouped by `spaceId`, and per-entity tagging is the Library tag pool, not a project label). Deep, saved filters belong to a `view` (), not the query string.
+ * List the workspace's projects, permission-filtered to those the token can read. Paginated (cap-100). Soft-deleted projects are hidden unless `includeDeleted=true`. Legacy parity note: the project filter set is intentionally narrower than legacy. The high-value facets are kept (`status`, `spaceId`, `q`); the legacy `labels[]` project-label filter is NOT ported, Next has no project-label primitive (projects are grouped by `spaceId`, and per-entity tagging is the Library tag pool, not a project label). Deep, saved filters belong to a `view` (), not the query string.
  */
 export const masterDataListProjects = <ThrowOnError extends boolean = false>(options: Options<MasterDataListProjectsData, ThrowOnError>) => (options.client ?? client).get<MasterDataListProjectsResponses, MasterDataListProjectsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1340,7 +1328,7 @@ export const masterDataUpdateProject = <ThrowOnError extends boolean = false>(op
 /**
  * List spaces
  *
- * List the workspace's spaces. Keyset-paginated.
+ * List the workspace's spaces. Paginated.
  */
 export const masterDataListSpaces = <ThrowOnError extends boolean = false>(options: Options<MasterDataListSpacesData, ThrowOnError>) => (options.client ?? client).get<MasterDataListSpacesResponses, MasterDataListSpacesErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1388,7 +1376,7 @@ export const masterDataUpdateSpace = <ThrowOnError extends boolean = false>(opti
 /**
  * List contacts
  *
- * List the workspace's contacts. Keyset-paginated. Supports `expand=documents,transactions` (permission-projected, an empty/partial expanded array means "not-readable-or-absent", surfaced via the envelope's `truncated` flag). Legacy parity note: the contact filter set is intentionally narrower than legacy. The high-value facets are kept (`q`, `type`, `tags`/`tagMode`, `track1099`, `hasTaxId`); legacy origin / linked-user / start-work facets are not ported, and the full tax / bank numbers are never filterable or returned (only the display-safe `taxIdLast4` / `hasTaxId` hints). Deep, saved filters belong to a `view` ().
+ * List the workspace's contacts. Paginated. Supports `expand=documents,transactions` (permission-projected, an empty/partial expanded array means "not-readable-or-absent", indicated by the response's `truncated` flag). Legacy parity note: the contact filter set is intentionally narrower than legacy. The high-value facets are kept (`q`, `type`, `tags`/`tagMode`, `track1099`, `hasTaxId`); legacy origin / linked-user / start-work facets are not ported, and the full tax / bank numbers are never filterable or returned (only the display-safe `taxIdLast4` / `hasTaxId` hints). Deep, saved filters belong to a `view` ().
  */
 export const masterDataListContacts = <ThrowOnError extends boolean = false>(options: Options<MasterDataListContactsData, ThrowOnError>) => (options.client ?? client).get<MasterDataListContactsResponses, MasterDataListContactsErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1447,7 +1435,7 @@ export const masterDataUpdateContact = <ThrowOnError extends boolean = false>(op
 /**
  * List comments
  *
- * List comments across the workspace, permission-filtered to the projects the token can read. Narrow to one entity with `targetKind` + `targetId`, or one project with `projectId`. Keyset-paginated.
+ * List comments across the workspace, permission-filtered to the projects the token can read. Narrow to one entity with `targetKind` + `targetId`, or one project with `projectId`. Paginated.
  */
 export const masterDataListComments = <ThrowOnError extends boolean = false>(options: Options<MasterDataListCommentsData, ThrowOnError>) => (options.client ?? client).get<MasterDataListCommentsResponses, MasterDataListCommentsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1499,7 +1487,7 @@ export const masterDataUpdateComment = <ThrowOnError extends boolean = false>(op
 /**
  * List saved views
  *
- * List the project's saved views the token can see (personal views of the principal plus workspace-visible views). Keyset-paginated.
+ * List the project's saved views the token can see (personal views of the principal plus workspace-visible views). Paginated.
  */
 export const masterDataListViews = <ThrowOnError extends boolean = false>(options: Options<MasterDataListViewsData, ThrowOnError>) => (options.client ?? client).get<MasterDataListViewsResponses, MasterDataListViewsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1540,7 +1528,7 @@ export const metaAuthHealth = <ThrowOnError extends boolean = false>(options?: O
 /**
  * The token's identity and reachable workspaces
  *
- * The first call any integration makes and the Zapier / n8n auth-probe. Returns the token's principal identity and the workspaces it can act on, with **no path params** (works before any workspace is known). A workspace-scoped token lists only its one workspace. Roles resolve live per request. Never leaks workspaceId / workspaceRole.
+ * Returns the token's identity and the workspaces it can reach. Returns the token's principal identity and the workspaces it can act on, with **no path params** (works before any workspace is known). A workspace-scoped token lists only its one workspace. Roles resolve live per request. Never leaks workspaceId / workspaceRole.
  */
 export const metaAuthGetMe = <ThrowOnError extends boolean = false>(options?: Options<MetaAuthGetMeData, ThrowOnError>) => (options?.client ?? client).get<MetaAuthGetMeResponses, MetaAuthGetMeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1551,7 +1539,7 @@ export const metaAuthGetMe = <ThrowOnError extends boolean = false>(options?: Op
 /**
  * List the workspaces this token can act on
  *
- * The workspaces the token can act on, permission-filtered to the principal's live reach. A personal token may span several; a service / workspace- scoped token returns its one. Keyset-paginated (cap-100). Each item carries the principal's current `workspaceRole`.
+ * The workspaces the token can act on, permission-filtered to the principal's live reach. A personal token may span several; a service / workspace- scoped token returns its one. Paginated (cap 100). Each item carries the principal's current `workspaceRole`.
  */
 export const metaAuthListWorkspaces = <ThrowOnError extends boolean = false>(options?: Options<MetaAuthListWorkspacesData, ThrowOnError>) => (options?.client ?? client).get<MetaAuthListWorkspacesResponses, MetaAuthListWorkspacesErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1573,7 +1561,7 @@ export const metaAuthGetWorkspace = <ThrowOnError extends boolean = false>(optio
 /**
  * List purchase orders
  *
- * Keyset-paginated list of a project's purchase orders. Soft-deleted rows are excluded unless `includeDeleted=true`. The response is the positive allow-list projection, the internal ~21-state lifecycle and flow / activity columns never appear. permission-scoped: rows the principal cannot read are omitted, not errored.
+ * Paginated list of a project's purchase orders. Soft-deleted rows are excluded unless `includeDeleted=true`. Only public fields are returned; the status is one of the 7 public values. permission-scoped: rows the principal cannot read are omitted, not errored.
  */
 export const purchaseOrdersList = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersListData, ThrowOnError>) => (options.client ?? client).get<PurchaseOrdersListResponses, PurchaseOrdersListErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1585,7 +1573,7 @@ export const purchaseOrdersList = <ThrowOnError extends boolean = false>(options
 /**
  * Create a purchase order
  *
- * Create a purchase order. The server forces `status='draft'`, sets `createdById`, and upserts a `vendor_of` contact edge when `contactId` is present. Naming a server-owned field (`status`, `createdById`, `workspaceId`, `projectId`, any `flow*`/`activity*` column) returns `422 field_read_only`. Accepts an optional `Idempotency-Key` header.
+ * Create a purchase order. The server forces `status='draft'` and sets `createdById`. Naming a server-owned field (`status`, `createdById`, `workspaceId`, `projectId`, any `flow*`/`activity*` column) returns `422 field_read_only`. Accepts an optional `Idempotency-Key` header.
  */
 export const purchaseOrdersCreate = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersCreateData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersCreateResponses, PurchaseOrdersCreateErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1684,7 +1672,7 @@ export const purchaseOrdersFinalize = <ThrowOnError extends boolean = false>(opt
 /**
  * Link a transaction to a purchase order
  *
- * Link a transaction in the same project to an approved or committed PO. The first successful link moves the PO to `committed`, upserts the `purchase_order linked_to transaction` edge, and emits `purchaseOrder.committed`. A transaction from another project returns `409 po_invalid_status`; a transaction already linked to a different PO returns `409 already_assigned`.
+ * Link a transaction in the same project to an approved or committed PO. The first successful link moves the PO to `committed` and emits `purchaseOrder.committed`. A transaction from another project returns `409 po_invalid_status`; a transaction already linked to a different PO returns `409 already_assigned`.
  */
 export const purchaseOrdersLink = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersLinkData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersLinkResponses, PurchaseOrdersLinkErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1714,7 +1702,7 @@ export const purchaseOrdersUnlink = <ThrowOnError extends boolean = false>(optio
 /**
  * Get the purchase order lifecycle projection
  *
- * The canonical, leak-safe way to read the granular ~21-state internal lifecycle. Read-only, computed from approval decisions, matched transactions and payment signals. The base resource only ever exposes the 7-value `status`; this endpoint (or `expand=lifecycle`) is the only place the richer projection appears.
+ * Read the detailed lifecycle for a purchase order. Read-only, computed from approval decisions, matched transactions and payment signals. The base resource only ever exposes the 7-value `status`; this endpoint (or `expand=lifecycle`) is the only place the richer projection appears.
  */
 export const purchaseOrdersLifecycle = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersLifecycleData, ThrowOnError>) => (options.client ?? client).get<PurchaseOrdersLifecycleResponses, PurchaseOrdersLifecycleErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1777,7 +1765,7 @@ export const purchaseOrdersUpdateItem = <ThrowOnError extends boolean = false>(o
 /**
  * List transactions linked to a purchase order
  *
- * Reverse read of the transactions linked to this PO (the path by which `committed`/`paid` are reached). Keyset-paginated and permission-projected.
+ * Reverse read of the transactions linked to this PO (the path by which `committed`/`paid` are reached). Paginated and permission-projected.
  */
 export const purchaseOrdersListTransactions = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersListTransactionsData, ThrowOnError>) => (options.client ?? client).get<PurchaseOrdersListTransactionsResponses, PurchaseOrdersListTransactionsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1788,7 +1776,7 @@ export const purchaseOrdersListTransactions = <ThrowOnError extends boolean = fa
 /**
  * Search (workspace scope)
  *
- * Ranked, mixed-type Search across the workspace, permission-scoped IN-QUERY: the token's project visibility and per-subject view-access are pushed into the WHERE clause before ranking and cap, so a project-scoped token receives ZERO rows from projects it cannot read (no cross-project / object-level authorization leak). Each hit is `{kind, id, label, snippet, score}`; fetch the full object by `{kind, id}`. `searchedTypes` echoes which kinds were actually queried so partial coverage is visible, never a silent empty (a project-scoped token, for example, drops `contacts`, they are workspace-level only). Results use a deterministic `(score DESC, kind, id)` keyset.
+ * Ranked, mixed-type search across the workspace, permission-filtered so a token never sees results from projects it cannot read. Each hit is `{kind, id, label, snippet, score}`; fetch the full object by `{kind, id}`. `searchedTypes` echoes which kinds were actually queried so partial coverage is visible, never a silent empty (a project-scoped token, for example, drops `contacts`, they are workspace-level only). Results are returned in a stable order so pagination is consistent.
  */
 export const searchWorkspace = <ThrowOnError extends boolean = false>(options: Options<SearchWorkspaceData, ThrowOnError>) => (options.client ?? client).get<SearchWorkspaceResponses, SearchWorkspaceErrors, ThrowOnError>({
     querySerializer: { parameters: { types: { array: { explode: false } } } },
@@ -1800,7 +1788,7 @@ export const searchWorkspace = <ThrowOnError extends boolean = false>(options: O
 /**
  * Search (project scope)
  *
- * The project-scoped variant of Search: every kind is pinned to this single `projectId` (intersected with the token's visibility), so results can only come from that project. As at workspace scope, the permission / view-access filter is applied IN-QUERY before ranking and cap, `searchedTypes` is echoed, and ordering is the deterministic `(score DESC, kind, id)` keyset. `contacts` are workspace-level only and so are never returned at project scope; they are dropped from `searchedTypes`. A `projectId` the token cannot read returns `404 not_found` (same shape as exists-but-unauthorized, so existence never leaks).
+ * The project-scoped variant of search: every kind is restricted to this `projectId` (intersected with the token's visibility), so results can only come from that project. As at workspace scope, the permission / view-access filter is applied before ranking and cap, `searchedTypes` is echoed, and results are returned in a stable order so pagination is consistent. `contacts` are workspace-level only and so are never returned at project scope; they are dropped from `searchedTypes`. A `projectId` the token cannot read returns `404 not_found` (same shape as exists-but-unauthorized, so existence never leaks).
  */
 export const searchProject = <ThrowOnError extends boolean = false>(options: Options<SearchProjectData, ThrowOnError>) => (options.client ?? client).get<SearchProjectResponses, SearchProjectErrors, ThrowOnError>({
     querySerializer: { parameters: { types: { array: { explode: false } } } },
@@ -1812,7 +1800,7 @@ export const searchProject = <ThrowOnError extends boolean = false>(options: Opt
 /**
  * List transactions
  *
- * Flat, AND-composed list of the unified ledger for a project. Every returned row passes a row-derived permission `read` on `{kind:'Transaction', workspaceId, projectId}`; a row the token cannot read is never returned (enumeration-safe). Keyset-paginated (cap 100). `q` runs the text `similarity(description)` search. The page also echoes the `statusReachability` matrix.
+ * Flat, AND-composed list of the unified ledger for a project. Every returned row passes a row-derived permission `read` on `{kind:'Transaction', workspaceId, projectId}`; a row the token cannot read is never returned (enumeration-safe). Paginated (cap 100). `q` runs the text `similarity(description)` search. The page also echoes the `statusReachability` matrix.
  */
 export const transactionsList = <ThrowOnError extends boolean = false>(options: Options<TransactionsListData, ThrowOnError>) => (options.client ?? client).get<TransactionsListResponses, TransactionsListErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1899,7 +1887,7 @@ export const transactionsGet = <ThrowOnError extends boolean = false>(options: O
 /**
  * Update a transaction
  *
- * Partial update driven by the `source -> {readonly, writable}` allow-list. Assignment fields succeed on any source; core fields (`amount`, `currency`, `timestamp`, `type`, `status`, `merchant`, `sourceLast4`, `sourceName`) are writable only on `journal` - naming one on a sourced row -> `422 field_read_only`. Server-owned fields are never writable. A `status` change is validated against the reachability matrix -> `409 status_unreachable_for_source`. Row-derived permission `update`. Fires `transaction.updated`.
+ * Partial update. Which fields are writable depends on the transaction's `source`. Assignment fields succeed on any source; core fields (`amount`, `currency`, `timestamp`, `type`, `status`, `merchant`, `sourceLast4`, `sourceName`) are writable only on `journal` - naming one on a sourced row -> `422 field_read_only`. Server-owned fields are never writable. A `status` change is validated against the reachability matrix -> `409 status_unreachable_for_source`. Row-derived permission `update`. Fires `transaction.updated`.
  */
 export const transactionsUpdate = <ThrowOnError extends boolean = false>(options: Options<TransactionsUpdateData, ThrowOnError>) => (options.client ?? client).patch<TransactionsUpdateResponses, TransactionsUpdateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1925,7 +1913,7 @@ export const transactionsItemsList = <ThrowOnError extends boolean = false>(opti
 /**
  * Add a transaction item
  *
- * Create an item. The server assigns `lineNumber` via the shared `getNextLineNumber` helper (one line-number source of truth, shared with auto-itemize). The first item flips the parent `isItemized=true` and coding moves from `transaction.budgetLineId` to the items. Row-derived permission `update` on the parent. Fires `transaction.updated`. This is a billable create, accepts an optional `Idempotency-Key` header; replaying a key with a different body -> `409 idempotency_conflict`.
+ * Create an item. The server assigns `lineNumber`. The first item flips the parent `isItemized=true` and coding moves from `transaction.budgetLineId` to the items. Row-derived permission `update` on the parent. Fires `transaction.updated`. This is a billable create, accepts an optional `Idempotency-Key` header; replaying a key with a different body -> `409 idempotency_conflict`.
  */
 export const transactionsItemsCreate = <ThrowOnError extends boolean = false>(options: Options<TransactionsItemsCreateData, ThrowOnError>) => (options.client ?? client).post<TransactionsItemsCreateResponses, TransactionsItemsCreateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1966,7 +1954,7 @@ export const transactionsItemsUpdate = <ThrowOnError extends boolean = false>(op
 /**
  * Workspace usage rollups
  *
- * Pre-aggregated usage rollups for the workspace over a capped time window, grouped by `operation`, `token`, `agent`, `source`, `day` or `hour`. Unifies API calls, agent runs and document extraction (the `source` discriminator) into one view. Counts / latency p50/p95 / error-rate / rate-limit-hits come from the raw/rollup streams; `credits` are **usage credits** summed from the usage-credit ledger ONLY. permission-projected to the caller's reach.
+ * Pre-aggregated usage rollups for the workspace over a capped time window, grouped by `operation`, `token`, `agent`, `source`, `day` or `hour`. Combines API calls, agent runs, and document extraction (by `source`) into one view. Counts / latency p50/p95 / error-rate / rate-limit-hits come from the raw/rollup streams; `credits` are **usage credits** summed from the usage-credit ledger ONLY. permission-projected to the caller's reach.
  */
 export const usageListRollups = <ThrowOnError extends boolean = false>(options: Options<UsageListRollupsData, ThrowOnError>) => (options.client ?? client).get<UsageListRollupsResponses, UsageListRollupsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1977,7 +1965,7 @@ export const usageListRollups = <ThrowOnError extends boolean = false>(options: 
 /**
  * Project usage rollups
  *
- * The same usage rollups as the workspace endpoint, scoped to a single project. The project filter is pushed INTO the the query filter (enforced in the query), so a project-scoped token can never see workspace-wide volume that would leak another project's activity. A project the token cannot read returns `404 not_found` (existence is never leaked).
+ * The same usage rollups as the workspace endpoint, scoped to a single project. Scoped to a single project and permission-filtered, so a project-scoped token never sees another project's volume. A project the token cannot read returns `404 not_found` (existence is never leaked).
  */
 export const usageListProjectRollups = <ThrowOnError extends boolean = false>(options: Options<UsageListProjectRollupsData, ThrowOnError>) => (options.client ?? client).get<UsageListProjectRollupsResponses, UsageListProjectRollupsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],

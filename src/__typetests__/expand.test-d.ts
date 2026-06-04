@@ -18,18 +18,13 @@ type BLMap = {
   phaseData: 'phaseData';
   contact: 'contact';
   sourceItem: 'sourceItem';
-  documents: 'documents';
 };
 
 // 1. Expanding `contact` makes it present-and-required (no `?.`).
 declare const withContact: Expanded<BudgetLine, BLMap, 'contact'>;
 const _c: Contact = withContact.contact; // OK: present, non-optional
 
-// 2. Expanding `documents` widens the array to required.
-declare const withDocs: Expanded<BudgetLine, BLMap, 'documents'>;
-const _d: unknown[] = withDocs.documents; // OK: present
-
-// 3. Without expanding `contact`, the property is absent from the type.
+// 2. Without expanding `contact`, the property is absent from the type.
 declare const noExpand: Expanded<BudgetLine, BLMap, never>;
 // @ts-expect-error — `contact` was not expanded, so it is not on the type.
 const _cFail = noExpand.contact;
