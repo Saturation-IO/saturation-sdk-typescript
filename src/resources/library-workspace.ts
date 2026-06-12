@@ -74,7 +74,7 @@ export class WorkspaceRatesResource {
   constructor(private readonly t: Transport) {}
 
   list(params: ListParams = {}): List<RatePack> {
-    const options = { path: { workspaceId: this.t.workspaceId }, query: { ...params } };
+    const options = { query: { ...params } };
     return new List<RatePack>(
       () => this.t.paginate<typeof options, RatePack>(sdk.libraryListRatePacks, options),
       () => this.t.runPage<typeof options, RatePack>(sdk.libraryListRatePacks, options),
@@ -83,14 +83,13 @@ export class WorkspaceRatesResource {
 
   async get(packId: string, params: { expand?: readonly 'items'[] } = {}): Promise<RatePack> {
     return this.t.run(sdk.libraryGetRatePack, {
-      path: { workspaceId: this.t.workspaceId, packId },
+      path: { packId },
       query: params.expand ? { expand: [...params.expand] } : undefined,
     }) as Promise<RatePack>;
   }
 
   async create(body: RatePackCreate, opts: { idempotencyKey?: string } = {}): Promise<RatePack> {
     return this.t.run(sdk.libraryCreateRatePack, {
-      path: { workspaceId: this.t.workspaceId },
       headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
       body,
     }) as Promise<RatePack>;
@@ -98,28 +97,28 @@ export class WorkspaceRatesResource {
 
   async update(packId: string, body: RatePackUpdate): Promise<RatePack> {
     return this.t.run(sdk.libraryUpdateRatePack, {
-      path: { workspaceId: this.t.workspaceId, packId },
+      path: { packId },
       body,
     }) as Promise<RatePack>;
   }
 
   async delete(packId: string): Promise<void> {
     await this.t.run(sdk.libraryDeleteRatePack, {
-      path: { workspaceId: this.t.workspaceId, packId },
+      path: { packId },
     });
   }
 
   /** Enable a rate pack at the workspace (idempotent lifecycle verb). */
   async enable(packId: string): Promise<RatePackEnableLink> {
     return this.t.run(sdk.libraryEnableRatePack, {
-      path: { workspaceId: this.t.workspaceId, packId },
+      path: { packId },
     }) as Promise<RatePackEnableLink>;
   }
 
   /** Disable a rate pack at the workspace (idempotent lifecycle verb). */
   async disable(packId: string): Promise<void> {
     await this.t.run(sdk.libraryDisableRatePack, {
-      path: { workspaceId: this.t.workspaceId, packId },
+      path: { packId },
     });
   }
 
@@ -137,7 +136,7 @@ export class WorkspaceRatePackItemsResource {
 
   list(params: ListParams = {}): List<RatePackItem> {
     const options = {
-      path: { workspaceId: this.t.workspaceId, packId: this.packId },
+      path: { packId: this.packId },
       query: { ...params },
     };
     return new List<RatePackItem>(
@@ -148,21 +147,21 @@ export class WorkspaceRatePackItemsResource {
 
   async create(body: RatePackItemCreate): Promise<RatePackItem> {
     return this.t.run(sdk.libraryCreateRatePackItem, {
-      path: { workspaceId: this.t.workspaceId, packId: this.packId },
+      path: { packId: this.packId },
       body,
     }) as Promise<RatePackItem>;
   }
 
   async update(itemId: string, body: RatePackItemUpdate): Promise<RatePackItem> {
     return this.t.run(sdk.libraryUpdateRatePackItem, {
-      path: { workspaceId: this.t.workspaceId, packId: this.packId, itemId },
+      path: { packId: this.packId, itemId },
       body,
     }) as Promise<RatePackItem>;
   }
 
   async delete(itemId: string): Promise<void> {
     await this.t.run(sdk.libraryDeleteRatePackItem, {
-      path: { workspaceId: this.t.workspaceId, packId: this.packId, itemId },
+      path: { packId: this.packId, itemId },
     });
   }
 }
@@ -171,7 +170,7 @@ export class WorkspaceIncentivesResource {
   constructor(private readonly t: Transport) {}
 
   list(params: ListParams = {}): List<IncentivePack> {
-    const options = { path: { workspaceId: this.t.workspaceId }, query: { ...params } };
+    const options = { query: { ...params } };
     return new List<IncentivePack>(
       () => this.t.paginate<typeof options, IncentivePack>(sdk.libraryListIncentivePacks, options),
       () => this.t.runPage<typeof options, IncentivePack>(sdk.libraryListIncentivePacks, options),
@@ -180,14 +179,14 @@ export class WorkspaceIncentivesResource {
 
   async get(packId: string, params: { expand?: readonly 'programs'[] } = {}): Promise<IncentivePack> {
     return this.t.run(sdk.libraryGetIncentivePack, {
-      path: { workspaceId: this.t.workspaceId, packId },
+      path: { packId },
       query: params.expand ? { expand: [...params.expand] } : undefined,
     }) as Promise<IncentivePack>;
   }
 
   /** Programs inside a workspace-source incentive pack. */
   programs(packId: string): List<IncentiveProgram> {
-    const options = { path: { workspaceId: this.t.workspaceId, packId } };
+    const options = { path: { packId } };
     return new List<IncentiveProgram>(
       () => this.t.paginate<typeof options, IncentiveProgram>(sdk.libraryListIncentivePrograms, options),
       () => this.t.runPage<typeof options, IncentiveProgram>(sdk.libraryListIncentivePrograms, options),
@@ -196,13 +195,13 @@ export class WorkspaceIncentivesResource {
 
   async enable(packId: string): Promise<IncentivePackEnableLink> {
     return this.t.run(sdk.libraryEnableIncentivePack, {
-      path: { workspaceId: this.t.workspaceId, packId },
+      path: { packId },
     }) as Promise<IncentivePackEnableLink>;
   }
 
   async disable(packId: string): Promise<void> {
     await this.t.run(sdk.libraryDisableIncentivePack, {
-      path: { workspaceId: this.t.workspaceId, packId },
+      path: { packId },
     });
   }
 }
@@ -211,7 +210,7 @@ export class WorkspaceFringesResource {
   constructor(private readonly t: Transport) {}
 
   list(params: ListParams = {}): List<FringeTemplate> {
-    const options = { path: { workspaceId: this.t.workspaceId }, query: { ...params } };
+    const options = { query: { ...params } };
     return new List<FringeTemplate>(
       () => this.t.paginate<typeof options, FringeTemplate>(sdk.libraryListFringeTemplates, options),
       () => this.t.runPage<typeof options, FringeTemplate>(sdk.libraryListFringeTemplates, options),
@@ -219,24 +218,23 @@ export class WorkspaceFringesResource {
   }
   async get(fringeId: string): Promise<FringeTemplate> {
     return this.t.run(sdk.libraryGetFringeTemplate, {
-      path: { workspaceId: this.t.workspaceId, fringeId },
+      path: { fringeId },
     }) as Promise<FringeTemplate>;
   }
   async create(body: FringeTemplateWrite): Promise<FringeTemplate> {
     return this.t.run(sdk.libraryCreateFringeTemplate, {
-      path: { workspaceId: this.t.workspaceId },
       body,
     }) as Promise<FringeTemplate>;
   }
   async update(fringeId: string, body: FringeTemplateWrite): Promise<FringeTemplate> {
     return this.t.run(sdk.libraryUpdateFringeTemplate, {
-      path: { workspaceId: this.t.workspaceId, fringeId },
+      path: { fringeId },
       body,
     }) as Promise<FringeTemplate>;
   }
   async delete(fringeId: string): Promise<void> {
     await this.t.run(sdk.libraryDeleteFringeTemplate, {
-      path: { workspaceId: this.t.workspaceId, fringeId },
+      path: { fringeId },
     });
   }
 }
@@ -245,7 +243,7 @@ export class WorkspaceGlobalsResource {
   constructor(private readonly t: Transport) {}
 
   list(params: ListParams = {}): List<GlobalTemplate> {
-    const options = { path: { workspaceId: this.t.workspaceId }, query: { ...params } };
+    const options = { query: { ...params } };
     return new List<GlobalTemplate>(
       () => this.t.paginate<typeof options, GlobalTemplate>(sdk.libraryListGlobalTemplates, options),
       () => this.t.runPage<typeof options, GlobalTemplate>(sdk.libraryListGlobalTemplates, options),
@@ -253,24 +251,23 @@ export class WorkspaceGlobalsResource {
   }
   async get(globalId: string): Promise<GlobalTemplate> {
     return this.t.run(sdk.libraryGetGlobalTemplate, {
-      path: { workspaceId: this.t.workspaceId, globalId },
+      path: { globalId },
     }) as Promise<GlobalTemplate>;
   }
   async create(body: GlobalTemplateWrite): Promise<GlobalTemplate> {
     return this.t.run(sdk.libraryCreateGlobalTemplate, {
-      path: { workspaceId: this.t.workspaceId },
       body,
     }) as Promise<GlobalTemplate>;
   }
   async update(globalId: string, body: GlobalTemplateWrite): Promise<GlobalTemplate> {
     return this.t.run(sdk.libraryUpdateGlobalTemplate, {
-      path: { workspaceId: this.t.workspaceId, globalId },
+      path: { globalId },
       body,
     }) as Promise<GlobalTemplate>;
   }
   async delete(globalId: string): Promise<void> {
     await this.t.run(sdk.libraryDeleteGlobalTemplate, {
-      path: { workspaceId: this.t.workspaceId, globalId },
+      path: { globalId },
     });
   }
 }
@@ -279,7 +276,7 @@ export class WorkspaceCurrenciesResource {
   constructor(private readonly t: Transport) {}
 
   list(params: ListParams = {}): List<CurrencyTemplate> {
-    const options = { path: { workspaceId: this.t.workspaceId }, query: { ...params } };
+    const options = { query: { ...params } };
     return new List<CurrencyTemplate>(
       () => this.t.paginate<typeof options, CurrencyTemplate>(sdk.libraryListCurrencyTemplates, options),
       () => this.t.runPage<typeof options, CurrencyTemplate>(sdk.libraryListCurrencyTemplates, options),
@@ -287,24 +284,23 @@ export class WorkspaceCurrenciesResource {
   }
   async get(currencyId: string): Promise<CurrencyTemplate> {
     return this.t.run(sdk.libraryGetCurrencyTemplate, {
-      path: { workspaceId: this.t.workspaceId, currencyId },
+      path: { currencyId },
     }) as Promise<CurrencyTemplate>;
   }
   async create(body: CurrencyTemplateWrite): Promise<CurrencyTemplate> {
     return this.t.run(sdk.libraryCreateCurrencyTemplate, {
-      path: { workspaceId: this.t.workspaceId },
       body,
     }) as Promise<CurrencyTemplate>;
   }
   async update(currencyId: string, body: CurrencyTemplateWrite): Promise<CurrencyTemplate> {
     return this.t.run(sdk.libraryUpdateCurrencyTemplate, {
-      path: { workspaceId: this.t.workspaceId, currencyId },
+      path: { currencyId },
       body,
     }) as Promise<CurrencyTemplate>;
   }
   async delete(currencyId: string): Promise<void> {
     await this.t.run(sdk.libraryDeleteCurrencyTemplate, {
-      path: { workspaceId: this.t.workspaceId, currencyId },
+      path: { currencyId },
     });
   }
 }
@@ -313,7 +309,7 @@ export class WorkspaceFringeTagsResource {
   constructor(private readonly t: Transport) {}
 
   list(params: ListParams = {}): List<FringeTagTemplate> {
-    const options = { path: { workspaceId: this.t.workspaceId }, query: { ...params } };
+    const options = { query: { ...params } };
     return new List<FringeTagTemplate>(
       () => this.t.paginate<typeof options, FringeTagTemplate>(sdk.libraryListFringeTagTemplates, options),
       () => this.t.runPage<typeof options, FringeTagTemplate>(sdk.libraryListFringeTagTemplates, options),
@@ -321,24 +317,23 @@ export class WorkspaceFringeTagsResource {
   }
   async get(fringeTagId: string): Promise<FringeTagTemplate> {
     return this.t.run(sdk.libraryGetFringeTagTemplate, {
-      path: { workspaceId: this.t.workspaceId, fringeTagId },
+      path: { fringeTagId },
     }) as Promise<FringeTagTemplate>;
   }
   async create(body: FringeTagTemplateWrite): Promise<FringeTagTemplate> {
     return this.t.run(sdk.libraryCreateFringeTagTemplate, {
-      path: { workspaceId: this.t.workspaceId },
       body,
     }) as Promise<FringeTagTemplate>;
   }
   async update(fringeTagId: string, body: FringeTagTemplateWrite): Promise<FringeTagTemplate> {
     return this.t.run(sdk.libraryUpdateFringeTagTemplate, {
-      path: { workspaceId: this.t.workspaceId, fringeTagId },
+      path: { fringeTagId },
       body,
     }) as Promise<FringeTagTemplate>;
   }
   async delete(fringeTagId: string): Promise<void> {
     await this.t.run(sdk.libraryDeleteFringeTagTemplate, {
-      path: { workspaceId: this.t.workspaceId, fringeTagId },
+      path: { fringeTagId },
     });
   }
 }
@@ -347,7 +342,7 @@ export class WorkspaceTagsResource {
   constructor(private readonly t: Transport) {}
 
   list(params: ListParams = {}): List<Tag> {
-    const options = { path: { workspaceId: this.t.workspaceId }, query: { ...params } };
+    const options = { query: { ...params } };
     return new List<Tag>(
       () => this.t.paginate<typeof options, Tag>(sdk.libraryListTags, options),
       () => this.t.runPage<typeof options, Tag>(sdk.libraryListTags, options),
@@ -355,24 +350,23 @@ export class WorkspaceTagsResource {
   }
   async get(tagId: string): Promise<Tag> {
     return this.t.run(sdk.libraryGetTag, {
-      path: { workspaceId: this.t.workspaceId, tagId },
+      path: { tagId },
     }) as Promise<Tag>;
   }
   async create(body: TagCreate): Promise<Tag> {
     return this.t.run(sdk.libraryCreateTag, {
-      path: { workspaceId: this.t.workspaceId },
       body,
     }) as Promise<Tag>;
   }
   async update(tagId: string, body: TagUpdate): Promise<Tag> {
     return this.t.run(sdk.libraryUpdateTag, {
-      path: { workspaceId: this.t.workspaceId, tagId },
+      path: { tagId },
       body,
     }) as Promise<Tag>;
   }
   async delete(tagId: string): Promise<void> {
     await this.t.run(sdk.libraryDeleteTag, {
-      path: { workspaceId: this.t.workspaceId, tagId },
+      path: { tagId },
     });
   }
 }
@@ -382,7 +376,7 @@ export class WorkspaceUnitsResource {
 
   /** Built-in + custom units available in the workspace. */
   list(): List<Unit> {
-    const options = { path: { workspaceId: this.t.workspaceId } };
+    const options = {};
     return new List<Unit>(
       () => this.t.paginate<typeof options, Unit>(sdk.libraryListUnits, options),
       () => this.t.runPage<typeof options, Unit>(sdk.libraryListUnits, options),
@@ -399,7 +393,7 @@ export class WorkspaceCustomUnitsResource {
   constructor(private readonly t: Transport) {}
 
   list(): List<CustomUnit> {
-    const options = { path: { workspaceId: this.t.workspaceId } };
+    const options = {};
     return new List<CustomUnit>(
       () => this.t.paginate<typeof options, CustomUnit>(sdk.libraryListCustomUnits, options),
       () => this.t.runPage<typeof options, CustomUnit>(sdk.libraryListCustomUnits, options),
@@ -407,19 +401,18 @@ export class WorkspaceCustomUnitsResource {
   }
   async create(body: CustomUnitCreate): Promise<CustomUnit> {
     return this.t.run(sdk.libraryCreateCustomUnit, {
-      path: { workspaceId: this.t.workspaceId },
       body,
     }) as Promise<CustomUnit>;
   }
   async update(unitId: string, body: CustomUnitUpdate): Promise<CustomUnit> {
     return this.t.run(sdk.libraryUpdateCustomUnit, {
-      path: { workspaceId: this.t.workspaceId, unitId },
+      path: { unitId },
       body,
     }) as Promise<CustomUnit>;
   }
   async delete(unitId: string): Promise<void> {
     await this.t.run(sdk.libraryDeleteCustomUnit, {
-      path: { workspaceId: this.t.workspaceId, unitId },
+      path: { unitId },
     });
   }
 }

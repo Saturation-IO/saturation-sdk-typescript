@@ -26,13 +26,12 @@ Mint a token in the Saturation app under **Settings → Developers**. Treat it l
 ```ts
 import { Saturation, SaturationError } from '@saturation/sdk';
 
-// Inject the token and workspace once — never repeat them per call.
+// Inject the token once. The token determines the workspace.
 const sat = new Saturation({
   token: process.env.SATURATION_TOKEN!,
-  workspaceId: 'ws_3f9b2a7c',
 });
 
-// Confirm who the token is and which workspaces it can reach.
+// Confirm who the token is and which workspace it can reach.
 const me = await sat.me();
 
 // Open a project scope, then read its budget lines (keyset-paginated).
@@ -65,7 +64,7 @@ The grammar mirrors the API routes and the product UI exactly:
 | Workspace | `sat.library.*`, `sat.documents.*`, `sat.contacts.*`, `sat.spaces.*`, `sat.search(q)`, `sat.me()`, `sat.workspaces()` |
 | Project | `sat.projects(p).budget.*`, `.transactions.*`, `.library.*`, `.search(q)` |
 
-`workspaceId` is set once on the constructor and is part of every path; you never pass it again. The two-scope Library is visible at the call site: `sat.library.*` is the workspace **source**, `sat.projects(p).library.*` is the project-**resident** copy.
+The token is bound to one workspace, so there is no workspace id to configure or pass per call. The two-scope Library is visible at the call site: `sat.library.*` is the workspace **source**, `sat.projects(p).library.*` is the project-**resident** copy.
 
 ## Examples
 
@@ -184,7 +183,6 @@ try {
 ```ts
 new Saturation({
   token: '…',          // required: Bearer token (acts as a user)
-  workspaceId: 'ws_…', // required: the workspace this client acts on
   baseURL: '…',        // optional: override for local/staging
 });
 ```

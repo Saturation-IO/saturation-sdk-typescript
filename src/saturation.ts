@@ -18,22 +18,20 @@ import {
   UsageResource,
   WebhooksResource,
 } from './resources/extras.js';
-import type { Me, Workspace } from './generated/types.gen.js';
+import type { Me } from './generated/types.gen.js';
 
-/** Constructor options. `workspaceId` is injected once and never repeated per call. */
+/** Constructor options. The bearer token determines the workspace. */
 export interface SaturationOptions {
   /** A `Authorization: Bearer <token>` credential, minted in next-web Settings → Developers. */
   token: string;
-  /** The workspace this client acts on (`ws_…`). Explicit in every path; set once here. */
-  workspaceId: string;
   /** Override the API base URL (defaults to production). Use for local/staging. */
   baseURL?: string;
 }
 
 /**
  * A project-scoped handle: `sat.projects(p)`. Everything reachable from here is
- * already bound to that project — budget, transactions, the resident Library, and
- * project-scoped search. The workspace is still the one set on the client.
+ * already bound to that project — budget, transactions, the resident Library,
+ * and project-scoped search. The workspace comes from the bearer token.
  */
 export class ProjectScope {
   constructor(
@@ -94,7 +92,7 @@ export interface ProjectsAccessor extends ProjectsResource {
  * The Saturation API client.
  *
  * ```ts
- * const sat = new Saturation({ token, workspaceId: 'ws_…' });
+ * const sat = new Saturation({ token });
  * const lines = await sat.projects('prj_…').budget.lines.list().all();
  * ```
  *
@@ -129,7 +127,6 @@ export class Saturation {
   constructor(options: SaturationOptions) {
     this.t = new Transport({
       token: options.token,
-      workspaceId: options.workspaceId,
       baseURL: options.baseURL,
     });
     this.library = new LibraryResource(this.t);
@@ -150,11 +147,6 @@ export class Saturation {
     this.projects = accessor;
   }
 
-  /** The workspace this client is bound to (`ws_…`). */
-  get workspaceId(): string {
-    return this.t.workspaceId;
-  }
-
   /** Workspace-scoped Spotlight search. */
   search(q: string, params?: Parameters<SearchResource['run']>[1]): ReturnType<SearchResource['run']> {
     return new SearchResource(this.t).run(q, params);
@@ -165,14 +157,9 @@ export class Saturation {
     return this.meta.me();
   }
 
-  /** The workspaces this token can act on (not limited to the constructor workspace). */
+  /** The workspace this token can act on. */
   workspaces(params?: { limit?: number; cursor?: string }): ReturnType<MetaResource['workspaces']> {
     return this.meta.workspaces(params);
-  }
-
-  /** Fetch a single workspace by id. */
-  workspace(workspaceId: string): Promise<Workspace> {
-    return this.meta.workspace(workspaceId);
   }
 
   /** Unauthenticated liveness check. */

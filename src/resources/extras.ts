@@ -38,7 +38,7 @@ export class CommentsResource {
   constructor(private readonly t: Transport) {}
 
   list(params: CommentListParams = {}): List<Comment> {
-    const options = { path: { workspaceId: this.t.workspaceId }, query: { ...params } };
+    const options = { query: { ...params } };
     return new List<Comment>(
       () => this.t.paginate<typeof options, Comment>(sdk.masterDataListComments, options),
       () => this.t.runPage<typeof options, Comment>(sdk.masterDataListComments, options),
@@ -46,19 +46,18 @@ export class CommentsResource {
   }
   async create(body: CommentCreate): Promise<Comment> {
     return this.t.run(sdk.masterDataCreateComment, {
-      path: { workspaceId: this.t.workspaceId },
       body,
     }) as Promise<Comment>;
   }
   async update(commentId: string, body: CommentUpdate): Promise<Comment> {
     return this.t.run(sdk.masterDataUpdateComment, {
-      path: { workspaceId: this.t.workspaceId, commentId },
+      path: { commentId },
       body,
     }) as Promise<Comment>;
   }
   async delete(commentId: string): Promise<void> {
     await this.t.run(sdk.masterDataDeleteComment, {
-      path: { workspaceId: this.t.workspaceId, commentId },
+      path: { commentId },
     });
   }
 }
@@ -72,7 +71,7 @@ export class ViewsResource {
 
   list(params: { limit?: number; cursor?: string } = {}): List<View> {
     const options = {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId },
+      path: { projectId: this.projectId },
       query: { ...params },
     };
     return new List<View>(
@@ -83,7 +82,7 @@ export class ViewsResource {
 
   async get(viewId: string): Promise<View> {
     return this.t.run(sdk.masterDataGetView, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId, viewId },
+      path: { projectId: this.projectId, viewId },
     }) as Promise<View>;
   }
 
@@ -93,7 +92,7 @@ export class ViewsResource {
     params: { expand?: readonly string[]; limit?: number; cursor?: string } = {},
   ): Promise<ViewData> {
     return this.t.run(sdk.masterDataGetViewData, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId, viewId },
+      path: { projectId: this.projectId, viewId },
       query: {
         expand: serializeExpand(params.expand),
         limit: params.limit,
@@ -120,7 +119,7 @@ export class UsageResource {
 
   /** Workspace usage rollups (aggregated from the metered request ledger). */
   rollups(params: UsageRollupParams = {}): List<UsageRollupRow> {
-    const options = { path: { workspaceId: this.t.workspaceId }, query: { ...params } };
+    const options = { query: { ...params } };
     return new List<UsageRollupRow>(
       () => this.t.paginate<typeof options, UsageRollupRow>(sdk.usageListRollups, options),
       () => this.t.runPage<typeof options, UsageRollupRow>(sdk.usageListRollups, options),
@@ -130,7 +129,7 @@ export class UsageResource {
   /** Per-project usage rollups. */
   projectRollups(projectId: string, params: UsageRollupParams = {}): List<UsageRollupRow> {
     const options = {
-      path: { workspaceId: this.t.workspaceId, projectId },
+      path: { projectId },
       query: { ...params },
     };
     return new List<UsageRollupRow>(
@@ -141,7 +140,7 @@ export class UsageResource {
 
   /** The credit ledger. */
   credits(params: { from?: string; to?: string; limit?: number; cursor?: string } = {}): List<UsageCreditRow> {
-    const options = { path: { workspaceId: this.t.workspaceId }, query: { ...params } };
+    const options = { query: { ...params } };
     return new List<UsageCreditRow>(
       () => this.t.paginate<typeof options, UsageCreditRow>(sdk.usageListCredits, options),
       () => this.t.runPage<typeof options, UsageCreditRow>(sdk.usageListCredits, options),
@@ -150,7 +149,7 @@ export class UsageResource {
 
   /** The metered operation ledger. */
   operations(params: { from?: string; to?: string; limit?: number; cursor?: string } = {}): List<UsageOperationRow> {
-    const options = { path: { workspaceId: this.t.workspaceId }, query: { ...params } };
+    const options = { query: { ...params } };
     return new List<UsageOperationRow>(
       () => this.t.paginate<typeof options, UsageOperationRow>(sdk.usageListOperations, options),
       () => this.t.runPage<typeof options, UsageOperationRow>(sdk.usageListOperations, options),
@@ -164,7 +163,6 @@ export class WebhooksResource {
 
   list(params: { expand?: readonly WebhookExpand[]; limit?: number; cursor?: string } = {}): List<Webhook> {
     const options = {
-      path: { workspaceId: this.t.workspaceId },
       query: { expand: serializeExpand(params.expand), limit: params.limit, cursor: params.cursor },
     };
     return new List<Webhook>(
@@ -175,42 +173,41 @@ export class WebhooksResource {
 
   async get(webhookId: string): Promise<Webhook> {
     return this.t.run(sdk.webhooksGet, {
-      path: { workspaceId: this.t.workspaceId, webhookId },
+      path: { webhookId },
     }) as Promise<Webhook>;
   }
 
   /** Create a subscription. The returned `WebhookWithSecret` exposes the signing secret once. */
   async create(body: WebhookCreate): Promise<WebhookWithSecret> {
     return this.t.run(sdk.webhooksCreate, {
-      path: { workspaceId: this.t.workspaceId },
       body,
     }) as Promise<WebhookWithSecret>;
   }
 
   async update(webhookId: string, body: WebhookUpdate): Promise<Webhook> {
     return this.t.run(sdk.webhooksUpdate, {
-      path: { workspaceId: this.t.workspaceId, webhookId },
+      path: { webhookId },
       body,
     }) as Promise<Webhook>;
   }
 
   async delete(webhookId: string): Promise<void> {
     await this.t.run(sdk.webhooksDelete, {
-      path: { workspaceId: this.t.workspaceId, webhookId },
+      path: { webhookId },
     });
   }
 
   /** Trigger a test delivery to the endpoint. */
   async ping(webhookId: string): Promise<WebhookDelivery> {
     return this.t.run(sdk.webhooksPing, {
-      path: { workspaceId: this.t.workspaceId, webhookId },
+      path: { webhookId },
     }) as Promise<WebhookDelivery>;
   }
 
   /** Inspect the delivery history of a subscription. */
   deliveries(webhookId: string, params: { limit?: number; cursor?: string } = {}): List<WebhookDelivery> {
     const options = {
-      path: { workspaceId: this.t.workspaceId, webhookId },
+      path: { webhookId },
       query: { ...params },
     };
     return new List<WebhookDelivery>(

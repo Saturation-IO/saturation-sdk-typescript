@@ -20,6 +20,7 @@ import { serializeExpand } from '../expand.js';
  */
 export type AssignTarget =
   | { transaction: string }
+  | { budgetLine: string }
   | { purchaseOrder: string }
   | { contact: string }
   | { project: string };
@@ -59,7 +60,6 @@ export class DocumentsResource {
   /** List documents (keyset-paginated async iterator). */
   list(params: DocumentListParams = {}): List<Document> {
     const options = {
-      path: { workspaceId: this.t.workspaceId },
       query: {
         assignedTo: params.assignedTo,
         unassigned: params.unassigned,
@@ -84,7 +84,7 @@ export class DocumentsResource {
   /** Get a document by id. */
   async get(documentId: string, params: { expand?: readonly DocumentExpand[] } = {}): Promise<Document> {
     return this.t.run(sdk.documentsGet, {
-      path: { workspaceId: this.t.workspaceId, documentId },
+      path: { documentId },
       query: { expand: serializeExpand(params.expand) },
     }) as Promise<Document>;
   }
@@ -95,7 +95,6 @@ export class DocumentsResource {
     opts: { idempotencyKey?: string } = {},
   ): Promise<Document> {
     return this.t.run(sdk.documentsDrop, {
-      path: { workspaceId: this.t.workspaceId },
       headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
       body,
     }) as Promise<Document>;
@@ -104,7 +103,7 @@ export class DocumentsResource {
   /** Patch a document's writable fields (e.g. `name`, `description`). */
   async update(documentId: string, body: DocumentUpdateRequest): Promise<Document> {
     return this.t.run(sdk.documentsUpdate, {
-      path: { workspaceId: this.t.workspaceId, documentId },
+      path: { documentId },
       body,
     }) as Promise<Document>;
   }
@@ -112,14 +111,14 @@ export class DocumentsResource {
   /** Soft-delete a document. */
   async delete(documentId: string): Promise<void> {
     await this.t.run(sdk.documentsDelete, {
-      path: { workspaceId: this.t.workspaceId, documentId },
+      path: { documentId },
     });
   }
 
   /** The compiled, queryable extraction for a `READY` document. */
   async extraction(documentId: string): Promise<DocumentExtraction> {
     return this.t.run(sdk.documentsGetExtraction, {
-      path: { workspaceId: this.t.workspaceId, documentId },
+      path: { documentId },
     }) as Promise<DocumentExtraction>;
   }
 
@@ -135,7 +134,7 @@ export class DocumentsResource {
     opts: { replace?: boolean } = {},
   ): Promise<Document> {
     return this.t.run(sdk.documentsAssign, {
-      path: { workspaceId: this.t.workspaceId, documentId },
+      path: { documentId },
       body: { target: toTargetRef(target), replace: opts.replace ?? false },
     }) as Promise<Document>;
   }
@@ -143,7 +142,7 @@ export class DocumentsResource {
   /** Unassign a document from a typed target. Idempotent (`200` no-op if not assigned). */
   async unassign(documentId: string, target: AssignTarget): Promise<Document> {
     return this.t.run(sdk.documentsUnassign, {
-      path: { workspaceId: this.t.workspaceId, documentId },
+      path: { documentId },
       body: { target: toTargetRef(target) },
     }) as Promise<Document>;
   }
@@ -151,20 +150,20 @@ export class DocumentsResource {
   /** The set of typed targets this document is currently assigned to. */
   async assignments(documentId: string): Promise<DocumentAssignmentsCollection> {
     return this.t.run(sdk.documentsListAssignments, {
-      path: { workspaceId: this.t.workspaceId, documentId },
+      path: { documentId },
     }) as Promise<DocumentAssignmentsCollection>;
   }
 
   /** The compiled content blob for a `READY` document. */
   async content(documentId: string): Promise<Blob> {
     return this.t.run(sdk.documentsGetContent, {
-      path: { workspaceId: this.t.workspaceId, documentId },
+      path: { documentId },
     }) as Promise<Blob>;
   }
 
   /** Reverse lookup: documents assigned to a workspace contact. */
   byContact(contactId: string): List<Document> {
-    const options = { path: { workspaceId: this.t.workspaceId, contactId } };
+    const options = { path: { contactId } };
     return new List<Document>(
       () => this.t.paginate<typeof options, Document>(sdk.documentsListByContact, options),
       () => this.t.runPage<typeof options, Document>(sdk.documentsListByContact, options),
@@ -184,7 +183,7 @@ export class ProjectDocumentsResource {
 
   /** All documents scoped to this project. */
   list(): List<Document> {
-    const options = { path: { workspaceId: this.t.workspaceId, projectId: this.projectId } };
+    const options = { path: { projectId: this.projectId } };
     return new List<Document>(
       () => this.t.paginate<typeof options, Document>(sdk.documentsListByProject, options),
       () => this.t.runPage<typeof options, Document>(sdk.documentsListByProject, options),
@@ -193,7 +192,7 @@ export class ProjectDocumentsResource {
 
   /** Documents assigned to a transaction. */
   byTransaction(txId: string): List<Document> {
-    const options = { path: { workspaceId: this.t.workspaceId, projectId: this.projectId, txId } };
+    const options = { path: { projectId: this.projectId, txId } };
     return new List<Document>(
       () => this.t.paginate<typeof options, Document>(sdk.documentsListByTransaction, options),
       () => this.t.runPage<typeof options, Document>(sdk.documentsListByTransaction, options),
@@ -202,7 +201,7 @@ export class ProjectDocumentsResource {
 
   /** Documents assigned to a purchase order. */
   byPurchaseOrder(purchaseOrderId: string): List<Document> {
-    const options = { path: { workspaceId: this.t.workspaceId, projectId: this.projectId, purchaseOrderId } };
+    const options = { path: { projectId: this.projectId, purchaseOrderId } };
     return new List<Document>(
       () => this.t.paginate<typeof options, Document>(sdk.documentsListByPurchaseOrder, options),
       () => this.t.runPage<typeof options, Document>(sdk.documentsListByPurchaseOrder, options),

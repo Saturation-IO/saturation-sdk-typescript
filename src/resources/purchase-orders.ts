@@ -53,7 +53,7 @@ export class PurchaseOrdersResource {
     params: PurchaseOrderListParams<E> = {},
   ): List<Expanded<PurchaseOrder, PoExpandMap, E>> {
     const options = {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId },
+      path: { projectId: this.projectId },
       query: {
         status: params.status,
         contactId: params.contactId,
@@ -81,14 +81,14 @@ export class PurchaseOrdersResource {
     params: { expand?: readonly E[] } = {},
   ): Promise<Expanded<PurchaseOrder, PoExpandMap, E>> {
     return this.t.run(sdk.purchaseOrdersGet, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId, purchaseOrderId },
+      path: { projectId: this.projectId, purchaseOrderId },
       query: { expand: serializeExpand(params.expand) },
     }) as Promise<Expanded<PurchaseOrder, PoExpandMap, E>>;
   }
 
   async create(body: PurchaseOrderCreate, opts: { idempotencyKey?: string } = {}): Promise<PurchaseOrder> {
     return this.t.run(sdk.purchaseOrdersCreate, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId },
+      path: { projectId: this.projectId },
       headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
       body,
     }) as Promise<PurchaseOrder>;
@@ -96,49 +96,49 @@ export class PurchaseOrdersResource {
 
   async update(purchaseOrderId: string, body: PurchaseOrderUpdate): Promise<PurchaseOrder> {
     return this.t.run(sdk.purchaseOrdersUpdate, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId, purchaseOrderId },
+      path: { projectId: this.projectId, purchaseOrderId },
       body,
     }) as Promise<PurchaseOrder>;
   }
 
   async delete(purchaseOrderId: string): Promise<void> {
     await this.t.run(sdk.purchaseOrdersDelete, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId, purchaseOrderId },
+      path: { projectId: this.projectId, purchaseOrderId },
     });
   }
 
   /** Submit a draft purchase order into the lifecycle flow. */
   async submit(purchaseOrderId: string): Promise<PurchaseOrder> {
     return this.t.run(sdk.purchaseOrdersSubmit, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId, purchaseOrderId },
+      path: { projectId: this.projectId, purchaseOrderId },
     }) as Promise<PurchaseOrder>;
   }
 
   /** Cancel a pending submission, returning the PO to draft. */
   async cancelSubmission(purchaseOrderId: string): Promise<PurchaseOrder> {
     return this.t.run(sdk.purchaseOrdersCancelSubmission, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId, purchaseOrderId },
+      path: { projectId: this.projectId, purchaseOrderId },
     }) as Promise<PurchaseOrder>;
   }
 
   /** Void a purchase order. */
   async void(purchaseOrderId: string): Promise<PurchaseOrder> {
     return this.t.run(sdk.purchaseOrdersVoid, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId, purchaseOrderId },
+      path: { projectId: this.projectId, purchaseOrderId },
     }) as Promise<PurchaseOrder>;
   }
 
   /** The read-only lifecycle state of a purchase order. */
   async lifecycle(purchaseOrderId: string): Promise<PurchaseOrderLifecycle> {
     return this.t.run(sdk.purchaseOrdersLifecycle, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId, purchaseOrderId },
+      path: { projectId: this.projectId, purchaseOrderId },
     }) as Promise<PurchaseOrderLifecycle>;
   }
 
   /** Transactions linked to a purchase order. */
   transactions(purchaseOrderId: string): List<Transaction> {
     const options = {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId, purchaseOrderId },
+      path: { projectId: this.projectId, purchaseOrderId },
     };
     return new List<Transaction>(
       () => this.t.paginate<typeof options, Transaction>(sdk.purchaseOrdersListTransactions, options),
@@ -161,9 +161,7 @@ export class PurchaseOrderItemsResource {
 
   list(): List<PurchaseOrderItem> {
     const options = {
-      path: {
-        workspaceId: this.t.workspaceId,
-        projectId: this.projectId,
+      path: { projectId: this.projectId,
         purchaseOrderId: this.purchaseOrderId,
       },
     };
@@ -175,9 +173,7 @@ export class PurchaseOrderItemsResource {
 
   async create(body: PurchaseOrderItemWrite): Promise<PurchaseOrderItem> {
     return this.t.run(sdk.purchaseOrdersCreateItem, {
-      path: {
-        workspaceId: this.t.workspaceId,
-        projectId: this.projectId,
+      path: { projectId: this.projectId,
         purchaseOrderId: this.purchaseOrderId,
       },
       body,
@@ -186,9 +182,7 @@ export class PurchaseOrderItemsResource {
 
   async update(itemId: string, body: PurchaseOrderItemWrite): Promise<PurchaseOrderItem> {
     return this.t.run(sdk.purchaseOrdersUpdateItem, {
-      path: {
-        workspaceId: this.t.workspaceId,
-        projectId: this.projectId,
+      path: { projectId: this.projectId,
         purchaseOrderId: this.purchaseOrderId,
         itemId,
       },
@@ -198,9 +192,7 @@ export class PurchaseOrderItemsResource {
 
   async delete(itemId: string): Promise<void> {
     await this.t.run(sdk.purchaseOrdersDeleteItem, {
-      path: {
-        workspaceId: this.t.workspaceId,
-        projectId: this.projectId,
+      path: { projectId: this.projectId,
         purchaseOrderId: this.purchaseOrderId,
         itemId,
       },

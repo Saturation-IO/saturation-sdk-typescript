@@ -1987,7 +1987,7 @@ export type HealthStatus = {
 export type PrincipalType = 'user' | 'service';
 
 /**
- * One workspace a token can act on, paired with the principal's current role there. Roles resolve live per request, never a frozen claim. Internal workspaceId / workspaceRole are never exposed.
+ * The workspace a token can act on, paired with the principal's current role there. Roles resolve live per request, never a frozen claim. Internal teamId / teamRole are never exposed.
  */
 export type WorkspaceReach = {
     workspaceId: Id;
@@ -2000,7 +2000,7 @@ export type WorkspaceReach = {
 export type WorkspaceRole = 'owner' | 'admin' | 'accountant' | 'edit' | 'comment' | 'view';
 
 /**
- * The token's own identity and reachable workspaces, the first call any integration makes and the Zapier / n8n auth-probe. No path params; works before any workspace is known. A workspace-scoped token lists only its one workspace. Never leaks workspaceId / workspaceRole.
+ * The token's own identity and workspace, the first call any integration makes and the Zapier / n8n auth-probe. No path params; works before any workspace is known. Tokens list only their bound workspace. Never leaks teamId / teamRole.
  */
 export type Me = {
     id: Id;
@@ -2014,7 +2014,7 @@ export type Me = {
      */
     name?: string;
     /**
-     * Every workspace this token can act on, permission-filtered to the principal's live reach, each with the principal's current `workspaceRole`.
+     * The token's bound workspace, permission-filtered to the principal's live reach, with the principal's current `workspaceRole`.
      */
     workspaces: Array<WorkspaceReach>;
 };
@@ -2636,6 +2636,10 @@ export type Transaction = {
      */
     isItemized: boolean;
     /**
+     * Whether this transaction contributes to a budget's ACTUAL phase. Only `actualized=true` rows count toward actuals. Birth value follows the workspace auto-actualize setting at create time; writable thereafter via PATCH on any source.
+     */
+    actualized: boolean;
+    /**
      * Linked purchase order, if any (`po_…`).
      */
     purchaseOrderId?: Id | null;
@@ -2694,10 +2698,14 @@ export type TransactionJournalCreate = {
     number?: string;
     ref?: string;
     notes?: string;
+    /**
+     * Optional override of the actualization birth value. Omit and the workspace auto-actualize setting decides; set explicitly to force it.
+     */
+    actualized?: boolean;
 };
 
 /**
- * Partial update. Writability is driven by a `source → {readonly, writable}` allow-list. Assignment fields (`contactId`, `budgetLineId`, `fringeId`, `notes`, `number`, `ref`) are writable on ANY source. Core fields (`amount`, `currency`, `timestamp`, `type`, `status`, `merchant`, `sourceLast4`, `sourceName`) are writable ONLY on `journal`; naming one on a sourced row returns `422 field_read_only`. Server-owned fields (`id`, `source`, `sourceId`, `projectId`, `isReversal`, `isItemized`, `createdAt`, `updatedAt`) are never writable. A `status` change is checked against the reachability matrix.
+ * Partial update. Writability is driven by a `source → {readonly, writable}` allow-list. Assignment fields (`contactId`, `budgetLineId`, `fringeId`, `notes`, `number`, `ref`, `actualized`) are writable on ANY source. Core fields (`amount`, `currency`, `timestamp`, `type`, `status`, `merchant`, `sourceLast4`, `sourceName`) are writable ONLY on `journal`; naming one on a sourced row returns `422 field_read_only`. Server-owned fields (`id`, `source`, `sourceId`, `projectId`, `isReversal`, `isItemized`, `createdAt`, `updatedAt`) are never writable. A `status` change is checked against the reachability matrix.
  */
 export type TransactionPatch = {
     contactId?: Id | null;
@@ -2715,6 +2723,10 @@ export type TransactionPatch = {
     merchant?: string | null;
     sourceLast4?: string | null;
     sourceName?: string | null;
+    /**
+     * Whether this transaction contributes to a budget's ACTUAL phase. Writable on any source.
+     */
+    actualized?: boolean;
 };
 
 /**
@@ -3284,11 +3296,6 @@ export type WebhookDeliveryCollection = {
 };
 
 /**
- * Workspace identifier (`ws_…`). Never the internal workspaceId.
- */
-export type WorkspaceId = Id;
-
-/**
  * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
  */
 export type ProjectId = string;
@@ -3433,16 +3440,12 @@ export type BudgetGetTreeData = {
     };
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/budget';
+    url: '/projects/{projectId}/budget';
 };
 
 export type BudgetGetTreeErrors = {
@@ -3494,10 +3497,6 @@ export type BudgetGetTotalsData = {
     };
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -3532,7 +3531,7 @@ export type BudgetGetTotalsData = {
          */
         dateTo?: string;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/budget/totals';
+    url: '/projects/{projectId}/budget/totals';
 };
 
 export type BudgetGetTotalsErrors = {
@@ -3588,10 +3587,6 @@ export type BudgetGetRollupData = {
     };
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -3602,7 +3597,7 @@ export type BudgetGetRollupData = {
          */
         phase: string;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/budget/rollup';
+    url: '/projects/{projectId}/budget/rollup';
 };
 
 export type BudgetGetRollupErrors = {
@@ -3654,10 +3649,6 @@ export type BudgetGetVarianceData = {
     };
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -3672,7 +3663,7 @@ export type BudgetGetVarianceData = {
          */
         to: string;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/budget/variance';
+    url: '/projects/{projectId}/budget/variance';
 };
 
 export type BudgetGetVarianceErrors = {
@@ -3727,10 +3718,6 @@ export type BudgetGetCellData = {
     };
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -3745,7 +3732,7 @@ export type BudgetGetCellData = {
          */
         column: string;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/budget/cells';
+    url: '/projects/{projectId}/budget/cells';
 };
 
 export type BudgetGetCellErrors = {
@@ -3797,10 +3784,6 @@ export type BudgetGetCellResponse = BudgetGetCellResponses[keyof BudgetGetCellRe
 export type BudgetListLinesData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
@@ -3860,7 +3843,7 @@ export type BudgetListLinesData = {
          */
         view?: Id;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/budget/lines';
+    url: '/projects/{projectId}/budget/lines';
 };
 
 export type BudgetListLinesErrors = {
@@ -3922,16 +3905,12 @@ export type BudgetCreateLineData = {
     };
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/budget/lines';
+    url: '/projects/{projectId}/budget/lines';
 };
 
 export type BudgetCreateLineErrors = {
@@ -3980,10 +3959,6 @@ export type BudgetDeleteLineData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -3998,7 +3973,7 @@ export type BudgetDeleteLineData = {
          */
         reset?: boolean;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/budget/lines/{lineId}';
+    url: '/projects/{projectId}/budget/lines/{lineId}';
 };
 
 export type BudgetDeleteLineErrors = {
@@ -4035,10 +4010,6 @@ export type BudgetGetLineData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -4053,7 +4024,7 @@ export type BudgetGetLineData = {
          */
         expand?: Array<BudgetLineExpand>;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/budget/lines/{lineId}';
+    url: '/projects/{projectId}/budget/lines/{lineId}';
 };
 
 export type BudgetGetLineErrors = {
@@ -4094,10 +4065,6 @@ export type BudgetUpdateLineData = {
     body: BudgetLineUpdate;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -4107,7 +4074,7 @@ export type BudgetUpdateLineData = {
         lineId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/budget/lines/{lineId}';
+    url: '/projects/{projectId}/budget/lines/{lineId}';
 };
 
 export type BudgetUpdateLineErrors = {
@@ -4152,16 +4119,12 @@ export type BudgetListPhasesData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/budget/phases';
+    url: '/projects/{projectId}/budget/phases';
 };
 
 export type BudgetListPhasesErrors = {
@@ -4216,16 +4179,12 @@ export type BudgetCreatePhaseData = {
     };
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/budget/phases';
+    url: '/projects/{projectId}/budget/phases';
 };
 
 export type BudgetCreatePhaseErrors = {
@@ -4270,10 +4229,6 @@ export type BudgetDeletePhaseData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -4283,7 +4238,7 @@ export type BudgetDeletePhaseData = {
         phaseId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/budget/phases/{phaseId}';
+    url: '/projects/{projectId}/budget/phases/{phaseId}';
 };
 
 export type BudgetDeletePhaseErrors = {
@@ -4320,10 +4275,6 @@ export type BudgetGetPhaseData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -4333,7 +4284,7 @@ export type BudgetGetPhaseData = {
         phaseId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/budget/phases/{phaseId}';
+    url: '/projects/{projectId}/budget/phases/{phaseId}';
 };
 
 export type BudgetGetPhaseErrors = {
@@ -4376,10 +4327,6 @@ export type BudgetUpdatePhaseData = {
     };
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -4389,7 +4336,7 @@ export type BudgetUpdatePhaseData = {
         phaseId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/budget/phases/{phaseId}';
+    url: '/projects/{projectId}/budget/phases/{phaseId}';
 };
 
 export type BudgetUpdatePhaseErrors = {
@@ -4434,10 +4381,6 @@ export type BudgetListAccountsData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -4452,7 +4395,7 @@ export type BudgetListAccountsData = {
          */
         cursor?: string;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/budget/accounts';
+    url: '/projects/{projectId}/budget/accounts';
 };
 
 export type BudgetListAccountsErrors = {
@@ -4502,12 +4445,7 @@ export type BudgetListAccountsResponse = BudgetListAccountsResponses[keyof Budge
 
 export type DocumentsListData = {
     body?: never;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: {
         /**
          * Maximum number of items to return on a page. Capped at 100.
@@ -4570,7 +4508,7 @@ export type DocumentsListData = {
          */
         q?: string;
     };
-    url: '/workspaces/{workspaceId}/documents';
+    url: '/documents';
 };
 
 export type DocumentsListErrors = {
@@ -4615,14 +4553,9 @@ export type DocumentsDropData = {
          */
         'Idempotency-Key'?: string;
     };
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: never;
-    url: '/workspaces/{workspaceId}/documents';
+    url: '/documents';
 };
 
 export type DocumentsDropErrors = {
@@ -4671,16 +4604,12 @@ export type DocumentsDeleteData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Document id (`doc_…`).
          */
         documentId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/documents/{documentId}';
+    url: '/documents/{documentId}';
 };
 
 export type DocumentsDeleteErrors = {
@@ -4717,10 +4646,6 @@ export type DocumentsGetData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Document id (`doc_…`).
          */
         documentId: Id;
@@ -4731,7 +4656,7 @@ export type DocumentsGetData = {
          */
         expand?: Array<DocumentExpand>;
     };
-    url: '/workspaces/{workspaceId}/documents/{documentId}';
+    url: '/documents/{documentId}';
 };
 
 export type DocumentsGetErrors = {
@@ -4772,16 +4697,12 @@ export type DocumentsUpdateData = {
     body: DocumentUpdateRequest;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Document id (`doc_…`).
          */
         documentId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/documents/{documentId}';
+    url: '/documents/{documentId}';
 };
 
 export type DocumentsUpdateErrors = {
@@ -4826,16 +4747,12 @@ export type DocumentsGetContentData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Document id (`doc_…`).
          */
         documentId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/documents/{documentId}/content';
+    url: '/documents/{documentId}/content';
 };
 
 export type DocumentsGetContentErrors = {
@@ -4872,16 +4789,12 @@ export type DocumentsGetExtractionData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Document id (`doc_…`).
          */
         documentId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/documents/{documentId}/extraction';
+    url: '/documents/{documentId}/extraction';
 };
 
 export type DocumentsGetExtractionErrors = {
@@ -4918,16 +4831,12 @@ export type DocumentsAssignData = {
     body: DocumentAssignRequest;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Document id (`doc_…`).
          */
         documentId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/documents/{documentId}/assign';
+    url: '/documents/{documentId}/assign';
 };
 
 export type DocumentsAssignErrors = {
@@ -4976,16 +4885,12 @@ export type DocumentsUnassignData = {
     body: DocumentUnassignRequest;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Document id (`doc_…`).
          */
         documentId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/documents/{documentId}/unassign';
+    url: '/documents/{documentId}/unassign';
 };
 
 export type DocumentsUnassignErrors = {
@@ -5026,16 +4931,12 @@ export type DocumentsListAssignmentsData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Document id (`doc_…`).
          */
         documentId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/documents/{documentId}/assignments';
+    url: '/documents/{documentId}/assignments';
 };
 
 export type DocumentsListAssignmentsErrors = {
@@ -5072,10 +4973,6 @@ export type DocumentsListByProjectData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -5110,7 +5007,7 @@ export type DocumentsListByProjectData = {
          */
         view?: Id;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/documents';
+    url: '/projects/{projectId}/documents';
 };
 
 export type DocumentsListByProjectErrors = {
@@ -5151,10 +5048,6 @@ export type DocumentsListByTransactionData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -5189,7 +5082,7 @@ export type DocumentsListByTransactionData = {
          */
         withCount?: boolean;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/transactions/{txId}/documents';
+    url: '/projects/{projectId}/transactions/{txId}/documents';
 };
 
 export type DocumentsListByTransactionErrors = {
@@ -5230,10 +5123,6 @@ export type DocumentsListByPurchaseOrderData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -5268,7 +5157,7 @@ export type DocumentsListByPurchaseOrderData = {
          */
         withCount?: boolean;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/purchase-orders/{purchaseOrderId}/documents';
+    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/documents';
 };
 
 export type DocumentsListByPurchaseOrderErrors = {
@@ -5309,10 +5198,6 @@ export type DocumentsListByContactData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Contact id (`con_…`).
          */
         contactId: Id;
@@ -5343,7 +5228,7 @@ export type DocumentsListByContactData = {
          */
         withCount?: boolean;
     };
-    url: '/workspaces/{workspaceId}/contacts/{contactId}/documents';
+    url: '/contacts/{contactId}/documents';
 };
 
 export type DocumentsListByContactErrors = {
@@ -5382,12 +5267,7 @@ export type DocumentsListByContactResponse = DocumentsListByContactResponses[key
 
 export type LibraryListRatePacksData = {
     body?: never;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: {
         /**
          * Maximum number of items to return on a page. Capped at 100.
@@ -5425,7 +5305,7 @@ export type LibraryListRatePacksData = {
         deprecated?: boolean;
         includeDeleted?: boolean;
     };
-    url: '/workspaces/{workspaceId}/library/rates';
+    url: '/library/rates';
 };
 
 export type LibraryListRatePacksErrors = {
@@ -5464,14 +5344,9 @@ export type LibraryListRatePacksResponse = LibraryListRatePacksResponses[keyof L
 
 export type LibraryCreateRatePackData = {
     body: RatePackCreate;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: never;
-    url: '/workspaces/{workspaceId}/library/rates';
+    url: '/library/rates';
 };
 
 export type LibraryCreateRatePackErrors = {
@@ -5515,14 +5390,10 @@ export type LibraryCreateRatePackResponse = LibraryCreateRatePackResponses[keyof
 export type LibraryDeleteRatePackData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         packId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/rates/{packId}';
+    url: '/library/rates/{packId}';
 };
 
 export type LibraryDeleteRatePackErrors = {
@@ -5558,10 +5429,6 @@ export type LibraryDeleteRatePackResponse = LibraryDeleteRatePackResponses[keyof
 export type LibraryGetRatePackData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         packId: Id;
     };
     query?: {
@@ -5570,7 +5437,7 @@ export type LibraryGetRatePackData = {
          */
         expand?: Array<RatePackExpand>;
     };
-    url: '/workspaces/{workspaceId}/library/rates/{packId}';
+    url: '/library/rates/{packId}';
 };
 
 export type LibraryGetRatePackErrors = {
@@ -5606,14 +5473,10 @@ export type LibraryGetRatePackResponse = LibraryGetRatePackResponses[keyof Libra
 export type LibraryUpdateRatePackData = {
     body: RatePackUpdate;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         packId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/rates/{packId}';
+    url: '/library/rates/{packId}';
 };
 
 export type LibraryUpdateRatePackErrors = {
@@ -5657,14 +5520,10 @@ export type LibraryUpdateRatePackResponse = LibraryUpdateRatePackResponses[keyof
 export type LibraryDisableRatePackData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         packId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/rates/{packId}/enable';
+    url: '/library/rates/{packId}/enable';
 };
 
 export type LibraryDisableRatePackErrors = {
@@ -5700,14 +5559,10 @@ export type LibraryDisableRatePackResponse = LibraryDisableRatePackResponses[key
 export type LibraryEnableRatePackData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         packId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/rates/{packId}/enable';
+    url: '/library/rates/{packId}/enable';
 };
 
 export type LibraryEnableRatePackErrors = {
@@ -5747,10 +5602,6 @@ export type LibraryEnableRatePackResponse = LibraryEnableRatePackResponses[keyof
 export type LibraryListRatePackItemsData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         packId: Id;
     };
     query?: {
@@ -5775,7 +5626,7 @@ export type LibraryListRatePackItemsData = {
         local?: string;
         effectiveDate?: string;
     };
-    url: '/workspaces/{workspaceId}/library/rates/{packId}/items';
+    url: '/library/rates/{packId}/items';
 };
 
 export type LibraryListRatePackItemsErrors = {
@@ -5815,14 +5666,10 @@ export type LibraryListRatePackItemsResponse = LibraryListRatePackItemsResponses
 export type LibraryCreateRatePackItemData = {
     body: RatePackItemCreate;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         packId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/rates/{packId}/items';
+    url: '/library/rates/{packId}/items';
 };
 
 export type LibraryCreateRatePackItemErrors = {
@@ -5866,15 +5713,11 @@ export type LibraryCreateRatePackItemResponse = LibraryCreateRatePackItemRespons
 export type LibraryDeleteRatePackItemData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         packId: Id;
         itemId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/rates/{packId}/items/{itemId}';
+    url: '/library/rates/{packId}/items/{itemId}';
 };
 
 export type LibraryDeleteRatePackItemErrors = {
@@ -5910,15 +5753,11 @@ export type LibraryDeleteRatePackItemResponse = LibraryDeleteRatePackItemRespons
 export type LibraryUpdateRatePackItemData = {
     body: RatePackItemUpdate;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         packId: Id;
         itemId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/rates/{packId}/items/{itemId}';
+    url: '/library/rates/{packId}/items/{itemId}';
 };
 
 export type LibraryUpdateRatePackItemErrors = {
@@ -5961,12 +5800,7 @@ export type LibraryUpdateRatePackItemResponse = LibraryUpdateRatePackItemRespons
 
 export type LibraryListIncentivePacksData = {
     body?: never;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: {
         /**
          * Maximum number of items to return on a page. Capped at 100.
@@ -5989,7 +5823,7 @@ export type LibraryListIncentivePacksData = {
         deprecated?: boolean;
         enabled?: boolean;
     };
-    url: '/workspaces/{workspaceId}/library/incentives';
+    url: '/library/incentives';
 };
 
 export type LibraryListIncentivePacksErrors = {
@@ -6029,10 +5863,6 @@ export type LibraryListIncentivePacksResponse = LibraryListIncentivePacksRespons
 export type LibraryGetIncentivePackData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         packId: Id;
     };
     query?: {
@@ -6041,7 +5871,7 @@ export type LibraryGetIncentivePackData = {
          */
         expand?: Array<IncentivePackExpand>;
     };
-    url: '/workspaces/{workspaceId}/library/incentives/{packId}';
+    url: '/library/incentives/{packId}';
 };
 
 export type LibraryGetIncentivePackErrors = {
@@ -6077,10 +5907,6 @@ export type LibraryGetIncentivePackResponse = LibraryGetIncentivePackResponses[k
 export type LibraryListIncentiveProgramsData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         packId: Id;
     };
     query?: {
@@ -6097,7 +5923,7 @@ export type LibraryListIncentiveProgramsData = {
         incentiveStructure?: string;
         status?: 'draft' | 'published' | 'archived';
     };
-    url: '/workspaces/{workspaceId}/library/incentives/{packId}/programs';
+    url: '/library/incentives/{packId}/programs';
 };
 
 export type LibraryListIncentiveProgramsErrors = {
@@ -6137,14 +5963,10 @@ export type LibraryListIncentiveProgramsResponse = LibraryListIncentiveProgramsR
 export type LibraryDisableIncentivePackData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         packId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/incentives/{packId}/enable';
+    url: '/library/incentives/{packId}/enable';
 };
 
 export type LibraryDisableIncentivePackErrors = {
@@ -6180,14 +6002,10 @@ export type LibraryDisableIncentivePackResponse = LibraryDisableIncentivePackRes
 export type LibraryEnableIncentivePackData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         packId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/incentives/{packId}/enable';
+    url: '/library/incentives/{packId}/enable';
 };
 
 export type LibraryEnableIncentivePackErrors = {
@@ -6226,12 +6044,7 @@ export type LibraryEnableIncentivePackResponse = LibraryEnableIncentivePackRespo
 
 export type LibraryListFringeTemplatesData = {
     body?: never;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: {
         /**
          * Maximum number of items to return on a page. Capped at 100.
@@ -6248,7 +6061,7 @@ export type LibraryListFringeTemplatesData = {
         q?: string;
         includeDeleted?: boolean;
     };
-    url: '/workspaces/{workspaceId}/library/fringes';
+    url: '/library/fringes';
 };
 
 export type LibraryListFringeTemplatesErrors = {
@@ -6287,14 +6100,9 @@ export type LibraryListFringeTemplatesResponse = LibraryListFringeTemplatesRespo
 
 export type LibraryCreateFringeTemplateData = {
     body: FringeTemplateWrite;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: never;
-    url: '/workspaces/{workspaceId}/library/fringes';
+    url: '/library/fringes';
 };
 
 export type LibraryCreateFringeTemplateErrors = {
@@ -6338,14 +6146,10 @@ export type LibraryCreateFringeTemplateResponse = LibraryCreateFringeTemplateRes
 export type LibraryDeleteFringeTemplateData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         fringeId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/fringes/{fringeId}';
+    url: '/library/fringes/{fringeId}';
 };
 
 export type LibraryDeleteFringeTemplateErrors = {
@@ -6381,14 +6185,10 @@ export type LibraryDeleteFringeTemplateResponse = LibraryDeleteFringeTemplateRes
 export type LibraryGetFringeTemplateData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         fringeId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/fringes/{fringeId}';
+    url: '/library/fringes/{fringeId}';
 };
 
 export type LibraryGetFringeTemplateErrors = {
@@ -6424,14 +6224,10 @@ export type LibraryGetFringeTemplateResponse = LibraryGetFringeTemplateResponses
 export type LibraryUpdateFringeTemplateData = {
     body: FringeTemplateWrite;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         fringeId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/fringes/{fringeId}';
+    url: '/library/fringes/{fringeId}';
 };
 
 export type LibraryUpdateFringeTemplateErrors = {
@@ -6474,12 +6270,7 @@ export type LibraryUpdateFringeTemplateResponse = LibraryUpdateFringeTemplateRes
 
 export type LibraryListGlobalTemplatesData = {
     body?: never;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: {
         /**
          * Maximum number of items to return on a page. Capped at 100.
@@ -6496,7 +6287,7 @@ export type LibraryListGlobalTemplatesData = {
         q?: string;
         includeDeleted?: boolean;
     };
-    url: '/workspaces/{workspaceId}/library/globals';
+    url: '/library/globals';
 };
 
 export type LibraryListGlobalTemplatesErrors = {
@@ -6535,14 +6326,9 @@ export type LibraryListGlobalTemplatesResponse = LibraryListGlobalTemplatesRespo
 
 export type LibraryCreateGlobalTemplateData = {
     body: GlobalTemplateWrite;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: never;
-    url: '/workspaces/{workspaceId}/library/globals';
+    url: '/library/globals';
 };
 
 export type LibraryCreateGlobalTemplateErrors = {
@@ -6586,14 +6372,10 @@ export type LibraryCreateGlobalTemplateResponse = LibraryCreateGlobalTemplateRes
 export type LibraryDeleteGlobalTemplateData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         globalId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/globals/{globalId}';
+    url: '/library/globals/{globalId}';
 };
 
 export type LibraryDeleteGlobalTemplateErrors = {
@@ -6629,14 +6411,10 @@ export type LibraryDeleteGlobalTemplateResponse = LibraryDeleteGlobalTemplateRes
 export type LibraryGetGlobalTemplateData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         globalId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/globals/{globalId}';
+    url: '/library/globals/{globalId}';
 };
 
 export type LibraryGetGlobalTemplateErrors = {
@@ -6672,14 +6450,10 @@ export type LibraryGetGlobalTemplateResponse = LibraryGetGlobalTemplateResponses
 export type LibraryUpdateGlobalTemplateData = {
     body: GlobalTemplateWrite;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         globalId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/globals/{globalId}';
+    url: '/library/globals/{globalId}';
 };
 
 export type LibraryUpdateGlobalTemplateErrors = {
@@ -6722,12 +6496,7 @@ export type LibraryUpdateGlobalTemplateResponse = LibraryUpdateGlobalTemplateRes
 
 export type LibraryListCurrencyTemplatesData = {
     body?: never;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: {
         /**
          * Maximum number of items to return on a page. Capped at 100.
@@ -6744,7 +6513,7 @@ export type LibraryListCurrencyTemplatesData = {
         q?: string;
         includeDeleted?: boolean;
     };
-    url: '/workspaces/{workspaceId}/library/currencies';
+    url: '/library/currencies';
 };
 
 export type LibraryListCurrencyTemplatesErrors = {
@@ -6783,14 +6552,9 @@ export type LibraryListCurrencyTemplatesResponse = LibraryListCurrencyTemplatesR
 
 export type LibraryCreateCurrencyTemplateData = {
     body: CurrencyTemplateWrite;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: never;
-    url: '/workspaces/{workspaceId}/library/currencies';
+    url: '/library/currencies';
 };
 
 export type LibraryCreateCurrencyTemplateErrors = {
@@ -6834,14 +6598,10 @@ export type LibraryCreateCurrencyTemplateResponse = LibraryCreateCurrencyTemplat
 export type LibraryDeleteCurrencyTemplateData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         currencyId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/currencies/{currencyId}';
+    url: '/library/currencies/{currencyId}';
 };
 
 export type LibraryDeleteCurrencyTemplateErrors = {
@@ -6877,14 +6637,10 @@ export type LibraryDeleteCurrencyTemplateResponse = LibraryDeleteCurrencyTemplat
 export type LibraryGetCurrencyTemplateData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         currencyId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/currencies/{currencyId}';
+    url: '/library/currencies/{currencyId}';
 };
 
 export type LibraryGetCurrencyTemplateErrors = {
@@ -6920,14 +6676,10 @@ export type LibraryGetCurrencyTemplateResponse = LibraryGetCurrencyTemplateRespo
 export type LibraryUpdateCurrencyTemplateData = {
     body: CurrencyTemplateWrite;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         currencyId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/currencies/{currencyId}';
+    url: '/library/currencies/{currencyId}';
 };
 
 export type LibraryUpdateCurrencyTemplateErrors = {
@@ -6970,12 +6722,7 @@ export type LibraryUpdateCurrencyTemplateResponse = LibraryUpdateCurrencyTemplat
 
 export type LibraryListFringeTagTemplatesData = {
     body?: never;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: {
         /**
          * Maximum number of items to return on a page. Capped at 100.
@@ -6992,7 +6739,7 @@ export type LibraryListFringeTagTemplatesData = {
         q?: string;
         includeDeleted?: boolean;
     };
-    url: '/workspaces/{workspaceId}/library/fringe-tags';
+    url: '/library/fringe-tags';
 };
 
 export type LibraryListFringeTagTemplatesErrors = {
@@ -7031,14 +6778,9 @@ export type LibraryListFringeTagTemplatesResponse = LibraryListFringeTagTemplate
 
 export type LibraryCreateFringeTagTemplateData = {
     body: FringeTagTemplateWrite;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: never;
-    url: '/workspaces/{workspaceId}/library/fringe-tags';
+    url: '/library/fringe-tags';
 };
 
 export type LibraryCreateFringeTagTemplateErrors = {
@@ -7082,14 +6824,10 @@ export type LibraryCreateFringeTagTemplateResponse = LibraryCreateFringeTagTempl
 export type LibraryDeleteFringeTagTemplateData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         fringeTagId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/fringe-tags/{fringeTagId}';
+    url: '/library/fringe-tags/{fringeTagId}';
 };
 
 export type LibraryDeleteFringeTagTemplateErrors = {
@@ -7125,14 +6863,10 @@ export type LibraryDeleteFringeTagTemplateResponse = LibraryDeleteFringeTagTempl
 export type LibraryGetFringeTagTemplateData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         fringeTagId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/fringe-tags/{fringeTagId}';
+    url: '/library/fringe-tags/{fringeTagId}';
 };
 
 export type LibraryGetFringeTagTemplateErrors = {
@@ -7168,14 +6902,10 @@ export type LibraryGetFringeTagTemplateResponse = LibraryGetFringeTagTemplateRes
 export type LibraryUpdateFringeTagTemplateData = {
     body: FringeTagTemplateWrite;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         fringeTagId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/fringe-tags/{fringeTagId}';
+    url: '/library/fringe-tags/{fringeTagId}';
 };
 
 export type LibraryUpdateFringeTagTemplateErrors = {
@@ -7218,12 +6948,7 @@ export type LibraryUpdateFringeTagTemplateResponse = LibraryUpdateFringeTagTempl
 
 export type LibraryListTagsData = {
     body?: never;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: {
         /**
          * Maximum number of items to return on a page. Capped at 100.
@@ -7241,7 +6966,7 @@ export type LibraryListTagsData = {
         eligibilityKey?: string;
         includeDeleted?: boolean;
     };
-    url: '/workspaces/{workspaceId}/library/tags';
+    url: '/library/tags';
 };
 
 export type LibraryListTagsErrors = {
@@ -7280,14 +7005,9 @@ export type LibraryListTagsResponse = LibraryListTagsResponses[keyof LibraryList
 
 export type LibraryCreateTagData = {
     body: TagCreate;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: never;
-    url: '/workspaces/{workspaceId}/library/tags';
+    url: '/library/tags';
 };
 
 export type LibraryCreateTagErrors = {
@@ -7331,14 +7051,10 @@ export type LibraryCreateTagResponse = LibraryCreateTagResponses[keyof LibraryCr
 export type LibraryDeleteTagData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         tagId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/tags/{tagId}';
+    url: '/library/tags/{tagId}';
 };
 
 export type LibraryDeleteTagErrors = {
@@ -7374,14 +7090,10 @@ export type LibraryDeleteTagResponse = LibraryDeleteTagResponses[keyof LibraryDe
 export type LibraryGetTagData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         tagId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/tags/{tagId}';
+    url: '/library/tags/{tagId}';
 };
 
 export type LibraryGetTagErrors = {
@@ -7417,14 +7129,10 @@ export type LibraryGetTagResponse = LibraryGetTagResponses[keyof LibraryGetTagRe
 export type LibraryUpdateTagData = {
     body: TagUpdate;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         tagId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/tags/{tagId}';
+    url: '/library/tags/{tagId}';
 };
 
 export type LibraryUpdateTagErrors = {
@@ -7467,16 +7175,11 @@ export type LibraryUpdateTagResponse = LibraryUpdateTagResponses[keyof LibraryUp
 
 export type LibraryListUnitsData = {
     body?: never;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: {
         q?: string;
     };
-    url: '/workspaces/{workspaceId}/library/units';
+    url: '/library/units';
 };
 
 export type LibraryListUnitsErrors = {
@@ -7511,12 +7214,7 @@ export type LibraryListUnitsResponse = LibraryListUnitsResponses[keyof LibraryLi
 
 export type LibraryListCustomUnitsData = {
     body?: never;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: {
         /**
          * Maximum number of items to return on a page. Capped at 100.
@@ -7528,7 +7226,7 @@ export type LibraryListCustomUnitsData = {
         cursor?: string;
         includeDeleted?: boolean;
     };
-    url: '/workspaces/{workspaceId}/library/units/custom';
+    url: '/library/units/custom';
 };
 
 export type LibraryListCustomUnitsErrors = {
@@ -7563,14 +7261,9 @@ export type LibraryListCustomUnitsResponse = LibraryListCustomUnitsResponses[key
 
 export type LibraryCreateCustomUnitData = {
     body: CustomUnitCreate;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: never;
-    url: '/workspaces/{workspaceId}/library/units/custom';
+    url: '/library/units/custom';
 };
 
 export type LibraryCreateCustomUnitErrors = {
@@ -7614,14 +7307,10 @@ export type LibraryCreateCustomUnitResponse = LibraryCreateCustomUnitResponses[k
 export type LibraryDeleteCustomUnitData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         unitId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/units/custom/{unitId}';
+    url: '/library/units/custom/{unitId}';
 };
 
 export type LibraryDeleteCustomUnitErrors = {
@@ -7657,14 +7346,10 @@ export type LibraryDeleteCustomUnitResponse = LibraryDeleteCustomUnitResponses[k
 export type LibraryUpdateCustomUnitData = {
     body: CustomUnitUpdate;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         unitId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/library/units/custom/{unitId}';
+    url: '/library/units/custom/{unitId}';
 };
 
 export type LibraryUpdateCustomUnitErrors = {
@@ -7709,10 +7394,6 @@ export type LibraryListProjectRatePacksData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -7735,7 +7416,7 @@ export type LibraryListProjectRatePacksData = {
          */
         installed?: boolean;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/rates';
+    url: '/projects/{projectId}/library/rates';
 };
 
 export type LibraryListProjectRatePacksErrors = {
@@ -7776,17 +7457,13 @@ export type LibraryRemoveRatePackData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
         packId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/rates/{packId}/add';
+    url: '/projects/{projectId}/library/rates/{packId}/add';
 };
 
 export type LibraryRemoveRatePackErrors = {
@@ -7823,17 +7500,13 @@ export type LibraryAddRatePackData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
         packId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/rates/{packId}/add';
+    url: '/projects/{projectId}/library/rates/{packId}/add';
 };
 
 export type LibraryAddRatePackErrors = {
@@ -7874,10 +7547,6 @@ export type LibraryListProjectIncentivesData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -7899,7 +7568,7 @@ export type LibraryListProjectIncentivesData = {
         jurisdiction?: string;
         incentiveType?: string;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/incentives';
+    url: '/projects/{projectId}/library/incentives';
 };
 
 export type LibraryListProjectIncentivesErrors = {
@@ -7940,16 +7609,12 @@ export type LibraryAddProjectIncentiveData = {
     body: ProjectIncentiveAdd;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/incentives/add';
+    url: '/projects/{projectId}/library/incentives/add';
 };
 
 export type LibraryAddProjectIncentiveErrors = {
@@ -7994,17 +7659,13 @@ export type LibraryDeleteProjectIncentiveData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
         incentiveId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/incentives/{incentiveId}';
+    url: '/projects/{projectId}/library/incentives/{incentiveId}';
 };
 
 export type LibraryDeleteProjectIncentiveErrors = {
@@ -8041,10 +7702,6 @@ export type LibraryGetProjectIncentiveData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -8056,7 +7713,7 @@ export type LibraryGetProjectIncentiveData = {
          */
         expand?: Array<ProjectIncentiveExpand>;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/incentives/{incentiveId}';
+    url: '/projects/{projectId}/library/incentives/{incentiveId}';
 };
 
 export type LibraryGetProjectIncentiveErrors = {
@@ -8097,17 +7754,13 @@ export type LibraryUpdateProjectIncentiveData = {
     body: ProjectIncentiveUpdate;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
         incentiveId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/incentives/{incentiveId}';
+    url: '/projects/{projectId}/library/incentives/{incentiveId}';
 };
 
 export type LibraryUpdateProjectIncentiveErrors = {
@@ -8152,10 +7805,6 @@ export type LibraryListProjectFringesData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -8182,7 +7831,7 @@ export type LibraryListProjectFringesData = {
          */
         diverged?: boolean;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/fringes';
+    url: '/projects/{projectId}/library/fringes';
 };
 
 export type LibraryListProjectFringesErrors = {
@@ -8225,10 +7874,6 @@ export type LibraryAddProjectFringeData = {
     };
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -8239,7 +7884,7 @@ export type LibraryAddProjectFringeData = {
          */
         reset?: boolean;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/fringes/add';
+    url: '/projects/{projectId}/library/fringes/add';
 };
 
 export type LibraryAddProjectFringeErrors = {
@@ -8284,17 +7929,13 @@ export type LibraryDeleteProjectFringeData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
         fringeId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/fringes/{fringeId}';
+    url: '/projects/{projectId}/library/fringes/{fringeId}';
 };
 
 export type LibraryDeleteProjectFringeErrors = {
@@ -8331,10 +7972,6 @@ export type LibraryGetProjectFringeData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -8346,7 +7983,7 @@ export type LibraryGetProjectFringeData = {
          */
         expand?: Array<LibraryExpand>;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/fringes/{fringeId}';
+    url: '/projects/{projectId}/library/fringes/{fringeId}';
 };
 
 export type LibraryGetProjectFringeErrors = {
@@ -8387,17 +8024,13 @@ export type LibraryUpdateProjectFringeData = {
     body: FringeTemplateWrite;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
         fringeId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/fringes/{fringeId}';
+    url: '/projects/{projectId}/library/fringes/{fringeId}';
 };
 
 export type LibraryUpdateProjectFringeErrors = {
@@ -8442,10 +8075,6 @@ export type LibraryListProjectGlobalsData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -8466,7 +8095,7 @@ export type LibraryListProjectGlobalsData = {
         sourceId?: Id;
         diverged?: boolean;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/globals';
+    url: '/projects/{projectId}/library/globals';
 };
 
 export type LibraryListProjectGlobalsErrors = {
@@ -8509,10 +8138,6 @@ export type LibraryAddProjectGlobalData = {
     };
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -8520,7 +8145,7 @@ export type LibraryAddProjectGlobalData = {
     query?: {
         reset?: boolean;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/globals/add';
+    url: '/projects/{projectId}/library/globals/add';
 };
 
 export type LibraryAddProjectGlobalErrors = {
@@ -8565,17 +8190,13 @@ export type LibraryDeleteProjectGlobalData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
         globalId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/globals/{globalId}';
+    url: '/projects/{projectId}/library/globals/{globalId}';
 };
 
 export type LibraryDeleteProjectGlobalErrors = {
@@ -8612,10 +8233,6 @@ export type LibraryGetProjectGlobalData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -8627,7 +8244,7 @@ export type LibraryGetProjectGlobalData = {
          */
         expand?: Array<LibraryExpand>;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/globals/{globalId}';
+    url: '/projects/{projectId}/library/globals/{globalId}';
 };
 
 export type LibraryGetProjectGlobalErrors = {
@@ -8668,17 +8285,13 @@ export type LibraryUpdateProjectGlobalData = {
     body: GlobalTemplateWrite;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
         globalId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/globals/{globalId}';
+    url: '/projects/{projectId}/library/globals/{globalId}';
 };
 
 export type LibraryUpdateProjectGlobalErrors = {
@@ -8723,10 +8336,6 @@ export type LibraryListProjectCurrenciesData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -8747,7 +8356,7 @@ export type LibraryListProjectCurrenciesData = {
         sourceId?: Id;
         diverged?: boolean;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/currencies';
+    url: '/projects/{projectId}/library/currencies';
 };
 
 export type LibraryListProjectCurrenciesErrors = {
@@ -8790,10 +8399,6 @@ export type LibraryAddProjectCurrencyData = {
     };
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -8801,7 +8406,7 @@ export type LibraryAddProjectCurrencyData = {
     query?: {
         reset?: boolean;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/currencies/add';
+    url: '/projects/{projectId}/library/currencies/add';
 };
 
 export type LibraryAddProjectCurrencyErrors = {
@@ -8846,17 +8451,13 @@ export type LibraryDeleteProjectCurrencyData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
         currencyId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/currencies/{currencyId}';
+    url: '/projects/{projectId}/library/currencies/{currencyId}';
 };
 
 export type LibraryDeleteProjectCurrencyErrors = {
@@ -8893,10 +8494,6 @@ export type LibraryGetProjectCurrencyData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -8908,7 +8505,7 @@ export type LibraryGetProjectCurrencyData = {
          */
         expand?: Array<LibraryExpand>;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/currencies/{currencyId}';
+    url: '/projects/{projectId}/library/currencies/{currencyId}';
 };
 
 export type LibraryGetProjectCurrencyErrors = {
@@ -8949,17 +8546,13 @@ export type LibraryUpdateProjectCurrencyData = {
     body: CurrencyTemplateWrite;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
         currencyId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/currencies/{currencyId}';
+    url: '/projects/{projectId}/library/currencies/{currencyId}';
 };
 
 export type LibraryUpdateProjectCurrencyErrors = {
@@ -9004,10 +8597,6 @@ export type LibraryListProjectFringeTagsData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -9028,7 +8617,7 @@ export type LibraryListProjectFringeTagsData = {
         sourceId?: Id;
         diverged?: boolean;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/fringe-tags';
+    url: '/projects/{projectId}/library/fringe-tags';
 };
 
 export type LibraryListProjectFringeTagsErrors = {
@@ -9071,10 +8660,6 @@ export type LibraryAddProjectFringeTagData = {
     };
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -9082,7 +8667,7 @@ export type LibraryAddProjectFringeTagData = {
     query?: {
         reset?: boolean;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/fringe-tags/add';
+    url: '/projects/{projectId}/library/fringe-tags/add';
 };
 
 export type LibraryAddProjectFringeTagErrors = {
@@ -9127,17 +8712,13 @@ export type LibraryDeleteProjectFringeTagData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
         fringeTagId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/fringe-tags/{fringeTagId}';
+    url: '/projects/{projectId}/library/fringe-tags/{fringeTagId}';
 };
 
 export type LibraryDeleteProjectFringeTagErrors = {
@@ -9174,10 +8755,6 @@ export type LibraryGetProjectFringeTagData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -9189,7 +8766,7 @@ export type LibraryGetProjectFringeTagData = {
          */
         expand?: Array<LibraryExpand>;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/fringe-tags/{fringeTagId}';
+    url: '/projects/{projectId}/library/fringe-tags/{fringeTagId}';
 };
 
 export type LibraryGetProjectFringeTagErrors = {
@@ -9230,17 +8807,13 @@ export type LibraryUpdateProjectFringeTagData = {
     body: FringeTagTemplateWrite;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
         fringeTagId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/fringe-tags/{fringeTagId}';
+    url: '/projects/{projectId}/library/fringe-tags/{fringeTagId}';
 };
 
 export type LibraryUpdateProjectFringeTagErrors = {
@@ -9285,10 +8858,6 @@ export type LibraryListProjectTagsData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -9304,7 +8873,7 @@ export type LibraryListProjectTagsData = {
         cursor?: string;
         q?: string;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/tags';
+    url: '/projects/{projectId}/library/tags';
 };
 
 export type LibraryListProjectTagsErrors = {
@@ -9345,17 +8914,13 @@ export type LibraryRemoveProjectTagData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
         tagId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/tags/{tagId}/add';
+    url: '/projects/{projectId}/library/tags/{tagId}/add';
 };
 
 export type LibraryRemoveProjectTagErrors = {
@@ -9392,17 +8957,13 @@ export type LibraryAddProjectTagData = {
     body?: ProjectTagAttach;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
         tagId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/library/tags/{tagId}/add';
+    url: '/projects/{projectId}/library/tags/{tagId}/add';
 };
 
 export type LibraryAddProjectTagErrors = {
@@ -9445,12 +9006,7 @@ export type LibraryAddProjectTagResponse = LibraryAddProjectTagResponses[keyof L
 
 export type MasterDataListProjectsData = {
     body?: never;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: {
         /**
          * Maximum number of items to return on a page. Capped at 100.
@@ -9489,7 +9045,7 @@ export type MasterDataListProjectsData = {
          */
         includeDeleted?: boolean;
     };
-    url: '/workspaces/{workspaceId}/projects';
+    url: '/projects';
 };
 
 export type MasterDataListProjectsErrors = {
@@ -9534,14 +9090,9 @@ export type MasterDataCreateProjectData = {
          */
         'Idempotency-Key'?: string;
     };
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: never;
-    url: '/workspaces/{workspaceId}/projects';
+    url: '/projects';
 };
 
 export type MasterDataCreateProjectErrors = {
@@ -9590,16 +9141,12 @@ export type MasterDataDeleteProjectData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project canonical `id` (`prj_…`) or its `slug`.
          */
         slugOrId: string;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{slugOrId}';
+    url: '/projects/{slugOrId}';
 };
 
 export type MasterDataDeleteProjectErrors = {
@@ -9636,16 +9183,12 @@ export type MasterDataGetProjectData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project canonical `id` (`prj_…`) or its `slug`.
          */
         slugOrId: string;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{slugOrId}';
+    url: '/projects/{slugOrId}';
 };
 
 export type MasterDataGetProjectErrors = {
@@ -9682,16 +9225,12 @@ export type MasterDataUpdateProjectData = {
     body: ProjectUpdate;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project canonical `id` (`prj_…`) or its `slug`.
          */
         slugOrId: string;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{slugOrId}';
+    url: '/projects/{slugOrId}';
 };
 
 export type MasterDataUpdateProjectErrors = {
@@ -9738,12 +9277,7 @@ export type MasterDataUpdateProjectResponse = MasterDataUpdateProjectResponses[k
 
 export type MasterDataListSpacesData = {
     body?: never;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: {
         /**
          * Maximum number of items to return on a page. Capped at 100.
@@ -9771,7 +9305,7 @@ export type MasterDataListSpacesData = {
         parentId?: Id;
         includeDeleted?: boolean;
     };
-    url: '/workspaces/{workspaceId}/spaces';
+    url: '/spaces';
 };
 
 export type MasterDataListSpacesErrors = {
@@ -9816,14 +9350,9 @@ export type MasterDataCreateSpaceData = {
          */
         'Idempotency-Key'?: string;
     };
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: never;
-    url: '/workspaces/{workspaceId}/spaces';
+    url: '/spaces';
 };
 
 export type MasterDataCreateSpaceErrors = {
@@ -9872,16 +9401,12 @@ export type MasterDataDeleteSpaceData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Space canonical id (`spc_…`).
          */
         spaceId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/spaces/{spaceId}';
+    url: '/spaces/{spaceId}';
 };
 
 export type MasterDataDeleteSpaceErrors = {
@@ -9918,16 +9443,12 @@ export type MasterDataUpdateSpaceData = {
     body: SpaceUpdate;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Space canonical id (`spc_…`).
          */
         spaceId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/spaces/{spaceId}';
+    url: '/spaces/{spaceId}';
 };
 
 export type MasterDataUpdateSpaceErrors = {
@@ -9970,12 +9491,7 @@ export type MasterDataUpdateSpaceResponse = MasterDataUpdateSpaceResponses[keyof
 
 export type MasterDataListContactsData = {
     body?: never;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: {
         /**
          * Maximum number of items to return on a page. Capped at 100.
@@ -10031,7 +9547,7 @@ export type MasterDataListContactsData = {
         hasTaxId?: boolean;
         includeDeleted?: boolean;
     };
-    url: '/workspaces/{workspaceId}/contacts';
+    url: '/contacts';
 };
 
 export type MasterDataListContactsErrors = {
@@ -10076,14 +9592,9 @@ export type MasterDataCreateContactData = {
          */
         'Idempotency-Key'?: string;
     };
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: never;
-    url: '/workspaces/{workspaceId}/contacts';
+    url: '/contacts';
 };
 
 export type MasterDataCreateContactErrors = {
@@ -10132,16 +9643,12 @@ export type MasterDataDeleteContactData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Contact canonical id (`con_…`).
          */
         contactId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/contacts/{contactId}';
+    url: '/contacts/{contactId}';
 };
 
 export type MasterDataDeleteContactErrors = {
@@ -10178,10 +9685,6 @@ export type MasterDataGetContactData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Contact canonical id (`con_…`).
          */
         contactId: Id;
@@ -10192,7 +9695,7 @@ export type MasterDataGetContactData = {
          */
         expand?: Array<ContactExpand>;
     };
-    url: '/workspaces/{workspaceId}/contacts/{contactId}';
+    url: '/contacts/{contactId}';
 };
 
 export type MasterDataGetContactErrors = {
@@ -10233,16 +9736,12 @@ export type MasterDataUpdateContactData = {
     body: ContactUpdate;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Contact canonical id (`con_…`).
          */
         contactId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/contacts/{contactId}';
+    url: '/contacts/{contactId}';
 };
 
 export type MasterDataUpdateContactErrors = {
@@ -10285,12 +9784,7 @@ export type MasterDataUpdateContactResponse = MasterDataUpdateContactResponses[k
 
 export type MasterDataListCommentsData = {
     body?: never;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: {
         /**
          * Maximum number of items to return on a page. Capped at 100.
@@ -10333,7 +9827,7 @@ export type MasterDataListCommentsData = {
          */
         resolved?: boolean;
     };
-    url: '/workspaces/{workspaceId}/comments';
+    url: '/comments';
 };
 
 export type MasterDataListCommentsErrors = {
@@ -10378,14 +9872,9 @@ export type MasterDataCreateCommentData = {
          */
         'Idempotency-Key'?: string;
     };
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: never;
-    url: '/workspaces/{workspaceId}/comments';
+    url: '/comments';
 };
 
 export type MasterDataCreateCommentErrors = {
@@ -10434,16 +9923,12 @@ export type MasterDataDeleteCommentData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Comment canonical id (`cmt_…`).
          */
         commentId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/comments/{commentId}';
+    url: '/comments/{commentId}';
 };
 
 export type MasterDataDeleteCommentErrors = {
@@ -10480,16 +9965,12 @@ export type MasterDataUpdateCommentData = {
     body: CommentUpdate;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Comment canonical id (`cmt_…`).
          */
         commentId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/comments/{commentId}';
+    url: '/comments/{commentId}';
 };
 
 export type MasterDataUpdateCommentErrors = {
@@ -10534,10 +10015,6 @@ export type MasterDataListViewsData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -10565,7 +10042,7 @@ export type MasterDataListViewsData = {
         subjectType?: string;
         visibility?: ViewVisibility;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/views';
+    url: '/projects/{projectId}/views';
 };
 
 export type MasterDataListViewsErrors = {
@@ -10606,10 +10083,6 @@ export type MasterDataGetViewData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -10619,7 +10092,7 @@ export type MasterDataGetViewData = {
         viewId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/views/{viewId}';
+    url: '/projects/{projectId}/views/{viewId}';
 };
 
 export type MasterDataGetViewErrors = {
@@ -10656,10 +10129,6 @@ export type MasterDataGetViewDataData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -10690,7 +10159,7 @@ export type MasterDataGetViewDataData = {
          */
         expand?: Array<string>;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/views/{viewId}/data';
+    url: '/projects/{projectId}/views/{viewId}/data';
 };
 
 export type MasterDataGetViewDataErrors = {
@@ -10847,55 +10316,9 @@ export type MetaAuthListWorkspacesResponses = {
 
 export type MetaAuthListWorkspacesResponse = MetaAuthListWorkspacesResponses[keyof MetaAuthListWorkspacesResponses];
 
-export type MetaAuthGetWorkspaceData = {
-    body?: never;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
-    query?: never;
-    url: '/workspaces/{workspaceId}';
-};
-
-export type MetaAuthGetWorkspaceErrors = {
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type MetaAuthGetWorkspaceError = MetaAuthGetWorkspaceErrors[keyof MetaAuthGetWorkspaceErrors];
-
-export type MetaAuthGetWorkspaceResponses = {
-    /**
-     * The workspace, with the principal's current role.
-     */
-    200: Workspace;
-};
-
-export type MetaAuthGetWorkspaceResponse = MetaAuthGetWorkspaceResponses[keyof MetaAuthGetWorkspaceResponses];
-
 export type PurchaseOrdersListData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
@@ -10955,7 +10378,7 @@ export type PurchaseOrdersListData = {
          */
         includeDeleted?: boolean;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/purchase-orders';
+    url: '/projects/{projectId}/purchase-orders';
 };
 
 export type PurchaseOrdersListErrors = {
@@ -11002,10 +10425,6 @@ export type PurchaseOrdersCreateData = {
     };
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -11016,7 +10435,7 @@ export type PurchaseOrdersCreateData = {
          */
         expand?: Array<PurchaseOrderExpand>;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/purchase-orders';
+    url: '/projects/{projectId}/purchase-orders';
 };
 
 export type PurchaseOrdersCreateErrors = {
@@ -11065,10 +10484,6 @@ export type PurchaseOrdersDeleteData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -11078,7 +10493,7 @@ export type PurchaseOrdersDeleteData = {
         purchaseOrderId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/purchase-orders/{purchaseOrderId}';
+    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}';
 };
 
 export type PurchaseOrdersDeleteErrors = {
@@ -11119,10 +10534,6 @@ export type PurchaseOrdersGetData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -11137,7 +10548,7 @@ export type PurchaseOrdersGetData = {
          */
         expand?: Array<PurchaseOrderExpand>;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/purchase-orders/{purchaseOrderId}';
+    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}';
 };
 
 export type PurchaseOrdersGetErrors = {
@@ -11174,10 +10585,6 @@ export type PurchaseOrdersUpdateData = {
     body: PurchaseOrderUpdate;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -11192,7 +10599,7 @@ export type PurchaseOrdersUpdateData = {
          */
         expand?: Array<PurchaseOrderExpand>;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/purchase-orders/{purchaseOrderId}';
+    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}';
 };
 
 export type PurchaseOrdersUpdateErrors = {
@@ -11241,10 +10648,6 @@ export type PurchaseOrdersSubmitData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -11254,7 +10657,7 @@ export type PurchaseOrdersSubmitData = {
         purchaseOrderId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/purchase-orders/{purchaseOrderId}/submit';
+    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/submit';
 };
 
 export type PurchaseOrdersSubmitErrors = {
@@ -11295,10 +10698,6 @@ export type PurchaseOrdersCancelSubmissionData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -11308,7 +10707,7 @@ export type PurchaseOrdersCancelSubmissionData = {
         purchaseOrderId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/purchase-orders/{purchaseOrderId}/cancel-submission';
+    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/cancel-submission';
 };
 
 export type PurchaseOrdersCancelSubmissionErrors = {
@@ -11349,10 +10748,6 @@ export type PurchaseOrdersVoidData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -11362,7 +10757,7 @@ export type PurchaseOrdersVoidData = {
         purchaseOrderId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/purchase-orders/{purchaseOrderId}/void';
+    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/void';
 };
 
 export type PurchaseOrdersVoidErrors = {
@@ -11403,10 +10798,6 @@ export type PurchaseOrdersFinalizeData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -11416,7 +10807,7 @@ export type PurchaseOrdersFinalizeData = {
         purchaseOrderId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/purchase-orders/{purchaseOrderId}/finalize';
+    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/finalize';
 };
 
 export type PurchaseOrdersFinalizeErrors = {
@@ -11457,10 +10848,6 @@ export type PurchaseOrdersLinkData = {
     body: PurchaseOrderLink;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -11470,7 +10857,7 @@ export type PurchaseOrdersLinkData = {
         purchaseOrderId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/purchase-orders/{purchaseOrderId}/link';
+    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/link';
 };
 
 export type PurchaseOrdersLinkErrors = {
@@ -11519,10 +10906,6 @@ export type PurchaseOrdersUnlinkData = {
     body: PurchaseOrderLink;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -11532,7 +10915,7 @@ export type PurchaseOrdersUnlinkData = {
         purchaseOrderId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/purchase-orders/{purchaseOrderId}/unlink';
+    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/unlink';
 };
 
 export type PurchaseOrdersUnlinkErrors = {
@@ -11581,10 +10964,6 @@ export type PurchaseOrdersLifecycleData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -11594,7 +10973,7 @@ export type PurchaseOrdersLifecycleData = {
         purchaseOrderId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/purchase-orders/{purchaseOrderId}/lifecycle';
+    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/lifecycle';
 };
 
 export type PurchaseOrdersLifecycleErrors = {
@@ -11631,10 +11010,6 @@ export type PurchaseOrdersListItemsData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -11653,7 +11028,7 @@ export type PurchaseOrdersListItemsData = {
          */
         cursor?: string;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/purchase-orders/{purchaseOrderId}/items';
+    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/items';
 };
 
 export type PurchaseOrdersListItemsErrors = {
@@ -11696,10 +11071,6 @@ export type PurchaseOrdersCreateItemData = {
     };
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -11709,7 +11080,7 @@ export type PurchaseOrdersCreateItemData = {
         purchaseOrderId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/purchase-orders/{purchaseOrderId}/items';
+    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/items';
 };
 
 export type PurchaseOrdersCreateItemErrors = {
@@ -11758,10 +11129,6 @@ export type PurchaseOrdersDeleteItemData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -11775,7 +11142,7 @@ export type PurchaseOrdersDeleteItemData = {
         itemId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/purchase-orders/{purchaseOrderId}/items/{itemId}';
+    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/items/{itemId}';
 };
 
 export type PurchaseOrdersDeleteItemErrors = {
@@ -11816,10 +11183,6 @@ export type PurchaseOrdersUpdateItemData = {
     body: PurchaseOrderItemWrite;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -11833,7 +11196,7 @@ export type PurchaseOrdersUpdateItemData = {
         itemId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/purchase-orders/{purchaseOrderId}/items/{itemId}';
+    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/items/{itemId}';
 };
 
 export type PurchaseOrdersUpdateItemErrors = {
@@ -11882,10 +11245,6 @@ export type PurchaseOrdersListTransactionsData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -11904,7 +11263,7 @@ export type PurchaseOrdersListTransactionsData = {
          */
         cursor?: string;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/purchase-orders/{purchaseOrderId}/transactions';
+    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/transactions';
 };
 
 export type PurchaseOrdersListTransactionsErrors = {
@@ -11950,12 +11309,7 @@ export type PurchaseOrdersListTransactionsResponse = PurchaseOrdersListTransacti
 
 export type SearchWorkspaceData = {
     body?: never;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query: {
         /**
          * The search query. 1 to 500 characters.
@@ -11974,7 +11328,7 @@ export type SearchWorkspaceData = {
          */
         cursor?: string;
     };
-    url: '/workspaces/{workspaceId}/search';
+    url: '/search';
 };
 
 export type SearchWorkspaceErrors = {
@@ -12015,10 +11369,6 @@ export type SearchProjectData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -12041,7 +11391,7 @@ export type SearchProjectData = {
          */
         cursor?: string;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/search';
+    url: '/projects/{projectId}/search';
 };
 
 export type SearchProjectErrors = {
@@ -12081,10 +11431,6 @@ export type SearchProjectResponse = SearchProjectResponses[keyof SearchProjectRe
 export type TransactionsListData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
@@ -12176,7 +11522,7 @@ export type TransactionsListData = {
          */
         view?: Id;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/transactions';
+    url: '/projects/{projectId}/transactions';
 };
 
 export type TransactionsListErrors = {
@@ -12223,16 +11569,12 @@ export type TransactionsCreateData = {
     };
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/transactions';
+    url: '/projects/{projectId}/transactions';
 };
 
 export type TransactionsCreateErrors = {
@@ -12281,10 +11623,6 @@ export type TransactionsStatsData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -12311,7 +11649,7 @@ export type TransactionsStatsData = {
         hasDocuments?: boolean;
         q?: string;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/transactions/stats';
+    url: '/projects/{projectId}/transactions/stats';
 };
 
 export type TransactionsStatsErrors = {
@@ -12352,16 +11690,12 @@ export type TransactionsTypesData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/transactions/types';
+    url: '/projects/{projectId}/transactions/types';
 };
 
 export type TransactionsTypesErrors = {
@@ -12404,16 +11738,12 @@ export type TransactionsBatchCreateData = {
     };
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/transactions/batch';
+    url: '/projects/{projectId}/transactions/batch';
 };
 
 export type TransactionsBatchCreateErrors = {
@@ -12466,10 +11796,6 @@ export type TransactionsDeleteData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -12479,7 +11805,7 @@ export type TransactionsDeleteData = {
         txId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/transactions/{txId}';
+    url: '/projects/{projectId}/transactions/{txId}';
 };
 
 export type TransactionsDeleteErrors = {
@@ -12520,10 +11846,6 @@ export type TransactionsGetData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -12538,7 +11860,7 @@ export type TransactionsGetData = {
          */
         expand?: Array<TransactionExpandKey>;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/transactions/{txId}';
+    url: '/projects/{projectId}/transactions/{txId}';
 };
 
 export type TransactionsGetErrors = {
@@ -12579,10 +11901,6 @@ export type TransactionsUpdateData = {
     body: TransactionPatch;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -12592,7 +11910,7 @@ export type TransactionsUpdateData = {
         txId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/transactions/{txId}';
+    url: '/projects/{projectId}/transactions/{txId}';
 };
 
 export type TransactionsUpdateErrors = {
@@ -12641,10 +11959,6 @@ export type TransactionsItemsListData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -12663,7 +11977,7 @@ export type TransactionsItemsListData = {
          */
         cursor?: string;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/transactions/{txId}/items';
+    url: '/projects/{projectId}/transactions/{txId}/items';
 };
 
 export type TransactionsItemsListErrors = {
@@ -12706,10 +12020,6 @@ export type TransactionsItemsCreateData = {
     };
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -12719,7 +12029,7 @@ export type TransactionsItemsCreateData = {
         txId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/transactions/{txId}/items';
+    url: '/projects/{projectId}/transactions/{txId}/items';
 };
 
 export type TransactionsItemsCreateErrors = {
@@ -12768,10 +12078,6 @@ export type TransactionsItemsDeleteData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -12785,7 +12091,7 @@ export type TransactionsItemsDeleteData = {
         itemId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/transactions/{txId}/items/{itemId}';
+    url: '/projects/{projectId}/transactions/{txId}/items/{itemId}';
 };
 
 export type TransactionsItemsDeleteErrors = {
@@ -12822,10 +12128,6 @@ export type TransactionsItemsUpdateData = {
     body: TransactionItemPatch;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
         projectId: string;
@@ -12839,7 +12141,7 @@ export type TransactionsItemsUpdateData = {
         itemId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/projects/{projectId}/transactions/{txId}/items/{itemId}';
+    url: '/projects/{projectId}/transactions/{txId}/items/{itemId}';
 };
 
 export type TransactionsItemsUpdateErrors = {
@@ -12882,12 +12184,7 @@ export type TransactionsItemsUpdateResponse = TransactionsItemsUpdateResponses[k
 
 export type UsageListRollupsData = {
     body?: never;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: {
         /**
          * Inclusive start of the window (ISO-8601). Defaults to a recent window when omitted. The window is capped, an over-cap `from`/`to` span returns `400 range_too_large`; an inverted or unparseable range returns `400 invalid_date_range`.
@@ -12926,7 +12223,7 @@ export type UsageListRollupsData = {
          */
         withCount?: boolean;
     };
-    url: '/workspaces/{workspaceId}/usage';
+    url: '/usage';
 };
 
 export type UsageListRollupsErrors = {
@@ -12966,10 +12263,6 @@ export type UsageListRollupsResponse = UsageListRollupsResponses[keyof UsageList
 export type UsageListProjectRollupsData = {
     body?: never;
     path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
         /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
          */
@@ -13013,7 +12306,7 @@ export type UsageListProjectRollupsData = {
          */
         withCount?: boolean;
     };
-    url: '/workspaces/{workspaceId}/projects/{projectId}/usage';
+    url: '/projects/{projectId}/usage';
 };
 
 export type UsageListProjectRollupsErrors = {
@@ -13052,12 +12345,7 @@ export type UsageListProjectRollupsResponse = UsageListProjectRollupsResponses[k
 
 export type UsageListCreditsData = {
     body?: never;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: {
         /**
          * Inclusive start of the window (ISO-8601). Defaults to a recent window when omitted. The window is capped, an over-cap `from`/`to` span returns `400 range_too_large`; an inverted or unparseable range returns `400 invalid_date_range`.
@@ -13088,7 +12376,7 @@ export type UsageListCreditsData = {
          */
         withCount?: boolean;
     };
-    url: '/workspaces/{workspaceId}/usage/credits';
+    url: '/usage/credits';
 };
 
 export type UsageListCreditsErrors = {
@@ -13127,12 +12415,7 @@ export type UsageListCreditsResponse = UsageListCreditsResponses[keyof UsageList
 
 export type UsageListOperationsData = {
     body?: never;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: {
         /**
          * Inclusive start of the window (ISO-8601). Defaults to a recent window when omitted. The window is capped, an over-cap `from`/`to` span returns `400 range_too_large`; an inverted or unparseable range returns `400 invalid_date_range`.
@@ -13167,7 +12450,7 @@ export type UsageListOperationsData = {
          */
         withCount?: boolean;
     };
-    url: '/workspaces/{workspaceId}/usage/operations';
+    url: '/usage/operations';
 };
 
 export type UsageListOperationsErrors = {
@@ -13206,12 +12489,7 @@ export type UsageListOperationsResponse = UsageListOperationsResponses[keyof Usa
 
 export type WebhooksListData = {
     body?: never;
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: {
         /**
          * Maximum number of items to return on a page. Capped at 100.
@@ -13246,7 +12524,7 @@ export type WebhooksListData = {
          */
         active?: boolean;
     };
-    url: '/workspaces/{workspaceId}/webhooks';
+    url: '/webhooks';
 };
 
 export type WebhooksListErrors = {
@@ -13291,14 +12569,9 @@ export type WebhooksCreateData = {
          */
         'Idempotency-Key'?: string;
     };
-    path: {
-        /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-    };
+    path?: never;
     query?: never;
-    url: '/workspaces/{workspaceId}/webhooks';
+    url: '/webhooks';
 };
 
 export type WebhooksCreateErrors = {
@@ -13347,16 +12620,12 @@ export type WebhooksDeleteData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Webhook subscription identifier (`whk_…`).
          */
         webhookId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/webhooks/{webhookId}';
+    url: '/webhooks/{webhookId}';
 };
 
 export type WebhooksDeleteErrors = {
@@ -13393,10 +12662,6 @@ export type WebhooksGetData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Webhook subscription identifier (`whk_…`).
          */
         webhookId: Id;
@@ -13407,7 +12672,7 @@ export type WebhooksGetData = {
          */
         expand?: Array<WebhookExpand>;
     };
-    url: '/workspaces/{workspaceId}/webhooks/{webhookId}';
+    url: '/webhooks/{webhookId}';
 };
 
 export type WebhooksGetErrors = {
@@ -13448,16 +12713,12 @@ export type WebhooksUpdateData = {
     body: WebhookUpdate;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Webhook subscription identifier (`whk_…`).
          */
         webhookId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/webhooks/{webhookId}';
+    url: '/webhooks/{webhookId}';
 };
 
 export type WebhooksUpdateErrors = {
@@ -13506,16 +12767,12 @@ export type WebhooksPingData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Webhook subscription identifier (`whk_…`).
          */
         webhookId: Id;
     };
     query?: never;
-    url: '/workspaces/{workspaceId}/webhooks/{webhookId}/ping';
+    url: '/webhooks/{webhookId}/ping';
 };
 
 export type WebhooksPingErrors = {
@@ -13560,10 +12817,6 @@ export type WebhooksListDeliveriesData = {
     body?: never;
     path: {
         /**
-         * Workspace identifier (`ws_…`). Never the internal workspaceId.
-         */
-        workspaceId: Id;
-        /**
          * Webhook subscription identifier (`whk_…`).
          */
         webhookId: Id;
@@ -13602,7 +12855,7 @@ export type WebhooksListDeliveriesData = {
          */
         since?: string;
     };
-    url: '/workspaces/{workspaceId}/webhooks/{webhookId}/deliveries';
+    url: '/webhooks/{webhookId}/deliveries';
 };
 
 export type WebhooksListDeliveriesErrors = {

@@ -51,7 +51,7 @@ function makePagedOp(): {
 
 describe('Transport.paginate', () => {
   function transport(): Transport {
-    return new Transport({ token: 't', workspaceId: 'ws_1', baseURL: 'http://x' });
+    return new Transport({ token: 't', baseURL: 'http://x' });
   }
 
   it('carries the caller limit forward onto every follow-up page', async () => {

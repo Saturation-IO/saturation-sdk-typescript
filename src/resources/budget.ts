@@ -109,14 +109,14 @@ export class BudgetResource {
   /** The whole computed budget tree (never paginated). */
   async tree(): Promise<ComputedBudget> {
     return this.t.run(sdk.budgetGetTree, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId },
+      path: { projectId: this.projectId },
     }) as Promise<ComputedBudget>;
   }
 
   /** Engine-computed rollup for one phase (id or `type`, e.g. `estimate`). */
   async rollup(phase: string): Promise<BudgetRollup> {
     return this.t.run(sdk.budgetGetRollup, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId },
+      path: { projectId: this.projectId },
       query: { phase },
     }) as Promise<BudgetRollup>;
   }
@@ -124,7 +124,7 @@ export class BudgetResource {
   /** Engine-computed variance between two phases (`from` → `to`). */
   async variance(from: string, to: string): Promise<BudgetVariance> {
     return this.t.run(sdk.budgetGetVariance, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId },
+      path: { projectId: this.projectId },
       query: { from, to },
     }) as Promise<BudgetVariance>;
   }
@@ -145,7 +145,7 @@ export class BudgetLinesResource {
     params: BudgetLineListParams<E> = {},
   ): List<Expanded<BudgetLine, BudgetLineExpandMap, E>> {
     const options = {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId },
+      path: { projectId: this.projectId },
       query: {
         accountId: params.accountId,
         path: params.path,
@@ -175,7 +175,7 @@ export class BudgetLinesResource {
     params: BudgetGetLineParams<E> = {},
   ): Promise<Expanded<BudgetLine, BudgetLineExpandMap, E>> {
     return this.t.run(sdk.budgetGetLine, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId, lineId },
+      path: { projectId: this.projectId, lineId },
       query: { expand: serializeExpand(params.expand) },
     }) as Promise<Expanded<BudgetLine, BudgetLineExpandMap, E>>;
   }
@@ -186,7 +186,7 @@ export class BudgetLinesResource {
     opts: { idempotencyKey?: string } = {},
   ): Promise<BudgetLine> {
     return this.t.run(sdk.budgetCreateLine, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId },
+      path: { projectId: this.projectId },
       headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
       body,
     }) as Promise<BudgetLine>;
@@ -195,7 +195,7 @@ export class BudgetLinesResource {
   /** Patch a budget line (allow-list only; server-owned fields → `field_read_only`). */
   async update(lineId: string, body: BudgetLineUpdate): Promise<BudgetLine> {
     return this.t.run(sdk.budgetUpdateLine, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId, lineId },
+      path: { projectId: this.projectId, lineId },
       body,
     }) as Promise<BudgetLine>;
   }
@@ -203,7 +203,7 @@ export class BudgetLinesResource {
   /** Soft-delete a budget line. `reset` re-snapshots from source on resurrect. */
   async delete(lineId: string, opts: { reset?: boolean } = {}): Promise<void> {
     await this.t.run(sdk.budgetDeleteLine, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId, lineId },
+      path: { projectId: this.projectId, lineId },
       query: opts.reset ? { reset: true } : undefined,
     });
   }
@@ -217,7 +217,7 @@ export class BudgetPhasesResource {
 
   list(): List<BudgetPhase> {
     const options = {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId },
+      path: { projectId: this.projectId },
     };
     return new List<BudgetPhase>(
       () => this.t.paginate<typeof options, BudgetPhase>(sdk.budgetListPhases, options),
@@ -227,27 +227,27 @@ export class BudgetPhasesResource {
 
   async get(phaseId: string): Promise<BudgetPhase> {
     return this.t.run(sdk.budgetGetPhase, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId, phaseId },
+      path: { projectId: this.projectId, phaseId },
     }) as Promise<BudgetPhase>;
   }
 
   async create(body: BudgetPhaseCreate): Promise<BudgetPhase> {
     return this.t.run(sdk.budgetCreatePhase, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId },
+      path: { projectId: this.projectId },
       body,
     }) as Promise<BudgetPhase>;
   }
 
   async update(phaseId: string, body: BudgetPhaseUpdate): Promise<BudgetPhase> {
     return this.t.run(sdk.budgetUpdatePhase, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId, phaseId },
+      path: { projectId: this.projectId, phaseId },
       body,
     }) as Promise<BudgetPhase>;
   }
 
   async delete(phaseId: string): Promise<void> {
     await this.t.run(sdk.budgetDeletePhase, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId, phaseId },
+      path: { projectId: this.projectId, phaseId },
     });
   }
 }
@@ -260,7 +260,7 @@ export class BudgetAccountsResource {
 
   list(): List<BudgetAccount> {
     const options = {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId },
+      path: { projectId: this.projectId },
     };
     return new List<BudgetAccount>(
       () => this.t.paginate<typeof options, BudgetAccount>(sdk.budgetListAccounts, options),
@@ -278,7 +278,7 @@ export class BudgetTotalsResource {
   /** Engine-computed rolled-up totals, as of `computedAt`. */
   async get(params: BudgetTotalsParams = {}): Promise<BudgetTotals> {
     return this.t.run(sdk.budgetGetTotals, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId },
+      path: { projectId: this.projectId },
       query: {
         phase: params.phase,
         tags: params.tags,
@@ -302,7 +302,7 @@ export class BudgetCellsResource {
    */
   async get(coords: { account: string; column: string }): Promise<BudgetCell> {
     return this.t.run(sdk.budgetGetCell, {
-      path: { workspaceId: this.t.workspaceId, projectId: this.projectId },
+      path: { projectId: this.projectId },
       query: { account: coords.account, column: coords.column },
     }) as Promise<BudgetCell>;
   }

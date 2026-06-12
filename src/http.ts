@@ -34,21 +34,19 @@ export interface Page<T> {
 
 /**
  * The single transport seam. Wraps the @hey-api fetch client, injects the bearer
- * token + workspace path param, and turns every generated operation into a clean
- * promise that either resolves to the bare success body or throws a typed
- * `SaturationError`. Success is determined by `response.ok` (HTTP status), never a
- * `success` field in the body.
+ * token, and turns every generated operation into a clean promise that either
+ * resolves to the bare success body or throws a typed `SaturationError`.
+ * Success is determined by `response.ok` (HTTP status), never a `success` field
+ * in the body.
  */
 export class Transport {
   readonly client: Client;
-  readonly workspaceId: string;
 
-  constructor(opts: { token: string; workspaceId: string; baseURL?: string }) {
-    this.workspaceId = opts.workspaceId;
+  constructor(opts: { token: string; baseURL?: string }) {
     this.client = createClient({
       baseUrl: opts.baseURL ?? DEFAULT_BASE_URL,
       // Single auth path: `Authorization: Bearer <token>`. No X-API-Key, no
-      // X-Workspace-Id header — the workspace is explicit in every path.
+      // workspace header — the token determines the workspace.
       auth: opts.token,
       throwOnError: false,
     });
