@@ -24,6 +24,7 @@ const poExpandMap = {
 type PoExpandMap = typeof poExpandMap;
 
 export interface PurchaseOrderListParams<E extends PurchaseOrderExpand = never> {
+  projectId?: string;
   status?: PurchaseOrderStatus;
   contactId?: string;
   budgetLineId?: string;
@@ -46,7 +47,7 @@ export interface PurchaseOrderListParams<E extends PurchaseOrderExpand = never> 
 export class PurchaseOrdersResource {
   constructor(
     private readonly t: Transport,
-    private readonly projectId: string,
+    private readonly projectId?: string,
   ) {}
 
   list<E extends PurchaseOrderExpand = never>(
@@ -54,7 +55,7 @@ export class PurchaseOrdersResource {
   ): List<Expanded<PurchaseOrder, PoExpandMap, E>> {
     const options = {
       query: {
-        projectId: this.projectId,
+        projectId: params.projectId ?? this.projectId,
         status: params.status,
         contactId: params.contactId,
         budgetLineId: params.budgetLineId,
@@ -87,9 +88,10 @@ export class PurchaseOrdersResource {
   }
 
   async create(body: PurchaseOrderCreate, opts: { idempotencyKey?: string } = {}): Promise<PurchaseOrder> {
+    const projectId = body.projectId ?? this.projectId;
     return this.t.run(sdk.purchaseOrdersCreate, {
       headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
-      body: { ...body, projectId: body.projectId ?? this.projectId },
+      body: projectId === undefined ? body : { ...body, projectId },
     }) as Promise<PurchaseOrder>;
   }
 

@@ -111,6 +111,8 @@ export class Saturation {
   readonly documents: DocumentsResource;
   /** Workspace-scoped contacts (vendors, crew, payees). */
   readonly contacts: ContactsResource;
+  /** Workspace-scoped purchase orders, including unassigned POs. */
+  readonly purchaseOrders: PurchaseOrdersResource;
   /** Workspace spaces (folders that group projects). */
   readonly spaces: SpacesResource;
   /** Workspace comments attached to entities. */
@@ -132,6 +134,7 @@ export class Saturation {
     this.library = new LibraryResource(this.t);
     this.documents = new DocumentsResource(this.t);
     this.contacts = new ContactsResource(this.t);
+    this.purchaseOrders = new PurchaseOrdersResource(this.t);
     this.spaces = new SpacesResource(this.t);
     this.comments = new CommentsResource(this.t);
     this.usage = new UsageResource(this.t);
