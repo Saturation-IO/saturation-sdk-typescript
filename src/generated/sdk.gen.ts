@@ -1676,7 +1676,7 @@ export const purchaseOrdersLink = <ThrowOnError extends boolean = false>(options
 /**
  * Unlink a transaction from a purchase order
  *
- * Remove a transaction link from a committed PO, clear the transaction's `purchaseOrderId`, deactivate the entity edge, move the PO back to `approved`, and emit `purchaseOrder.updated`. From any status other than `committed` returns `409 po_invalid_status`.
+ * Remove a transaction link from a committed or paid PO, clear the transaction's `purchaseOrderId`, deactivate the entity edge, recompute remaining posted+actualized coverage, and emit `purchaseOrder.updated`. Paid POs stay `paid` only when the remaining actuals still cover every effective PO budget-line bucket; otherwise they fall back to `committed` or `approved`. From any status other than `committed` or `paid` returns `409 po_invalid_status`.
  */
 export const purchaseOrdersUnlink = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersUnlinkData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersUnlinkResponses, PurchaseOrdersUnlinkErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],

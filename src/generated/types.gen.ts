@@ -2093,7 +2093,7 @@ export type PurchaseOrderExpand = 'items' | 'contact' | 'transactions' | 'docume
 /**
  * Allowed sort fields for the purchase-order collection (appends `,id`).
  */
-export type PurchaseOrderSort = 'number' | 'title' | 'date' | 'status' | 'sort' | 'createdAt' | 'updatedAt';
+export type PurchaseOrderSort = 'number' | 'title' | 'date' | 'serviceStartAt' | 'serviceEndAt' | 'status' | 'sort' | 'createdAt' | 'updatedAt';
 
 /**
  * A purchase order, scoped to a project. Internal bookkeeping fields are not part of this resource and are never returned. `status` is read-only and derived from PO activity.
@@ -2123,6 +2123,14 @@ export type PurchaseOrder = {
      * PO date (ISO-8601 `YYYY-MM-DD`).
      */
     date?: string | null;
+    /**
+     * First service date for this PO (ISO-8601 `YYYY-MM-DD`).
+     */
+    serviceStartAt?: string | null;
+    /**
+     * Last service date for this PO (ISO-8601 `YYYY-MM-DD`).
+     */
+    serviceEndAt?: string | null;
     /**
      * Free-text notes.
      */
@@ -2282,6 +2290,14 @@ export type PurchaseOrderCreate = {
      * PO date (ISO-8601 `YYYY-MM-DD`).
      */
     date?: string;
+    /**
+     * First service date for this PO (ISO-8601 `YYYY-MM-DD`).
+     */
+    serviceStartAt?: string;
+    /**
+     * Last service date for this PO (ISO-8601 `YYYY-MM-DD`).
+     */
+    serviceEndAt?: string;
     notes?: string;
     sort?: number;
     /**
@@ -2299,6 +2315,8 @@ export type PurchaseOrderUpdate = {
     contactId?: string | null;
     budgetLineId?: string | null;
     date?: string | null;
+    serviceStartAt?: string | null;
+    serviceEndAt?: string | null;
     notes?: string | null;
     sort?: number | null;
 };
