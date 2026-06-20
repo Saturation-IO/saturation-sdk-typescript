@@ -68,8 +68,8 @@ export class TransactionsResource {
     params: TransactionListParams<E> = {},
   ): List<Expanded<Transaction, TransactionExpandMap, E>> {
     const options = {
-      path: { projectId: this.projectId },
       query: {
+        projectId: this.projectId,
         source: params.source,
         type: params.type,
         status: params.status,
@@ -106,7 +106,7 @@ export class TransactionsResource {
     params: { expand?: readonly E[] } = {},
   ): Promise<Expanded<Transaction, TransactionExpandMap, E>> {
     return this.t.run(sdk.transactionsGet, {
-      path: { projectId: this.projectId, txId },
+      path: { txId },
       query: { expand: serializeExpand(params.expand) },
     }) as Promise<Expanded<Transaction, TransactionExpandMap, E>>;
   }
@@ -117,9 +117,8 @@ export class TransactionsResource {
     opts: { idempotencyKey?: string } = {},
   ): Promise<Transaction> {
     return this.t.run(sdk.transactionsCreate, {
-      path: { projectId: this.projectId },
       headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
-      body,
+      body: { ...body, projectId: body.projectId ?? this.projectId },
     }) as Promise<Transaction>;
   }
 
@@ -129,16 +128,20 @@ export class TransactionsResource {
     opts: { idempotencyKey?: string } = {},
   ): Promise<unknown> {
     return this.t.run(sdk.transactionsBatchCreate, {
-      path: { projectId: this.projectId },
       headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
-      body,
+      body: {
+        transactions: body.transactions.map((transaction) => ({
+          ...transaction,
+          projectId: transaction.projectId ?? this.projectId,
+        })),
+      },
     });
   }
 
   /** Patch a transaction. */
   async update(txId: string, body: TransactionPatch): Promise<Transaction> {
     return this.t.run(sdk.transactionsUpdate, {
-      path: { projectId: this.projectId, txId },
+      path: { txId },
       body,
     }) as Promise<Transaction>;
   }
@@ -146,7 +149,7 @@ export class TransactionsResource {
   /** Soft-delete a transaction. */
   async delete(txId: string): Promise<void> {
     await this.t.run(sdk.transactionsDelete, {
-      path: { projectId: this.projectId, txId },
+      path: { txId },
     });
   }
 
@@ -155,33 +158,31 @@ export class TransactionsResource {
     params: Omit<TransactionListParams, 'expand' | 'sort' | 'order' | 'limit' | 'cursor' | 'withCount'> = {},
   ): Promise<TransactionStats> {
     return this.t.run(sdk.transactionsStats, {
-      path: { projectId: this.projectId },
-      query: { ...params },
+      query: { ...params, projectId: this.projectId },
     }) as Promise<TransactionStats>;
   }
 
   /** Distinct visible `type` values in the project. */
   async types(): Promise<TransactionTypes> {
     return this.t.run(sdk.transactionsTypes, {
-      path: { projectId: this.projectId },
+      query: { projectId: this.projectId },
     }) as Promise<TransactionTypes>;
   }
 
   /** Itemized lines on a transaction. */
   get items(): TransactionItemsResource {
-    return new TransactionItemsResource(this.t, this.projectId);
+    return new TransactionItemsResource(this.t);
   }
 }
 
 export class TransactionItemsResource {
   constructor(
     private readonly t: Transport,
-    private readonly projectId: string,
   ) {}
 
   list(txId: string): List<TransactionItem> {
     const options = {
-      path: { projectId: this.projectId, txId },
+      path: { txId },
     };
     return new List<TransactionItem>(
       () => this.t.paginate<typeof options, TransactionItem>(sdk.transactionsItemsList, options),
@@ -191,21 +192,21 @@ export class TransactionItemsResource {
 
   async create(txId: string, body: TransactionItemCreate): Promise<TransactionItem> {
     return this.t.run(sdk.transactionsItemsCreate, {
-      path: { projectId: this.projectId, txId },
+      path: { txId },
       body,
     }) as Promise<TransactionItem>;
   }
 
   async update(txId: string, itemId: string, body: TransactionItemPatch): Promise<TransactionItem> {
     return this.t.run(sdk.transactionsItemsUpdate, {
-      path: { projectId: this.projectId, txId, itemId },
+      path: { txId, itemId },
       body,
     }) as Promise<TransactionItem>;
   }
 
   async delete(txId: string, itemId: string): Promise<void> {
     await this.t.run(sdk.transactionsItemsDelete, {
-      path: { projectId: this.projectId, txId, itemId },
+      path: { txId, itemId },
     });
   }
 }

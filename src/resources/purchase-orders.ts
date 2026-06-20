@@ -53,8 +53,8 @@ export class PurchaseOrdersResource {
     params: PurchaseOrderListParams<E> = {},
   ): List<Expanded<PurchaseOrder, PoExpandMap, E>> {
     const options = {
-      path: { projectId: this.projectId },
       query: {
+        projectId: this.projectId,
         status: params.status,
         contactId: params.contactId,
         budgetLineId: params.budgetLineId,
@@ -81,64 +81,63 @@ export class PurchaseOrdersResource {
     params: { expand?: readonly E[] } = {},
   ): Promise<Expanded<PurchaseOrder, PoExpandMap, E>> {
     return this.t.run(sdk.purchaseOrdersGet, {
-      path: { projectId: this.projectId, purchaseOrderId },
+      path: { purchaseOrderId },
       query: { expand: serializeExpand(params.expand) },
     }) as Promise<Expanded<PurchaseOrder, PoExpandMap, E>>;
   }
 
   async create(body: PurchaseOrderCreate, opts: { idempotencyKey?: string } = {}): Promise<PurchaseOrder> {
     return this.t.run(sdk.purchaseOrdersCreate, {
-      path: { projectId: this.projectId },
       headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
-      body,
+      body: { ...body, projectId: body.projectId ?? this.projectId },
     }) as Promise<PurchaseOrder>;
   }
 
   async update(purchaseOrderId: string, body: PurchaseOrderUpdate): Promise<PurchaseOrder> {
     return this.t.run(sdk.purchaseOrdersUpdate, {
-      path: { projectId: this.projectId, purchaseOrderId },
+      path: { purchaseOrderId },
       body,
     }) as Promise<PurchaseOrder>;
   }
 
   async delete(purchaseOrderId: string): Promise<void> {
     await this.t.run(sdk.purchaseOrdersDelete, {
-      path: { projectId: this.projectId, purchaseOrderId },
+      path: { purchaseOrderId },
     });
   }
 
-  /** Submit a draft purchase order into the lifecycle flow. */
-  async submit(purchaseOrderId: string): Promise<PurchaseOrder> {
+  /** Reserved public-v1 submit path; throws until wired to the workspace approval-run service. */
+  async submit(purchaseOrderId: string): Promise<never> {
     return this.t.run(sdk.purchaseOrdersSubmit, {
-      path: { projectId: this.projectId, purchaseOrderId },
-    }) as Promise<PurchaseOrder>;
+      path: { purchaseOrderId },
+    }) as Promise<never>;
   }
 
   /** Cancel a pending submission, returning the PO to draft. */
   async cancelSubmission(purchaseOrderId: string): Promise<PurchaseOrder> {
     return this.t.run(sdk.purchaseOrdersCancelSubmission, {
-      path: { projectId: this.projectId, purchaseOrderId },
+      path: { purchaseOrderId },
     }) as Promise<PurchaseOrder>;
   }
 
   /** Void a purchase order. */
   async void(purchaseOrderId: string): Promise<PurchaseOrder> {
     return this.t.run(sdk.purchaseOrdersVoid, {
-      path: { projectId: this.projectId, purchaseOrderId },
+      path: { purchaseOrderId },
     }) as Promise<PurchaseOrder>;
   }
 
   /** The read-only lifecycle state of a purchase order. */
   async lifecycle(purchaseOrderId: string): Promise<PurchaseOrderLifecycle> {
     return this.t.run(sdk.purchaseOrdersLifecycle, {
-      path: { projectId: this.projectId, purchaseOrderId },
+      path: { purchaseOrderId },
     }) as Promise<PurchaseOrderLifecycle>;
   }
 
   /** Transactions linked to a purchase order. */
   transactions(purchaseOrderId: string): List<Transaction> {
     const options = {
-      path: { projectId: this.projectId, purchaseOrderId },
+      path: { purchaseOrderId },
     };
     return new List<Transaction>(
       () => this.t.paginate<typeof options, Transaction>(sdk.purchaseOrdersListTransactions, options),
@@ -148,22 +147,19 @@ export class PurchaseOrdersResource {
 
   /** Line items on a purchase order. */
   items(purchaseOrderId: string): PurchaseOrderItemsResource {
-    return new PurchaseOrderItemsResource(this.t, this.projectId, purchaseOrderId);
+    return new PurchaseOrderItemsResource(this.t, purchaseOrderId);
   }
 }
 
 export class PurchaseOrderItemsResource {
   constructor(
     private readonly t: Transport,
-    private readonly projectId: string,
     private readonly purchaseOrderId: string,
   ) {}
 
   list(): List<PurchaseOrderItem> {
     const options = {
-      path: { projectId: this.projectId,
-        purchaseOrderId: this.purchaseOrderId,
-      },
+      path: { purchaseOrderId: this.purchaseOrderId },
     };
     return new List<PurchaseOrderItem>(
       () => this.t.paginate<typeof options, PurchaseOrderItem>(sdk.purchaseOrdersListItems, options),
@@ -173,29 +169,21 @@ export class PurchaseOrderItemsResource {
 
   async create(body: PurchaseOrderItemWrite): Promise<PurchaseOrderItem> {
     return this.t.run(sdk.purchaseOrdersCreateItem, {
-      path: { projectId: this.projectId,
-        purchaseOrderId: this.purchaseOrderId,
-      },
+      path: { purchaseOrderId: this.purchaseOrderId },
       body,
     }) as Promise<PurchaseOrderItem>;
   }
 
   async update(itemId: string, body: PurchaseOrderItemWrite): Promise<PurchaseOrderItem> {
     return this.t.run(sdk.purchaseOrdersUpdateItem, {
-      path: { projectId: this.projectId,
-        purchaseOrderId: this.purchaseOrderId,
-        itemId,
-      },
+      path: { purchaseOrderId: this.purchaseOrderId, itemId },
       body,
     }) as Promise<PurchaseOrderItem>;
   }
 
   async delete(itemId: string): Promise<void> {
     await this.t.run(sdk.purchaseOrdersDeleteItem, {
-      path: { projectId: this.projectId,
-        purchaseOrderId: this.purchaseOrderId,
-        itemId,
-      },
+      path: { purchaseOrderId: this.purchaseOrderId, itemId },
     });
   }
 }

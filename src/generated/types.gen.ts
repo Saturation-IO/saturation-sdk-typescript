@@ -10692,15 +10692,6 @@ export type PurchaseOrdersSubmitErrors = {
 
 export type PurchaseOrdersSubmitError = PurchaseOrdersSubmitErrors[keyof PurchaseOrdersSubmitErrors];
 
-export type PurchaseOrdersSubmitResponses = {
-    /**
-     * The purchase order after submission (`pending`, or `approved` if auto-approved).
-     */
-    200: PurchaseOrder;
-};
-
-export type PurchaseOrdersSubmitResponse = PurchaseOrdersSubmitResponses[keyof PurchaseOrdersSubmitResponses];
-
 export type PurchaseOrdersCancelSubmissionData = {
     body?: never;
     path: {
