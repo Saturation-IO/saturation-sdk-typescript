@@ -2096,12 +2096,15 @@ export type PurchaseOrderExpand = 'items' | 'contact' | 'transactions' | 'docume
 export type PurchaseOrderSort = 'number' | 'title' | 'date' | 'serviceStartAt' | 'serviceEndAt' | 'status' | 'sort' | 'createdAt' | 'updatedAt';
 
 /**
- * A purchase order, scoped to a project. Internal bookkeeping fields are not part of this resource and are never returned. `status` is read-only and derived from PO activity.
+ * A workspace-level purchase order. `projectId` is `null` when the PO is not assigned to a project. Internal bookkeeping fields are not part of this resource and are never returned. `status` is read-only and derived from PO activity.
  */
 export type PurchaseOrder = {
     id: Id;
     workspaceId: Id;
-    projectId: Id;
+    /**
+     * The project (`prj_…`) this PO is assigned to, or `null` when it is an unassigned workspace-level purchase order.
+     */
+    projectId?: Id | null;
     /**
      * Human-facing PO number (e.g. `PO-0042`). Free text; filterable by exact match.
      */
@@ -2267,9 +2270,13 @@ export type PurchaseOrderLifecycle = {
 };
 
 /**
- * Create a purchase order. The server sets `status='draft'` and `createdById`; naming any server-owned field (`status`, `createdById`, `workspaceId`, `projectId`, or any internal bookkeeping field) returns `422 field_read_only` and changes nothing.
+ * Create a purchase order. The server sets `status='draft'` and `createdById`; naming any server-owned field (`status`, `createdById`, `workspaceId`, or any internal bookkeeping field) returns `422 field_read_only` and changes nothing. Pass `projectId` to assign the PO to a project, or omit it to create a workspace-level (unassigned) purchase order.
  */
 export type PurchaseOrderCreate = {
+    /**
+     * Optional project (`prj_…` id or slug) to assign the PO to. Omit to create a workspace-level (unassigned) purchase order. A project that does not exist (or is not readable) returns `404 not_found`.
+     */
+    projectId?: string;
     /**
      * Human-facing PO number.
      */
@@ -2307,9 +2314,13 @@ export type PurchaseOrderCreate = {
 };
 
 /**
- * Partial update of a purchase order. Allowed only while `status` is `draft` or `rejected`; otherwise `409 po_invalid_status`. `status` and the PO''s owning `projectId` are server-owned: naming `status`, `projectId`, `workspaceId`, `createdById`, or any internal bookkeeping field returns `422 field_read_only` and changes nothing. A PO never moves projects via this update.
+ * Partial update of a purchase order. Allowed only while `status` is `draft` or `rejected`; otherwise `409 po_invalid_status`. `status` is server-owned: naming `status`, `workspaceId`, `createdById`, or any internal bookkeeping field returns `422 field_read_only` and changes nothing. `projectId` is settable: a `prj_…` id or slug assigns the PO to that project, and `null` unassigns it back to the workspace level.
  */
 export type PurchaseOrderUpdate = {
+    /**
+     * Assign or unassign the PO. A `prj_…` id or slug assigns it to that project; `null` unassigns it back to the workspace level. A named project that does not exist (or is not readable) returns `404 not_found`.
+     */
+    projectId?: string | null;
     number?: string | null;
     title?: string | null;
     contactId?: string | null;
@@ -2641,9 +2652,9 @@ export type Transaction = {
      */
     contactId?: Id | null;
     /**
-     * Owning project (`prj_…`). Tenant key, server-owned, never client-writable.
+     * Owning project (`prj_…`), or `null` when the transaction is unassigned (workspace-level). Settable via create/patch to assign, reassign, or unassign the row.
      */
-    projectId: Id;
+    projectId?: Id | null;
     /**
      * Budget line coding when NOT itemized. When `isItemized=true`, coding lives on `items[]` and this is `null`.
      */
@@ -2707,6 +2718,10 @@ export type TransactionJournalCreate = {
      */
     status?: TransactionStatus;
     description?: string;
+    /**
+     * Optional project assignment (`prj_…` id or slug). Omit to create a workspace-level (unassigned) transaction; a named project that does not resolve returns `404 not_found`.
+     */
+    projectId?: Id;
     contactId?: Id;
     /**
      * Coding (omit when the row will be itemized).
@@ -2723,9 +2738,13 @@ export type TransactionJournalCreate = {
 };
 
 /**
- * Partial update. Writability is driven by a `source → {readonly, writable}` allow-list. Assignment fields (`contactId`, `budgetLineId`, `fringeId`, `notes`, `number`, `ref`, `actualized`) are writable on ANY source. Core fields (`amount`, `currency`, `timestamp`, `type`, `status`, `merchant`, `sourceLast4`, `sourceName`) are writable ONLY on `journal`; naming one on a sourced row returns `422 field_read_only`. Server-owned fields (`id`, `source`, `sourceId`, `projectId`, `isReversal`, `isItemized`, `createdAt`, `updatedAt`) are never writable. A `status` change is checked against the reachability matrix.
+ * Partial update. Writability is driven by a `source → {readonly, writable}` allow-list. Assignment fields (`projectId`, `contactId`, `budgetLineId`, `fringeId`, `notes`, `number`, `ref`, `actualized`) are writable on ANY source. `projectId` is an assignment field - a `prj_…` id or slug moves the transaction to that project, and `null` unassigns it back to the workspace level. Core fields (`amount`, `currency`, `timestamp`, `type`, `status`, `merchant`, `sourceLast4`, `sourceName`) are writable ONLY on `journal`; naming one on a sourced row returns `422 field_read_only`. Server-owned fields (`id`, `source`, `sourceId`, `isReversal`, `isItemized`, `createdAt`, `updatedAt`) are never writable. A `status` change is checked against the reachability matrix.
  */
 export type TransactionPatch = {
+    /**
+     * Assign, reassign, or unassign the transaction. A `prj_…` id or slug moves it to that project; `null` unassigns it back to the workspace level. Writable on any source.
+     */
+    projectId?: Id | null;
     contactId?: Id | null;
     budgetLineId?: Id | null;
     fringeId?: Id | null;
@@ -5066,10 +5085,6 @@ export type DocumentsListByTransactionData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Transaction id (`txn_…`).
          */
         txId: Id;
@@ -5100,7 +5115,7 @@ export type DocumentsListByTransactionData = {
          */
         withCount?: boolean;
     };
-    url: '/projects/{projectId}/transactions/{txId}/documents';
+    url: '/transactions/{txId}/documents';
 };
 
 export type DocumentsListByTransactionErrors = {
@@ -5141,10 +5156,6 @@ export type DocumentsListByPurchaseOrderData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Purchase order id (`po_…`).
          */
         purchaseOrderId: Id;
@@ -5175,7 +5186,7 @@ export type DocumentsListByPurchaseOrderData = {
          */
         withCount?: boolean;
     };
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/documents';
+    url: '/purchase-orders/{purchaseOrderId}/documents';
 };
 
 export type DocumentsListByPurchaseOrderErrors = {
@@ -10336,13 +10347,12 @@ export type MetaAuthListWorkspacesResponse = MetaAuthListWorkspacesResponses[key
 
 export type PurchaseOrdersListData = {
     body?: never;
-    path: {
-        /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-    };
+    path?: never;
     query?: {
+        /**
+         * Filter by project. A `prj_…` id or project slug returns only that project's purchase orders; `none` returns unassigned (workspace-level) purchase orders; omitting it returns every purchase order in the workspace. A named project that does not exist (or is not readable) returns `404 not_found`.
+         */
+        projectId?: string;
         /**
          * Maximum number of items to return on a page. Capped at 100.
          */
@@ -10396,7 +10406,7 @@ export type PurchaseOrdersListData = {
          */
         includeDeleted?: boolean;
     };
-    url: '/projects/{projectId}/purchase-orders';
+    url: '/purchase-orders';
 };
 
 export type PurchaseOrdersListErrors = {
@@ -10441,19 +10451,14 @@ export type PurchaseOrdersCreateData = {
          */
         'Idempotency-Key'?: string;
     };
-    path: {
-        /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-    };
+    path?: never;
     query?: {
         /**
          * Comma list of related data to inline on a purchase order (depth ≤ 2). Unknown key returns `400 expand_invalid`.
          */
         expand?: Array<PurchaseOrderExpand>;
     };
-    url: '/projects/{projectId}/purchase-orders';
+    url: '/purchase-orders';
 };
 
 export type PurchaseOrdersCreateErrors = {
@@ -10502,16 +10507,12 @@ export type PurchaseOrdersDeleteData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Purchase order identifier (`po_…`).
          */
         purchaseOrderId: Id;
     };
     query?: never;
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}';
+    url: '/purchase-orders/{purchaseOrderId}';
 };
 
 export type PurchaseOrdersDeleteErrors = {
@@ -10552,10 +10553,6 @@ export type PurchaseOrdersGetData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Purchase order identifier (`po_…`).
          */
         purchaseOrderId: Id;
@@ -10566,7 +10563,7 @@ export type PurchaseOrdersGetData = {
          */
         expand?: Array<PurchaseOrderExpand>;
     };
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}';
+    url: '/purchase-orders/{purchaseOrderId}';
 };
 
 export type PurchaseOrdersGetErrors = {
@@ -10603,10 +10600,6 @@ export type PurchaseOrdersUpdateData = {
     body: PurchaseOrderUpdate;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Purchase order identifier (`po_…`).
          */
         purchaseOrderId: Id;
@@ -10617,7 +10610,7 @@ export type PurchaseOrdersUpdateData = {
          */
         expand?: Array<PurchaseOrderExpand>;
     };
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}';
+    url: '/purchase-orders/{purchaseOrderId}';
 };
 
 export type PurchaseOrdersUpdateErrors = {
@@ -10666,16 +10659,12 @@ export type PurchaseOrdersSubmitData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Purchase order identifier (`po_…`).
          */
         purchaseOrderId: Id;
     };
     query?: never;
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/submit';
+    url: '/purchase-orders/{purchaseOrderId}/submit';
 };
 
 export type PurchaseOrdersSubmitErrors = {
@@ -10716,16 +10705,12 @@ export type PurchaseOrdersCancelSubmissionData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Purchase order identifier (`po_…`).
          */
         purchaseOrderId: Id;
     };
     query?: never;
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/cancel-submission';
+    url: '/purchase-orders/{purchaseOrderId}/cancel-submission';
 };
 
 export type PurchaseOrdersCancelSubmissionErrors = {
@@ -10766,16 +10751,12 @@ export type PurchaseOrdersVoidData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Purchase order identifier (`po_…`).
          */
         purchaseOrderId: Id;
     };
     query?: never;
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/void';
+    url: '/purchase-orders/{purchaseOrderId}/void';
 };
 
 export type PurchaseOrdersVoidErrors = {
@@ -10816,16 +10797,12 @@ export type PurchaseOrdersFinalizeData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Purchase order identifier (`po_…`).
          */
         purchaseOrderId: Id;
     };
     query?: never;
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/finalize';
+    url: '/purchase-orders/{purchaseOrderId}/finalize';
 };
 
 export type PurchaseOrdersFinalizeErrors = {
@@ -10866,16 +10843,12 @@ export type PurchaseOrdersLinkData = {
     body: PurchaseOrderLink;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Purchase order identifier (`po_…`).
          */
         purchaseOrderId: Id;
     };
     query?: never;
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/link';
+    url: '/purchase-orders/{purchaseOrderId}/link';
 };
 
 export type PurchaseOrdersLinkErrors = {
@@ -10924,16 +10897,12 @@ export type PurchaseOrdersUnlinkData = {
     body: PurchaseOrderLink;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Purchase order identifier (`po_…`).
          */
         purchaseOrderId: Id;
     };
     query?: never;
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/unlink';
+    url: '/purchase-orders/{purchaseOrderId}/unlink';
 };
 
 export type PurchaseOrdersUnlinkErrors = {
@@ -10982,16 +10951,12 @@ export type PurchaseOrdersLifecycleData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Purchase order identifier (`po_…`).
          */
         purchaseOrderId: Id;
     };
     query?: never;
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/lifecycle';
+    url: '/purchase-orders/{purchaseOrderId}/lifecycle';
 };
 
 export type PurchaseOrdersLifecycleErrors = {
@@ -11028,10 +10993,6 @@ export type PurchaseOrdersListItemsData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Purchase order identifier (`po_…`).
          */
         purchaseOrderId: Id;
@@ -11046,7 +11007,7 @@ export type PurchaseOrdersListItemsData = {
          */
         cursor?: string;
     };
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/items';
+    url: '/purchase-orders/{purchaseOrderId}/items';
 };
 
 export type PurchaseOrdersListItemsErrors = {
@@ -11089,16 +11050,12 @@ export type PurchaseOrdersCreateItemData = {
     };
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Purchase order identifier (`po_…`).
          */
         purchaseOrderId: Id;
     };
     query?: never;
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/items';
+    url: '/purchase-orders/{purchaseOrderId}/items';
 };
 
 export type PurchaseOrdersCreateItemErrors = {
@@ -11147,10 +11104,6 @@ export type PurchaseOrdersDeleteItemData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Purchase order identifier (`po_…`).
          */
         purchaseOrderId: Id;
@@ -11160,7 +11113,7 @@ export type PurchaseOrdersDeleteItemData = {
         itemId: Id;
     };
     query?: never;
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/items/{itemId}';
+    url: '/purchase-orders/{purchaseOrderId}/items/{itemId}';
 };
 
 export type PurchaseOrdersDeleteItemErrors = {
@@ -11201,10 +11154,6 @@ export type PurchaseOrdersUpdateItemData = {
     body: PurchaseOrderItemWrite;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Purchase order identifier (`po_…`).
          */
         purchaseOrderId: Id;
@@ -11214,7 +11163,7 @@ export type PurchaseOrdersUpdateItemData = {
         itemId: Id;
     };
     query?: never;
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/items/{itemId}';
+    url: '/purchase-orders/{purchaseOrderId}/items/{itemId}';
 };
 
 export type PurchaseOrdersUpdateItemErrors = {
@@ -11263,10 +11212,6 @@ export type PurchaseOrdersListTransactionsData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Purchase order identifier (`po_…`).
          */
         purchaseOrderId: Id;
@@ -11281,7 +11226,7 @@ export type PurchaseOrdersListTransactionsData = {
          */
         cursor?: string;
     };
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/transactions';
+    url: '/purchase-orders/{purchaseOrderId}/transactions';
 };
 
 export type PurchaseOrdersListTransactionsErrors = {
@@ -11448,13 +11393,12 @@ export type SearchProjectResponse = SearchProjectResponses[keyof SearchProjectRe
 
 export type TransactionsListData = {
     body?: never;
-    path: {
-        /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-    };
+    path?: never;
     query?: {
+        /**
+         * Filter by project (`prj_…` id or slug). Use `none` for unassigned (workspace-level) transactions; omit to return every transaction in the workspace.
+         */
+        projectId?: string;
         /**
          * Filter by rail. Comma-separated = IN.
          */
@@ -11540,7 +11484,7 @@ export type TransactionsListData = {
          */
         view?: Id;
     };
-    url: '/projects/{projectId}/transactions';
+    url: '/transactions';
 };
 
 export type TransactionsListErrors = {
@@ -11585,14 +11529,9 @@ export type TransactionsCreateData = {
          */
         'Idempotency-Key'?: string;
     };
-    path: {
-        /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-    };
+    path?: never;
     query?: never;
-    url: '/projects/{projectId}/transactions';
+    url: '/transactions';
 };
 
 export type TransactionsCreateErrors = {
@@ -11639,13 +11578,12 @@ export type TransactionsCreateResponse = TransactionsCreateResponses[keyof Trans
 
 export type TransactionsStatsData = {
     body?: never;
-    path: {
-        /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-    };
+    path?: never;
     query?: {
+        /**
+         * Filter by project (`prj_…` id or slug). Use `none` for unassigned (workspace-level) transactions; omit to return every transaction in the workspace.
+         */
+        projectId?: string;
         source?: TransactionSource;
         type?: string;
         status?: TransactionStatus;
@@ -11667,7 +11605,7 @@ export type TransactionsStatsData = {
         hasDocuments?: boolean;
         q?: string;
     };
-    url: '/projects/{projectId}/transactions/stats';
+    url: '/transactions/stats';
 };
 
 export type TransactionsStatsErrors = {
@@ -11706,14 +11644,14 @@ export type TransactionsStatsResponse = TransactionsStatsResponses[keyof Transac
 
 export type TransactionsTypesData = {
     body?: never;
-    path: {
+    path?: never;
+    query?: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Filter by project (`prj_…` id or slug). `none` = unassigned; omit for the whole workspace.
          */
-        projectId: string;
+        projectId?: string;
     };
-    query?: never;
-    url: '/projects/{projectId}/transactions/types';
+    url: '/transactions/types';
 };
 
 export type TransactionsTypesErrors = {
@@ -11754,14 +11692,9 @@ export type TransactionsBatchCreateData = {
          */
         'Idempotency-Key'?: string;
     };
-    path: {
-        /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-    };
+    path?: never;
     query?: never;
-    url: '/projects/{projectId}/transactions/batch';
+    url: '/transactions/batch';
 };
 
 export type TransactionsBatchCreateErrors = {
@@ -11814,16 +11747,12 @@ export type TransactionsDeleteData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Transaction id (`txn_...`).
          */
         txId: Id;
     };
     query?: never;
-    url: '/projects/{projectId}/transactions/{txId}';
+    url: '/transactions/{txId}';
 };
 
 export type TransactionsDeleteErrors = {
@@ -11864,10 +11793,6 @@ export type TransactionsGetData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Transaction id (`txn_...`).
          */
         txId: Id;
@@ -11878,7 +11803,7 @@ export type TransactionsGetData = {
          */
         expand?: Array<TransactionExpandKey>;
     };
-    url: '/projects/{projectId}/transactions/{txId}';
+    url: '/transactions/{txId}';
 };
 
 export type TransactionsGetErrors = {
@@ -11919,16 +11844,12 @@ export type TransactionsUpdateData = {
     body: TransactionPatch;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Transaction id (`txn_...`).
          */
         txId: Id;
     };
     query?: never;
-    url: '/projects/{projectId}/transactions/{txId}';
+    url: '/transactions/{txId}';
 };
 
 export type TransactionsUpdateErrors = {
@@ -11977,10 +11898,6 @@ export type TransactionsItemsListData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Transaction id (`txn_...`).
          */
         txId: Id;
@@ -11995,7 +11912,7 @@ export type TransactionsItemsListData = {
          */
         cursor?: string;
     };
-    url: '/projects/{projectId}/transactions/{txId}/items';
+    url: '/transactions/{txId}/items';
 };
 
 export type TransactionsItemsListErrors = {
@@ -12038,16 +11955,12 @@ export type TransactionsItemsCreateData = {
     };
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Transaction id (`txn_...`).
          */
         txId: Id;
     };
     query?: never;
-    url: '/projects/{projectId}/transactions/{txId}/items';
+    url: '/transactions/{txId}/items';
 };
 
 export type TransactionsItemsCreateErrors = {
@@ -12096,10 +12009,6 @@ export type TransactionsItemsDeleteData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Transaction id (`txn_...`).
          */
         txId: Id;
@@ -12109,7 +12018,7 @@ export type TransactionsItemsDeleteData = {
         itemId: Id;
     };
     query?: never;
-    url: '/projects/{projectId}/transactions/{txId}/items/{itemId}';
+    url: '/transactions/{txId}/items/{itemId}';
 };
 
 export type TransactionsItemsDeleteErrors = {
@@ -12146,10 +12055,6 @@ export type TransactionsItemsUpdateData = {
     body: TransactionItemPatch;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
          * Transaction id (`txn_...`).
          */
         txId: Id;
@@ -12159,7 +12064,7 @@ export type TransactionsItemsUpdateData = {
         itemId: Id;
     };
     query?: never;
-    url: '/projects/{projectId}/transactions/{txId}/items/{itemId}';
+    url: '/transactions/{txId}/items/{itemId}';
 };
 
 export type TransactionsItemsUpdateErrors = {
