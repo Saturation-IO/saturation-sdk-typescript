@@ -356,7 +356,7 @@ export const documentsListByProject = <ThrowOnError extends boolean = false>(opt
 export const documentsListByTransaction = <ThrowOnError extends boolean = false>(options: Options<DocumentsListByTransactionData, ThrowOnError>) => (options.client ?? client).get<DocumentsListByTransactionResponses, DocumentsListByTransactionErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/transactions/{txId}/documents',
+    url: '/transactions/{txId}/documents',
     ...options
 });
 
@@ -368,7 +368,7 @@ export const documentsListByTransaction = <ThrowOnError extends boolean = false>
 export const documentsListByPurchaseOrder = <ThrowOnError extends boolean = false>(options: Options<DocumentsListByPurchaseOrderData, ThrowOnError>) => (options.client ?? client).get<DocumentsListByPurchaseOrderResponses, DocumentsListByPurchaseOrderErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/documents',
+    url: '/purchase-orders/{purchaseOrderId}/documents',
     ...options
 });
 
@@ -1550,24 +1550,24 @@ export const metaAuthListWorkspaces = <ThrowOnError extends boolean = false>(opt
 /**
  * List purchase orders
  *
- * Paginated list of a project's purchase orders. Soft-deleted rows are excluded unless `includeDeleted=true`. Only public fields are returned; the status is one of the 7 public values. permission-scoped: rows the principal cannot read are omitted, not errored.
+ * Paginated list of the workspace's purchase orders. By default every purchase order in the workspace is returned; pass `projectId` to filter to a single project or to the unassigned (workspace-level) rows. Soft-deleted rows are excluded unless `includeDeleted=true`. Only public fields are returned; the status is one of the 7 public values. permission-scoped: rows the principal cannot read are omitted, not errored.
  */
-export const purchaseOrdersList = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersListData, ThrowOnError>) => (options.client ?? client).get<PurchaseOrdersListResponses, PurchaseOrdersListErrors, ThrowOnError>({
+export const purchaseOrdersList = <ThrowOnError extends boolean = false>(options?: Options<PurchaseOrdersListData, ThrowOnError>) => (options?.client ?? client).get<PurchaseOrdersListResponses, PurchaseOrdersListErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/purchase-orders',
+    url: '/purchase-orders',
     ...options
 });
 
 /**
  * Create a purchase order
  *
- * Create a purchase order. The server forces `status='draft'` and sets `createdById`. Naming a server-owned field (`status`, `createdById`, `workspaceId`, `projectId`, any `flow*`/`activity*` column) returns `422 field_read_only`. Accepts an optional `Idempotency-Key` header.
+ * Create a purchase order. The server forces `status='draft'` and sets `createdById`. Pass an optional `projectId` in the body to assign the PO to a project; omit it to create a workspace-level (unassigned) purchase order. Naming a server-owned field (`status`, `createdById`, `workspaceId`, any `flow*`/`activity*` column) returns `422 field_read_only`. Accepts an optional `Idempotency-Key` header.
  */
 export const purchaseOrdersCreate = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersCreateData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersCreateResponses, PurchaseOrdersCreateErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/purchase-orders',
+    url: '/purchase-orders',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1582,7 +1582,7 @@ export const purchaseOrdersCreate = <ThrowOnError extends boolean = false>(optio
  */
 export const purchaseOrdersDelete = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersDeleteData, ThrowOnError>) => (options.client ?? client).delete<PurchaseOrdersDeleteResponses, PurchaseOrdersDeleteErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}',
+    url: '/purchase-orders/{purchaseOrderId}',
     ...options
 });
 
@@ -1594,7 +1594,7 @@ export const purchaseOrdersDelete = <ThrowOnError extends boolean = false>(optio
 export const purchaseOrdersGet = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersGetData, ThrowOnError>) => (options.client ?? client).get<PurchaseOrdersGetResponses, PurchaseOrdersGetErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}',
+    url: '/purchase-orders/{purchaseOrderId}',
     ...options
 });
 
@@ -1606,7 +1606,7 @@ export const purchaseOrdersGet = <ThrowOnError extends boolean = false>(options:
 export const purchaseOrdersUpdate = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersUpdateData, ThrowOnError>) => (options.client ?? client).patch<PurchaseOrdersUpdateResponses, PurchaseOrdersUpdateErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}',
+    url: '/purchase-orders/{purchaseOrderId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1621,7 +1621,7 @@ export const purchaseOrdersUpdate = <ThrowOnError extends boolean = false>(optio
  */
 export const purchaseOrdersSubmit = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersSubmitData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersSubmitResponses, PurchaseOrdersSubmitErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/submit',
+    url: '/purchase-orders/{purchaseOrderId}/submit',
     ...options
 });
 
@@ -1632,7 +1632,7 @@ export const purchaseOrdersSubmit = <ThrowOnError extends boolean = false>(optio
  */
 export const purchaseOrdersCancelSubmission = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersCancelSubmissionData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersCancelSubmissionResponses, PurchaseOrdersCancelSubmissionErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/cancel-submission',
+    url: '/purchase-orders/{purchaseOrderId}/cancel-submission',
     ...options
 });
 
@@ -1643,7 +1643,7 @@ export const purchaseOrdersCancelSubmission = <ThrowOnError extends boolean = fa
  */
 export const purchaseOrdersVoid = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersVoidData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersVoidResponses, PurchaseOrdersVoidErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/void',
+    url: '/purchase-orders/{purchaseOrderId}/void',
     ...options
 });
 
@@ -1654,7 +1654,7 @@ export const purchaseOrdersVoid = <ThrowOnError extends boolean = false>(options
  */
 export const purchaseOrdersFinalize = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersFinalizeData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersFinalizeResponses, PurchaseOrdersFinalizeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/finalize',
+    url: '/purchase-orders/{purchaseOrderId}/finalize',
     ...options
 });
 
@@ -1665,7 +1665,7 @@ export const purchaseOrdersFinalize = <ThrowOnError extends boolean = false>(opt
  */
 export const purchaseOrdersLink = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersLinkData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersLinkResponses, PurchaseOrdersLinkErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/link',
+    url: '/purchase-orders/{purchaseOrderId}/link',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1680,7 +1680,7 @@ export const purchaseOrdersLink = <ThrowOnError extends boolean = false>(options
  */
 export const purchaseOrdersUnlink = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersUnlinkData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersUnlinkResponses, PurchaseOrdersUnlinkErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/unlink',
+    url: '/purchase-orders/{purchaseOrderId}/unlink',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1695,7 +1695,7 @@ export const purchaseOrdersUnlink = <ThrowOnError extends boolean = false>(optio
  */
 export const purchaseOrdersLifecycle = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersLifecycleData, ThrowOnError>) => (options.client ?? client).get<PurchaseOrdersLifecycleResponses, PurchaseOrdersLifecycleErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/lifecycle',
+    url: '/purchase-orders/{purchaseOrderId}/lifecycle',
     ...options
 });
 
@@ -1706,7 +1706,7 @@ export const purchaseOrdersLifecycle = <ThrowOnError extends boolean = false>(op
  */
 export const purchaseOrdersListItems = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersListItemsData, ThrowOnError>) => (options.client ?? client).get<PurchaseOrdersListItemsResponses, PurchaseOrdersListItemsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/items',
+    url: '/purchase-orders/{purchaseOrderId}/items',
     ...options
 });
 
@@ -1717,7 +1717,7 @@ export const purchaseOrdersListItems = <ThrowOnError extends boolean = false>(op
  */
 export const purchaseOrdersCreateItem = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersCreateItemData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersCreateItemResponses, PurchaseOrdersCreateItemErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/items',
+    url: '/purchase-orders/{purchaseOrderId}/items',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1732,7 +1732,7 @@ export const purchaseOrdersCreateItem = <ThrowOnError extends boolean = false>(o
  */
 export const purchaseOrdersDeleteItem = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersDeleteItemData, ThrowOnError>) => (options.client ?? client).delete<PurchaseOrdersDeleteItemResponses, PurchaseOrdersDeleteItemErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/items/{itemId}',
+    url: '/purchase-orders/{purchaseOrderId}/items/{itemId}',
     ...options
 });
 
@@ -1743,7 +1743,7 @@ export const purchaseOrdersDeleteItem = <ThrowOnError extends boolean = false>(o
  */
 export const purchaseOrdersUpdateItem = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersUpdateItemData, ThrowOnError>) => (options.client ?? client).patch<PurchaseOrdersUpdateItemResponses, PurchaseOrdersUpdateItemErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/items/{itemId}',
+    url: '/purchase-orders/{purchaseOrderId}/items/{itemId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1758,7 +1758,7 @@ export const purchaseOrdersUpdateItem = <ThrowOnError extends boolean = false>(o
  */
 export const purchaseOrdersListTransactions = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersListTransactionsData, ThrowOnError>) => (options.client ?? client).get<PurchaseOrdersListTransactionsResponses, PurchaseOrdersListTransactionsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/purchase-orders/{purchaseOrderId}/transactions',
+    url: '/purchase-orders/{purchaseOrderId}/transactions',
     ...options
 });
 
@@ -1789,23 +1789,23 @@ export const searchProject = <ThrowOnError extends boolean = false>(options: Opt
 /**
  * List transactions
  *
- * Flat, AND-composed list of the unified ledger for a project. Every returned row passes a row-derived permission `read` on `{kind:'Transaction', workspaceId, projectId}`; a row the token cannot read is never returned (enumeration-safe). Paginated (cap 100). `q` runs the text `similarity(description)` search. The page also echoes the `statusReachability` matrix.
+ * Flat, AND-composed list of the unified ledger for a workspace. Every returned row passes a request-derived permission `read` on `{kind:'Transaction', workspaceId, projectId}`; a row the token cannot read is never returned (enumeration-safe). Paginated (cap 100). `q` runs the text `similarity(description)` search. The page also echoes the `statusReachability` matrix.
  */
-export const transactionsList = <ThrowOnError extends boolean = false>(options: Options<TransactionsListData, ThrowOnError>) => (options.client ?? client).get<TransactionsListResponses, TransactionsListErrors, ThrowOnError>({
+export const transactionsList = <ThrowOnError extends boolean = false>(options?: Options<TransactionsListData, ThrowOnError>) => (options?.client ?? client).get<TransactionsListResponses, TransactionsListErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/transactions',
+    url: '/transactions',
     ...options
 });
 
 /**
  * Create a journal transaction
  *
- * Create a manual (journal) transaction. `source` is forced to `journal`; a sourced `source` in the body -> `422 source_not_postable` (sourced rows arrive via their rail). permission `create` with the request-derived `{kind:'Transaction', workspaceId, projectId}` subject. The `status` is validated against the status x source reachability matrix. Fires `transaction.created`. This is a billable create, accepts an optional `Idempotency-Key` header; replaying a key with a different body -> `409 idempotency_conflict`.
+ * Create a manual (journal) transaction. `source` is forced to `journal`; a sourced `source` in the body -> `422 source_not_postable` (sourced rows arrive via their rail). The optional `projectId` body field assigns the row to a project (omit for a workspace-level / unassigned transaction). permission `create` with the request-derived `{kind:'Transaction', workspaceId, projectId}` subject. The `status` is validated against the status x source reachability matrix. Fires `transaction.created`. This is a billable create, accepts an optional `Idempotency-Key` header; replaying a key with a different body -> `409 idempotency_conflict`.
  */
 export const transactionsCreate = <ThrowOnError extends boolean = false>(options: Options<TransactionsCreateData, ThrowOnError>) => (options.client ?? client).post<TransactionsCreateResponses, TransactionsCreateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/transactions',
+    url: '/transactions',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1816,33 +1816,33 @@ export const transactionsCreate = <ThrowOnError extends boolean = false>(options
 /**
  * Transaction stats (count + sum)
  *
- * Aggregate count and summed amount for the same filter vocabulary as the list, permission/project-scoped. Keeps the text `q` search branch. Filter to one `currency` for a meaningful summed `amount` across mixed-currency ledgers.
+ * Aggregate count and summed amount for the same filter vocabulary as the list, permission-scoped. Keeps the text `q` search branch. Filter to one `currency` for a meaningful summed `amount` across mixed-currency ledgers.
  */
-export const transactionsStats = <ThrowOnError extends boolean = false>(options: Options<TransactionsStatsData, ThrowOnError>) => (options.client ?? client).get<TransactionsStatsResponses, TransactionsStatsErrors, ThrowOnError>({
+export const transactionsStats = <ThrowOnError extends boolean = false>(options?: Options<TransactionsStatsData, ThrowOnError>) => (options?.client ?? client).get<TransactionsStatsResponses, TransactionsStatsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/transactions/stats',
+    url: '/transactions/stats',
     ...options
 });
 
 /**
  * Distinct visible transaction types
  *
- * The distinct `type` values the token can actually see - permission/project-filtered, never the raw workspace-wide set, so a project-scoped token's dropdown can't enumerate values that exist only on other projects' rows. Casing preserved.
+ * The distinct `type` values the token can actually see - permission-filtered, never the raw workspace-wide set, so a project-scoped token's dropdown can't enumerate values that exist only on other projects' rows. Casing preserved.
  */
-export const transactionsTypes = <ThrowOnError extends boolean = false>(options: Options<TransactionsTypesData, ThrowOnError>) => (options.client ?? client).get<TransactionsTypesResponses, TransactionsTypesErrors, ThrowOnError>({
+export const transactionsTypes = <ThrowOnError extends boolean = false>(options?: Options<TransactionsTypesData, ThrowOnError>) => (options?.client ?? client).get<TransactionsTypesResponses, TransactionsTypesErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/transactions/types',
+    url: '/transactions/types',
     ...options
 });
 
 /**
  * Bulk journal import
  *
- * Create many JOURNAL transactions in one request. Every row is forced to `source=journal`; a non-journal source on any row -> `422 source_not_postable`. Over the cap (500) -> `413 batch_too_large`. Pair with an `Idempotency-Key` header; replaying a key with a different body -> `409 idempotency_conflict`. This is the highest-stakes billable create (one credit charge per created row), so pairing an `Idempotency-Key` is strongly recommended. Fires one `transaction.created` per created row.
+ * Create many JOURNAL transactions in one request. Every row is forced to `source=journal`; a non-journal source on any row -> `422 source_not_postable`. Each row may carry an optional `projectId` to assign it to a project (omit for a workspace-level / unassigned row). Over the cap (500) -> `413 batch_too_large`. Pair with an `Idempotency-Key` header; replaying a key with a different body -> `409 idempotency_conflict`. This is the highest-stakes billable create (one credit charge per created row), so pairing an `Idempotency-Key` is strongly recommended. Fires one `transaction.created` per created row.
  */
 export const transactionsBatchCreate = <ThrowOnError extends boolean = false>(options: Options<TransactionsBatchCreateData, ThrowOnError>) => (options.client ?? client).post<TransactionsBatchCreateResponses, TransactionsBatchCreateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/transactions/batch',
+    url: '/transactions/batch',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1857,7 +1857,7 @@ export const transactionsBatchCreate = <ThrowOnError extends boolean = false>(op
  */
 export const transactionsDelete = <ThrowOnError extends boolean = false>(options: Options<TransactionsDeleteData, ThrowOnError>) => (options.client ?? client).delete<TransactionsDeleteResponses, TransactionsDeleteErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/transactions/{txId}',
+    url: '/transactions/{txId}',
     ...options
 });
 
@@ -1869,18 +1869,18 @@ export const transactionsDelete = <ThrowOnError extends boolean = false>(options
 export const transactionsGet = <ThrowOnError extends boolean = false>(options: Options<TransactionsGetData, ThrowOnError>) => (options.client ?? client).get<TransactionsGetResponses, TransactionsGetErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/transactions/{txId}',
+    url: '/transactions/{txId}',
     ...options
 });
 
 /**
  * Update a transaction
  *
- * Partial update. Which fields are writable depends on the transaction's `source`. Assignment fields succeed on any source; core fields (`amount`, `currency`, `timestamp`, `type`, `status`, `merchant`, `sourceLast4`, `sourceName`) are writable only on `journal` - naming one on a sourced row -> `422 field_read_only`. Server-owned fields are never writable. A `status` change is validated against the reachability matrix -> `409 status_unreachable_for_source`. Row-derived permission `update`. Fires `transaction.updated`.
+ * Partial update. Which fields are writable depends on the transaction's `source`. Assignment fields succeed on any source; setting `projectId` assigns the row to a project (or `null` unassigns it back to the workspace level). Core fields (`amount`, `currency`, `timestamp`, `type`, `status`, `merchant`, `sourceLast4`, `sourceName`) are writable only on `journal` - naming one on a sourced row -> `422 field_read_only`. Server-owned fields are never writable. A `status` change is validated against the reachability matrix -> `409 status_unreachable_for_source`. Row-derived permission `update`. Fires `transaction.updated`.
  */
 export const transactionsUpdate = <ThrowOnError extends boolean = false>(options: Options<TransactionsUpdateData, ThrowOnError>) => (options.client ?? client).patch<TransactionsUpdateResponses, TransactionsUpdateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/transactions/{txId}',
+    url: '/transactions/{txId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1895,7 +1895,7 @@ export const transactionsUpdate = <ThrowOnError extends boolean = false>(options
  */
 export const transactionsItemsList = <ThrowOnError extends boolean = false>(options: Options<TransactionsItemsListData, ThrowOnError>) => (options.client ?? client).get<TransactionsItemsListResponses, TransactionsItemsListErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/transactions/{txId}/items',
+    url: '/transactions/{txId}/items',
     ...options
 });
 
@@ -1906,7 +1906,7 @@ export const transactionsItemsList = <ThrowOnError extends boolean = false>(opti
  */
 export const transactionsItemsCreate = <ThrowOnError extends boolean = false>(options: Options<TransactionsItemsCreateData, ThrowOnError>) => (options.client ?? client).post<TransactionsItemsCreateResponses, TransactionsItemsCreateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/transactions/{txId}/items',
+    url: '/transactions/{txId}/items',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1921,7 +1921,7 @@ export const transactionsItemsCreate = <ThrowOnError extends boolean = false>(op
  */
 export const transactionsItemsDelete = <ThrowOnError extends boolean = false>(options: Options<TransactionsItemsDeleteData, ThrowOnError>) => (options.client ?? client).delete<TransactionsItemsDeleteResponses, TransactionsItemsDeleteErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/transactions/{txId}/items/{itemId}',
+    url: '/transactions/{txId}/items/{itemId}',
     ...options
 });
 
@@ -1932,7 +1932,7 @@ export const transactionsItemsDelete = <ThrowOnError extends boolean = false>(op
  */
 export const transactionsItemsUpdate = <ThrowOnError extends boolean = false>(options: Options<TransactionsItemsUpdateData, ThrowOnError>) => (options.client ?? client).patch<TransactionsItemsUpdateResponses, TransactionsItemsUpdateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/transactions/{txId}/items/{itemId}',
+    url: '/transactions/{txId}/items/{itemId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
