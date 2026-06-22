@@ -5,7 +5,7 @@ import type {
   BudgetLineUpdate,
   BudgetLineExpand,
   BudgetCell,
-  ComputedBudget,
+  BudgetDocument,
   BudgetTotals,
   BudgetRollup,
   BudgetVariance,
@@ -79,6 +79,15 @@ export interface BudgetTotalsParams {
   accountId?: string;
 }
 
+export interface BudgetDocumentParams {
+  /** Materialized account path for one root line and its descendants. */
+  path?: string;
+  /** Leaf account code for one root line and its descendants. */
+  accountCode?: string;
+  /** Visible phase id, alias, name, or type. */
+  phase?: string;
+}
+
 /** The budget namespace, scoped to one project via `sat.projects(p).budget`. */
 export class BudgetResource {
   constructor(
@@ -106,11 +115,16 @@ export class BudgetResource {
     return new BudgetCellsResource(this.t, this.projectId);
   }
 
-  /** The whole computed budget tree (never paginated). */
-  async tree(): Promise<ComputedBudget> {
+  /** The full budget document: lines, visible phases, totals, and editable inputs. */
+  async tree(params: BudgetDocumentParams = {}): Promise<BudgetDocument> {
     return this.t.run(sdk.budgetGetTree, {
       path: { projectId: this.projectId },
-    }) as Promise<ComputedBudget>;
+      query: {
+        path: params.path,
+        accountCode: params.accountCode,
+        phase: params.phase,
+      },
+    }) as Promise<BudgetDocument>;
   }
 
   /** Engine-computed rollup for one phase (id or `type`, e.g. `estimate`). */

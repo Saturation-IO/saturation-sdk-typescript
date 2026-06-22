@@ -19,9 +19,9 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 };
 
 /**
- * Get the whole budget (tree + phases + totals)
+ * Get the budget document (tree + phases + totals + editable inputs)
  *
- * Returns the entire budget as a flat array of lines (rebuild the tree from `parentId`), the phase columns, and grand totals, all as of `computedAt`. Whole-tree, never paginated, a correct rollup needs the full subtree. `expand` is rejected; the phase matrix is always present. Above the server line ceiling returns `413 budget_too_large` pointing at `/budget/lines` + `/budget/totals`.
+ * Returns the budget document as a flat array of lines (rebuild the tree from `parentId`), visible phase columns, computed totals, and editable estimate inputs, all in one response. Use `path` or `accountCode` to narrow a large budget before the server line ceiling is applied. `accountId`, tag filters, date windows, hidden phases, and `expand` are rejected on this computed document read.
  */
 export const budgetGetTree = <ThrowOnError extends boolean = false>(options: Options<BudgetGetTreeData, ThrowOnError>) => (options.client ?? client).get<BudgetGetTreeResponses, BudgetGetTreeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],

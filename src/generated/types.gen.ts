@@ -12,7 +12,7 @@ export type Id = string;
 /**
  * The closed set of stable, typed error codes returned at the `/v1` boundary. (The internal catalog is numeric; these public string codes live only inside the public-API envelope.)
  */
-export type ErrorCode = 'unauthenticated' | 'invalid_token' | 'missing_authorization' | 'token_revoked' | 'permission_revoked' | 'scope_exceeded' | 'forbidden' | 'feature_not_available' | 'role_ceiling_exceeded' | 'not_found' | 'document_target_not_found' | 'validation' | 'cursor_invalid' | 'expand_invalid' | 'invalid_date_range' | 'webhook_https_required' | 'document_invalid_target_kind' | 'range_too_large' | 'account_path_ambiguous' | 'idempotency_conflict' | 'already_assigned' | 'status_unreachable_for_source' | 'po_invalid_status' | 'webhook_url_invalid_ssrf' | 'field_read_only' | 'source_not_postable' | 'webhook_url_blocked' | 'document_assign_forbidden' | 'budget_too_large' | 'batch_too_large' | 'rate_limited' | 'signing_key_not_configured' | 'internal_error' | 'budget_compute_timeout';
+export type ErrorCode = 'unauthenticated' | 'invalid_token' | 'missing_authorization' | 'token_revoked' | 'permission_revoked' | 'scope_exceeded' | 'forbidden' | 'feature_not_available' | 'role_ceiling_exceeded' | 'not_found' | 'document_target_not_found' | 'validation' | 'cursor_invalid' | 'expand_invalid' | 'invalid_date_range' | 'webhook_https_required' | 'document_invalid_target_kind' | 'range_too_large' | 'account_path_ambiguous' | 'account_code_ambiguous' | 'budget_compute_stale' | 'idempotency_conflict' | 'already_assigned' | 'status_unreachable_for_source' | 'po_invalid_status' | 'webhook_url_invalid_ssrf' | 'field_read_only' | 'source_not_postable' | 'webhook_url_blocked' | 'document_assign_forbidden' | 'budget_too_large' | 'batch_too_large' | 'rate_limited' | 'signing_key_not_configured' | 'internal_error' | 'budget_compute_timeout';
 
 /**
  * The uniform error envelope. Only errors carry `success: false`; success responses are the bare resource or a `{ data, nextCursor? }` collection.
@@ -385,6 +385,112 @@ export type ComputedBudget = {
      * Flat array of all rows; rebuild the tree from `parentId` alone.
      */
     lines: Array<ComputedBudgetLine>;
+};
+
+/**
+ * The computed value matrix for one phase in the budget document. All amounts are integers in workspace-base minor units; `amount` is the total. The legacy `combined` alias is intentionally omitted from this document shape.
+ */
+export type BudgetDocumentPhaseValues = {
+    base: number;
+    overtime: number;
+    fringe: number;
+    fringeBreakdown: Array<FringeBreakdownEntry>;
+    amount: number;
+    currency: string;
+};
+
+/**
+ * Raw editable input value. Numbers stay numbers; formulas and variable references stay exact strings; missing input is null.
+ */
+export type BudgetDocumentInputValue = number | string | null;
+
+export type BudgetDocumentOvertime = {
+    mode?: string | null;
+    flatAmount?: number | null;
+    hours?: number | null;
+    baseHours?: number | null;
+    /**
+     * Raw overtime multiplier detail.
+     */
+    multipliers?: unknown;
+    /**
+     * Canonical overtime V2 detail, when present.
+     */
+    detail?: unknown;
+} | null;
+
+/**
+ * Editable estimate inputs for one line and phase. Notes and agent summaries are intentionally excluded.
+ */
+export type BudgetDocumentLineInputs = {
+    rate: BudgetDocumentInputValue;
+    quantity: BudgetDocumentInputValue;
+    multiplier: BudgetDocumentInputValue;
+    qtyAutoDerived: boolean;
+    unit: string | null;
+    customUnitId: Id | null;
+    unitLabel: string | null;
+    startDate: string | null;
+    endDate: string | null;
+    fringeIds: Array<Id>;
+    fringeTagIds: Array<Id>;
+    currencyId: Id | null;
+    overtime: BudgetDocumentOvertime;
+};
+
+/**
+ * Echo of the selector dimensions applied to the budget document.
+ */
+export type BudgetDocumentSelection = {
+    path?: string;
+    accountCode?: string;
+    phase?: string;
+};
+
+/**
+ * One flat line in the budget document. `values` are computed; `inputs` are raw editable estimate fields keyed by phase id.
+ */
+export type BudgetDocumentLine = {
+    id: Id;
+    code?: string | null;
+    name: string;
+    parentId: Id | null;
+    path?: string | null;
+    depth: number;
+    kind: ComputedLineKind;
+    values: {
+        [key: string]: BudgetDocumentPhaseValues;
+    };
+    inputs: {
+        [key: string]: BudgetDocumentLineInputs;
+    };
+};
+
+/**
+ * The full public budget document, combining visible phases, computed totals, flat lines, and editable inputs in one response.
+ */
+export type BudgetDocument = {
+    /**
+     * The budget id (`bud_…`).
+     */
+    id: Id;
+    computedAt: string;
+    /**
+     * ISO-8601 timestamp after the raw input rows were read.
+     */
+    inputsReadAt: string;
+    selection: BudgetDocumentSelection;
+    phases: Array<BudgetPhase>;
+    /**
+     * Root or selected-subtree totals keyed by visible phase id.
+     */
+    totals: {
+        [key: string]: BudgetDocumentPhaseValues;
+    };
+    /**
+     * Flat array of selected rows; rebuild the tree from `parentId`.
+     */
+    lines: Array<BudgetDocumentLine>;
 };
 
 /**
@@ -3481,7 +3587,62 @@ export type BudgetGetTreeData = {
          */
         projectId: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Materialized account path (for example `1100/1110`) naming exactly one root line and its descendants.
+         */
+        path?: string;
+        /**
+         * Leaf account code naming exactly one root line and its descendants. Duplicate codes return `409 account_code_ambiguous`.
+         */
+        accountCode?: string;
+        /**
+         * Visible phase id, alias, name, or type. Ambiguous selectors return `400 validation`; hidden phases are excluded.
+         */
+        phase?: string;
+        /**
+         * Rejected on `GET /budget`; use `accountCode`.
+         *
+         * @deprecated
+         */
+        accountId?: string;
+        /**
+         * Rejected on `GET /budget`; tag-filtered documents are deferred.
+         *
+         * @deprecated
+         */
+        tags?: string;
+        /**
+         * Rejected on `GET /budget`; tag-filtered documents are deferred.
+         *
+         * @deprecated
+         */
+        tagMode?: TagMode;
+        /**
+         * Rejected on `GET /budget`; date-windowed documents are deferred.
+         *
+         * @deprecated
+         */
+        dateFrom?: string;
+        /**
+         * Rejected on `GET /budget`; date-windowed documents are deferred.
+         *
+         * @deprecated
+         */
+        dateTo?: string;
+        /**
+         * Rejected on `GET /budget`; hidden phases are intentionally excluded.
+         *
+         * @deprecated
+         */
+        includeHiddenPhases?: boolean;
+        /**
+         * Rejected on computed budget reads; the document is already fully shaped.
+         *
+         * @deprecated
+         */
+        expand?: string;
+    };
     url: '/projects/{projectId}/budget';
 };
 
@@ -3503,6 +3664,10 @@ export type BudgetGetTreeErrors = {
      */
     404: Error;
     /**
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     */
+    409: Error;
+    /**
      * Payload / result too large, `budget_too_large` or `batch_too_large`.
      */
     413: Error;
@@ -3520,9 +3685,9 @@ export type BudgetGetTreeError = BudgetGetTreeErrors[keyof BudgetGetTreeErrors];
 
 export type BudgetGetTreeResponses = {
     /**
-     * The computed budget tree.
+     * The budget document.
      */
-    200: ComputedBudget;
+    200: BudgetDocument;
 };
 
 export type BudgetGetTreeResponse = BudgetGetTreeResponses[keyof BudgetGetTreeResponses];
@@ -3589,7 +3754,7 @@ export type BudgetGetTotalsErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -3790,7 +3955,7 @@ export type BudgetGetCellErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -3901,7 +4066,7 @@ export type BudgetListLinesErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -3968,7 +4133,7 @@ export type BudgetCreateLineErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -4613,7 +4778,7 @@ export type DocumentsDropErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -4894,7 +5059,7 @@ export type DocumentsAssignErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -9142,7 +9307,7 @@ export type MasterDataCreateProjectErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -9280,7 +9445,7 @@ export type MasterDataUpdateProjectErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -9402,7 +9567,7 @@ export type MasterDataCreateSpaceErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -9644,7 +9809,7 @@ export type MasterDataCreateContactErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -9924,7 +10089,7 @@ export type MasterDataCreateCommentErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -10479,7 +10644,7 @@ export type PurchaseOrdersCreateErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -10529,7 +10694,7 @@ export type PurchaseOrdersDeleteErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -10631,7 +10796,7 @@ export type PurchaseOrdersUpdateErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -10681,7 +10846,7 @@ export type PurchaseOrdersSubmitErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -10718,7 +10883,7 @@ export type PurchaseOrdersCancelSubmissionErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -10764,7 +10929,7 @@ export type PurchaseOrdersVoidErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -10810,7 +10975,7 @@ export type PurchaseOrdersFinalizeErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -10860,7 +11025,7 @@ export type PurchaseOrdersLinkErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -10914,7 +11079,7 @@ export type PurchaseOrdersUnlinkErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -11067,7 +11232,7 @@ export type PurchaseOrdersCreateItemErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -11121,7 +11286,7 @@ export type PurchaseOrdersDeleteItemErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -11175,7 +11340,7 @@ export type PurchaseOrdersUpdateItemErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -11543,7 +11708,7 @@ export type TransactionsCreateErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -11706,7 +11871,7 @@ export type TransactionsBatchCreateErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -11760,7 +11925,7 @@ export type TransactionsDeleteErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -11861,7 +12026,7 @@ export type TransactionsUpdateErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -11972,7 +12137,7 @@ export type TransactionsItemsCreateErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -12506,7 +12671,7 @@ export type WebhooksCreateErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -12653,7 +12818,7 @@ export type WebhooksUpdateErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -12703,7 +12868,7 @@ export type WebhooksPingErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
