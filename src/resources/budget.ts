@@ -4,6 +4,12 @@ import type {
   BudgetLineCreate,
   BudgetLineUpdate,
   BudgetLineExpand,
+  BudgetLineBatchCreate,
+  BudgetLineBatchCreateResponse,
+  BudgetLineInputUpsert,
+  BudgetLineInputUpsertResponse,
+  BudgetInputBatchUpsert,
+  BudgetInputBatchUpsertResponse,
   BudgetCell,
   BudgetDocument,
   BudgetTotals,
@@ -25,8 +31,8 @@ import { Expanded, type ExpandMap, serializeExpand } from '../expand.js';
 /**
  * Map each budget-line expand key to the property it populates on `BudgetLine`,
  * so an expanded relation is widened to present-and-required in the return type.
- * `phases` populates the coalesced `values` matrix; `phaseData` populates the
- * depth-2 per-phase breakdown; the rest are 1:1 with their property name.
+ * `phases` populates the computed `values` matrix; `inputs` populates the raw
+ * editable input matrix; the rest are 1:1 with their property name.
  *
  * `account` is a valid expand key but projects classifier fields (`code`/`path`)
  * that are already inline on the row, so it has no dedicated widened property and
@@ -35,7 +41,7 @@ import { Expanded, type ExpandMap, serializeExpand } from '../expand.js';
  */
 const budgetLineExpandMap = {
   phases: 'values',
-  phaseData: 'phaseData',
+  inputs: 'inputs',
   contact: 'contact',
   sourceItem: 'sourceItem',
 } satisfies ExpandMap<BudgetLineExpand>;
@@ -115,9 +121,13 @@ export class BudgetResource {
     return new BudgetCellsResource(this.t, this.projectId);
   }
 
+  get inputs(): BudgetInputsResource {
+    return new BudgetInputsResource(this.t, this.projectId);
+  }
+
   /** The full budget document: lines, visible phases, totals, and editable inputs. */
-  async tree(params: BudgetDocumentParams = {}): Promise<BudgetDocument> {
-    return this.t.run(sdk.budgetGetTree, {
+  async document(params: BudgetDocumentParams = {}): Promise<BudgetDocument> {
+    return this.t.run(sdk.budgetGetDocument, {
       path: { projectId: this.projectId },
       query: {
         path: params.path,
@@ -206,6 +216,18 @@ export class BudgetLinesResource {
     }) as Promise<BudgetLine>;
   }
 
+  /** Create budget lines in one all-or-nothing batch. */
+  async createBatch(
+    body: BudgetLineBatchCreate,
+    opts: { idempotencyKey?: string } = {},
+  ): Promise<BudgetLineBatchCreateResponse> {
+    return this.t.run(sdk.budgetCreateLinesBatch, {
+      path: { projectId: this.projectId },
+      headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
+      body,
+    }) as Promise<BudgetLineBatchCreateResponse>;
+  }
+
   /** Patch a budget line (allow-list only; server-owned fields → `field_read_only`). */
   async update(lineId: string, body: BudgetLineUpdate): Promise<BudgetLine> {
     return this.t.run(sdk.budgetUpdateLine, {
@@ -214,12 +236,43 @@ export class BudgetLinesResource {
     }) as Promise<BudgetLine>;
   }
 
+  /** Upsert one editable input for a line/phase intersection. */
+  async upsertInput(
+    lineId: string,
+    phaseId: string,
+    body: BudgetLineInputUpsert,
+  ): Promise<BudgetLineInputUpsertResponse> {
+    return this.t.run(sdk.budgetUpsertLineInput, {
+      path: { projectId: this.projectId, lineId, phaseId },
+      body,
+    }) as Promise<BudgetLineInputUpsertResponse>;
+  }
+
   /** Soft-delete a budget line. `reset` re-snapshots from source on resurrect. */
   async delete(lineId: string, opts: { reset?: boolean } = {}): Promise<void> {
     await this.t.run(sdk.budgetDeleteLine, {
       path: { projectId: this.projectId, lineId },
       query: opts.reset ? { reset: true } : undefined,
     });
+  }
+}
+
+export class BudgetInputsResource {
+  constructor(
+    private readonly t: Transport,
+    private readonly projectId: string,
+  ) {}
+
+  /** Upsert editable budget inputs in one all-or-nothing batch. */
+  async upsertBatch(
+    body: BudgetInputBatchUpsert,
+    opts: { idempotencyKey?: string } = {},
+  ): Promise<BudgetInputBatchUpsertResponse> {
+    return this.t.run(sdk.budgetUpsertInputsBatch, {
+      path: { projectId: this.projectId },
+      headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
+      body,
+    }) as Promise<BudgetInputBatchUpsertResponse>;
   }
 }
 

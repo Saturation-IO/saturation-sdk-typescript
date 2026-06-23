@@ -15,7 +15,7 @@ import type { BudgetLine, Transaction, Contact, TransactionExpandKey } from '../
 // A representative budget-line expand map (mirrors resources/budget.ts).
 type BLMap = {
   phases: 'values';
-  phaseData: 'phaseData';
+  inputs: 'inputs';
   contact: 'contact';
   sourceItem: 'sourceItem';
 };

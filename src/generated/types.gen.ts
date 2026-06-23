@@ -82,9 +82,9 @@ export type BudgetLineKind = 'account' | 'line' | 'subtotal' | 'fringe' | 'marku
 export type ComputedLineKind = 'account' | 'line' | 'credit' | 'fringe';
 
 /**
- * Allowed `expand` keys for budget-line reads (comma-separated, depth ≤ 2). `contact` is a relation expand; `account`, `phases` and `phaseData` are computed expands (permission-projected so an expanded subtree never leaks); `sourceItem` dereferences the `sourceId` to its library origin (or an explicit tombstone, never null). `phaseData` is the depth-2 `lines.phaseData` key, the per-phase, per-line breakdown matrix (each contributing phase's `base`/`overtime`/`fringe`/`amount`), distinct from `phases` which expands the computed value matrix. An unknown or too-deep key returns `400 expand_invalid`. Legacy parity note: the legacy `lines.notes` expand is intentionally NOT ported; the note is now a plain-text `line.notes` field always present inline on the line, so there is nothing to expand (the rich-text `NoteData` / `/budget/note` resource is gone, see `BudgetLine.notes`).
+ * Allowed `expand` keys for budget-line reads (comma-separated, depth ≤ 2). `contact` is a relation expand; `account` projects classifier fields already inline on the row; `phases` adds the computed value matrix; `inputs` adds raw editable estimate inputs keyed by phase id; `sourceItem` dereferences the `sourceId` to its library origin (or an explicit tombstone, never null). An unknown or too-deep key returns `400 expand_invalid`. Legacy parity note: the legacy `lines.notes` expand is intentionally NOT ported; the note is now a plain-text `line.notes` field always present inline on the line, so there is nothing to expand (the rich-text `NoteData` / `/budget/note` resource is gone, see `BudgetLine.notes`).
  */
-export type BudgetLineExpand = 'phases' | 'phaseData' | 'contact' | 'account' | 'sourceItem';
+export type BudgetLineExpand = 'phases' | 'inputs' | 'contact' | 'account' | 'sourceItem';
 
 /**
  * How a multi-value `tags` filter composes. `any` = OR (default), `all` = AND, `none` = exclude any tagged row.
@@ -169,7 +169,7 @@ export type BudgetPhase = {
 };
 
 /**
- * A stored budget row. `code` is the (non-unique, possibly empty) account number; `path` is the coded account path used for friendly lookups. The internal `address` is never returned. Expand-only relations (`contact`, `notes`, `account`, `phases`, `sourceItem`) appear only when requested via `expand`.
+ * A stored budget row. `code` is the (non-unique, possibly empty) account number; `path` is the coded account path used for friendly lookups. The internal `address` is never returned. Expand-only relations (`contact`, `account`, `phases`, `inputs`, `sourceItem`) appear only when requested via `expand`.
  */
 export type BudgetLine = {
     id: Id;
@@ -245,10 +245,10 @@ export type BudgetLine = {
         [key: string]: PhaseValues;
     };
     /**
-     * Present only with `expand=phaseData` (the depth-2 `lines.phaseData` key). The per-phase, per-line breakdown keyed by phase id, each phase's individual contributing parts (`base`/`overtime`/`fringe`/`amount`), distinct from the combined `values` matrix. Permission-projected.
+     * Present only with `expand=inputs`. Raw editable estimate inputs keyed by phase id.
      */
-    phaseData?: {
-        [key: string]: PhaseValues;
+    inputs?: {
+        [key: string]: BudgetDocumentLineInputs;
     };
 };
 
@@ -275,6 +275,12 @@ export type BudgetLineCreate = {
     subtotalSumAllAbove?: boolean;
     subtotalIsBold?: boolean;
     markupAccountFilter?: string;
+    /**
+     * Optional initial editable inputs keyed by phase id.
+     */
+    inputs?: {
+        [key: string]: BudgetLineInputWrite;
+    };
 };
 
 /**
@@ -294,6 +300,97 @@ export type BudgetLineUpdate = {
     subtotalSumAllAbove?: boolean;
     subtotalIsBold?: boolean;
     markupAccountFilter?: string | null;
+    /**
+     * Upsert editable inputs keyed by phase id. Omitted input fields are left unchanged.
+     */
+    inputs?: {
+        [key: string]: BudgetLineInputWrite;
+    };
+};
+
+/**
+ * Raw editable input value. Numbers stay numbers; formulas and variable references stay exact strings; missing input is null.
+ */
+export type BudgetDocumentInputValue = number | string | null;
+
+export type BudgetDocumentOvertime = {
+    mode?: string | null;
+    flatAmount?: number | null;
+    hours?: number | null;
+    baseHours?: number | null;
+    /**
+     * Raw overtime multiplier detail.
+     */
+    multipliers?: unknown;
+    /**
+     * Canonical overtime V2 detail, when present.
+     */
+    detail?: unknown;
+} | null;
+
+/**
+ * Editable estimate inputs for one line and phase. Notes and agent summaries are intentionally excluded.
+ */
+export type BudgetDocumentLineInputs = {
+    rate: BudgetDocumentInputValue;
+    quantity: BudgetDocumentInputValue;
+    multiplier: BudgetDocumentInputValue;
+    qtyAutoDerived: boolean;
+    unit: string | null;
+    customUnitId: Id | null;
+    unitLabel: string | null;
+    startDate: string | null;
+    endDate: string | null;
+    fringeIds: Array<Id>;
+    fringeTagIds: Array<Id>;
+    currencyId: Id | null;
+    overtime: BudgetDocumentOvertime;
+};
+
+/**
+ * Public write body for one editable input cell. Omitted fields are left unchanged on upsert.
+ */
+export type BudgetLineInputWrite = {
+    rate?: BudgetDocumentInputValue;
+    quantity?: BudgetDocumentInputValue;
+    multiplier?: BudgetDocumentInputValue;
+    qtyAutoDerived?: boolean | null;
+    unit?: string | null;
+    customUnitId?: Id | null;
+    startDate?: string | null;
+    endDate?: string | null;
+    fringeIds?: Array<Id> | null;
+    fringeTagIds?: Array<Id> | null;
+    currencyId?: Id | null;
+    overtime?: BudgetDocumentOvertime;
+};
+
+export type BudgetLineInputUpsert = BudgetLineInputWrite;
+
+export type BudgetLineInputUpsertResponse = {
+    lineId: Id;
+    phaseId: Id;
+    input: BudgetDocumentLineInputs;
+};
+
+export type BudgetLineBatchCreate = {
+    lines: Array<BudgetLineCreate>;
+};
+
+export type BudgetLineBatchCreateResponse = {
+    data: Array<BudgetLine>;
+};
+
+export type BudgetInputBatchUpsert = {
+    inputs: Array<{
+        lineId: Id;
+        phaseId: Id;
+        input: BudgetLineInputWrite;
+    }>;
+};
+
+export type BudgetInputBatchUpsertResponse = {
+    data: Array<BudgetLineInputUpsertResponse>;
 };
 
 /**
@@ -341,53 +438,6 @@ export type BudgetCell = {
 };
 
 /**
- * One node in the computed whole-tree response, a flat row carrying `parentId` + `path` + `depth` so the client rebuilds the tree, plus the per-phase value matrix. Account rows carry their subtree's rolled-up subtotal; leaves carry their own value.
- */
-export type ComputedBudgetLine = {
-    id: Id;
-    code?: string | null;
-    name: string;
-    parentId: Id;
-    path?: string | null;
-    depth: number;
-    kind: ComputedLineKind;
-    /**
-     * Per-phase value matrix keyed by phase id.
-     */
-    values: {
-        [key: string]: PhaseValues;
-    };
-};
-
-/**
- * The whole budget, tree + phases + computed totals, as of `computedAt`. Never paginated (a correct rollup needs the full subtree). Above the server line ceiling this read returns `413 budget_too_large` instead. `expand` is rejected (`400 expand_invalid`); the phase matrix is always present.
- */
-export type ComputedBudget = {
-    /**
-     * The budget id (`bud_…`).
-     */
-    id: Id;
-    /**
-     * ISO-8601 timestamp at which these values were computed. Totals reflect state within the cache TTL window, not a real-time guarantee.
-     */
-    computedAt: string;
-    /**
-     * The column dimension, declared once; every line's `values` is keyed by `phaseId`.
-     */
-    phases: Array<BudgetPhase>;
-    /**
-     * Root totals keyed by phase id (computed; never re-summed).
-     */
-    grandTotals: {
-        [key: string]: PhaseValues;
-    };
-    /**
-     * Flat array of all rows; rebuild the tree from `parentId` alone.
-     */
-    lines: Array<ComputedBudgetLine>;
-};
-
-/**
  * The computed value matrix for one phase in the budget document. All amounts are integers in workspace-base minor units; `amount` is the total. The legacy `combined` alias is intentionally omitted from this document shape.
  */
 export type BudgetDocumentPhaseValues = {
@@ -397,45 +447,6 @@ export type BudgetDocumentPhaseValues = {
     fringeBreakdown: Array<FringeBreakdownEntry>;
     amount: number;
     currency: string;
-};
-
-/**
- * Raw editable input value. Numbers stay numbers; formulas and variable references stay exact strings; missing input is null.
- */
-export type BudgetDocumentInputValue = number | string | null;
-
-export type BudgetDocumentOvertime = {
-    mode?: string | null;
-    flatAmount?: number | null;
-    hours?: number | null;
-    baseHours?: number | null;
-    /**
-     * Raw overtime multiplier detail.
-     */
-    multipliers?: unknown;
-    /**
-     * Canonical overtime V2 detail, when present.
-     */
-    detail?: unknown;
-} | null;
-
-/**
- * Editable estimate inputs for one line and phase. Notes and agent summaries are intentionally excluded.
- */
-export type BudgetDocumentLineInputs = {
-    rate: BudgetDocumentInputValue;
-    quantity: BudgetDocumentInputValue;
-    multiplier: BudgetDocumentInputValue;
-    qtyAutoDerived: boolean;
-    unit: string | null;
-    customUnitId: Id | null;
-    unitLabel: string | null;
-    startDate: string | null;
-    endDate: string | null;
-    fringeIds: Array<Id>;
-    fringeTagIds: Array<Id>;
-    currencyId: Id | null;
-    overtime: BudgetDocumentOvertime;
 };
 
 /**
@@ -3573,7 +3584,7 @@ export type UsageOperationClass2 = UsageOperationClass;
  */
 export type UsageTokenId = Id;
 
-export type BudgetGetTreeData = {
+export type BudgetGetDocumentData = {
     body?: never;
     headers?: {
         /**
@@ -3637,7 +3648,7 @@ export type BudgetGetTreeData = {
          */
         includeHiddenPhases?: boolean;
         /**
-         * Rejected on computed budget reads; the document is already fully shaped.
+         * Rejected on budget document reads; the document is already fully shaped.
          *
          * @deprecated
          */
@@ -3646,7 +3657,7 @@ export type BudgetGetTreeData = {
     url: '/projects/{projectId}/budget';
 };
 
-export type BudgetGetTreeErrors = {
+export type BudgetGetDocumentErrors = {
     /**
      * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
      */
@@ -3664,7 +3675,7 @@ export type BudgetGetTreeErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -3681,16 +3692,16 @@ export type BudgetGetTreeErrors = {
     504: Error;
 };
 
-export type BudgetGetTreeError = BudgetGetTreeErrors[keyof BudgetGetTreeErrors];
+export type BudgetGetDocumentError = BudgetGetDocumentErrors[keyof BudgetGetDocumentErrors];
 
-export type BudgetGetTreeResponses = {
+export type BudgetGetDocumentResponses = {
     /**
      * The budget document.
      */
     200: BudgetDocument;
 };
 
-export type BudgetGetTreeResponse = BudgetGetTreeResponses[keyof BudgetGetTreeResponses];
+export type BudgetGetDocumentResponse = BudgetGetDocumentResponses[keyof BudgetGetDocumentResponses];
 
 export type BudgetGetTotalsData = {
     body?: never;
@@ -3754,7 +3765,7 @@ export type BudgetGetTotalsErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -3955,7 +3966,7 @@ export type BudgetGetCellErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -4066,7 +4077,7 @@ export type BudgetListLinesErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -4133,7 +4144,7 @@ export type BudgetCreateLineErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -4156,6 +4167,122 @@ export type BudgetCreateLineResponses = {
 };
 
 export type BudgetCreateLineResponse = BudgetCreateLineResponses[keyof BudgetCreateLineResponses];
+
+export type BudgetCreateLinesBatchData = {
+    body: BudgetLineBatchCreate;
+    headers?: {
+        /**
+         * Optional key for safe retries. Replaying it with a different body → `409 idempotency_conflict`.
+         */
+        'Idempotency-Key'?: string;
+    };
+    path: {
+        /**
+         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         */
+        projectId: string;
+    };
+    query?: never;
+    url: '/projects/{projectId}/budget/lines/batch';
+};
+
+export type BudgetCreateLinesBatchErrors = {
+    /**
+     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     */
+    400: Error;
+    /**
+     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
+     */
+    401: Error;
+    /**
+     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     */
+    403: Error;
+    /**
+     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     */
+    404: Error;
+    /**
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     */
+    409: Error;
+    /**
+     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     */
+    422: Error;
+    /**
+     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     */
+    429: Error;
+};
+
+export type BudgetCreateLinesBatchError = BudgetCreateLinesBatchErrors[keyof BudgetCreateLinesBatchErrors];
+
+export type BudgetCreateLinesBatchResponses = {
+    /**
+     * The created budget lines in request order.
+     */
+    201: BudgetLineBatchCreateResponse;
+};
+
+export type BudgetCreateLinesBatchResponse = BudgetCreateLinesBatchResponses[keyof BudgetCreateLinesBatchResponses];
+
+export type BudgetUpsertInputsBatchData = {
+    body: BudgetInputBatchUpsert;
+    headers?: {
+        /**
+         * Optional key for safe retries. Replaying it with a different body → `409 idempotency_conflict`.
+         */
+        'Idempotency-Key'?: string;
+    };
+    path: {
+        /**
+         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         */
+        projectId: string;
+    };
+    query?: never;
+    url: '/projects/{projectId}/budget/inputs/batch';
+};
+
+export type BudgetUpsertInputsBatchErrors = {
+    /**
+     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     */
+    400: Error;
+    /**
+     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
+     */
+    401: Error;
+    /**
+     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     */
+    403: Error;
+    /**
+     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     */
+    404: Error;
+    /**
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     */
+    409: Error;
+    /**
+     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     */
+    429: Error;
+};
+
+export type BudgetUpsertInputsBatchError = BudgetUpsertInputsBatchErrors[keyof BudgetUpsertInputsBatchErrors];
+
+export type BudgetUpsertInputsBatchResponses = {
+    /**
+     * The normalized editable inputs after the upsert.
+     */
+    200: BudgetInputBatchUpsertResponse;
+};
+
+export type BudgetUpsertInputsBatchResponse = BudgetUpsertInputsBatchResponses[keyof BudgetUpsertInputsBatchResponses];
 
 export type BudgetDeleteLineData = {
     body?: never;
@@ -4316,6 +4443,60 @@ export type BudgetUpdateLineResponses = {
 };
 
 export type BudgetUpdateLineResponse = BudgetUpdateLineResponses[keyof BudgetUpdateLineResponses];
+
+export type BudgetUpsertLineInputData = {
+    body: BudgetLineInputUpsert;
+    path: {
+        /**
+         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         */
+        projectId: string;
+        /**
+         * Budget line identifier (`lin_…`).
+         */
+        lineId: Id;
+        /**
+         * Budget phase identifier (`phs_…`).
+         */
+        phaseId: Id;
+    };
+    query?: never;
+    url: '/projects/{projectId}/budget/lines/{lineId}/inputs/{phaseId}';
+};
+
+export type BudgetUpsertLineInputErrors = {
+    /**
+     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     */
+    400: Error;
+    /**
+     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
+     */
+    401: Error;
+    /**
+     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     */
+    403: Error;
+    /**
+     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     */
+    404: Error;
+    /**
+     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     */
+    429: Error;
+};
+
+export type BudgetUpsertLineInputError = BudgetUpsertLineInputErrors[keyof BudgetUpsertLineInputErrors];
+
+export type BudgetUpsertLineInputResponses = {
+    /**
+     * The normalized editable input after the upsert.
+     */
+    200: BudgetLineInputUpsertResponse;
+};
+
+export type BudgetUpsertLineInputResponse = BudgetUpsertLineInputResponses[keyof BudgetUpsertLineInputResponses];
 
 export type BudgetListPhasesData = {
     body?: never;
@@ -4778,7 +4959,7 @@ export type DocumentsDropErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -5059,7 +5240,7 @@ export type DocumentsAssignErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -9307,7 +9488,7 @@ export type MasterDataCreateProjectErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -9445,7 +9626,7 @@ export type MasterDataUpdateProjectErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -9567,7 +9748,7 @@ export type MasterDataCreateSpaceErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -9809,7 +9990,7 @@ export type MasterDataCreateContactErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -10089,7 +10270,7 @@ export type MasterDataCreateCommentErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -10644,7 +10825,7 @@ export type PurchaseOrdersCreateErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -10694,7 +10875,7 @@ export type PurchaseOrdersDeleteErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -10796,7 +10977,7 @@ export type PurchaseOrdersUpdateErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -10846,7 +11027,7 @@ export type PurchaseOrdersSubmitErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -10883,7 +11064,7 @@ export type PurchaseOrdersCancelSubmissionErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -10929,7 +11110,7 @@ export type PurchaseOrdersVoidErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -10975,7 +11156,7 @@ export type PurchaseOrdersFinalizeErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -11025,7 +11206,7 @@ export type PurchaseOrdersLinkErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -11079,7 +11260,7 @@ export type PurchaseOrdersUnlinkErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -11232,7 +11413,7 @@ export type PurchaseOrdersCreateItemErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -11286,7 +11467,7 @@ export type PurchaseOrdersDeleteItemErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -11340,7 +11521,7 @@ export type PurchaseOrdersUpdateItemErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -11708,7 +11889,7 @@ export type TransactionsCreateErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -11871,7 +12052,7 @@ export type TransactionsBatchCreateErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -11925,7 +12106,7 @@ export type TransactionsDeleteErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -12026,7 +12207,7 @@ export type TransactionsUpdateErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -12137,7 +12318,7 @@ export type TransactionsItemsCreateErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -12671,7 +12852,7 @@ export type WebhooksCreateErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -12818,7 +12999,7 @@ export type WebhooksUpdateErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
@@ -12868,7 +13049,7 @@ export type WebhooksPingErrors = {
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `account_code_ambiguous`, `budget_compute_stale`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
      */
     409: Error;
     /**
