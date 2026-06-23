@@ -266,7 +266,6 @@ export type BudgetLineCreate = {
      */
     code?: string;
     parentId?: Id;
-    sort?: number;
     contactId?: Id;
     lineColor?: string;
     emoji?: string;
@@ -291,7 +290,6 @@ export type BudgetLineUpdate = {
     kind?: BudgetLineKind;
     code?: string;
     parentId?: Id;
-    sort?: number;
     contactId?: Id | null;
     lineColor?: string | null;
     emoji?: string | null;
@@ -505,7 +503,7 @@ export type BudgetDocument = {
 };
 
 /**
- * Computed grand totals (or, with filters, the computed slice total) as of `computedAt`. The filtered rollup is computed server-side; never summed client-side.
+ * Computed grand totals (or, with supported filters, the computed slice total) as of `computedAt`. Supported filters are `phase`, `accountId`, and `path`. The filtered rollup is computed server-side; never summed client-side.
  */
 export type BudgetTotals = {
     computedAt: string;
@@ -520,12 +518,8 @@ export type BudgetTotals = {
      */
     filter?: {
         phase?: string;
-        tags?: Array<string>;
-        tagMode?: TagMode;
         accountId?: string;
         path?: string;
-        dateFrom?: string;
-        dateTo?: string;
     };
 };
 
@@ -3720,14 +3714,6 @@ export type BudgetGetTotalsData = {
          */
         phase?: string;
         /**
-         * Comma-separated tag ids/names; composed per `tagMode`.
-         */
-        tags?: string;
-        /**
-         * How `tags` composes (`any` = OR default, `all` = AND, `none` = exclude).
-         */
-        tagMode?: TagMode;
-        /**
          * Account code classifier, subtree-scopes the slice (a code may sit on many rows).
          */
         accountId?: string;
@@ -3735,14 +3721,6 @@ export type BudgetGetTotalsData = {
          * Coded account path to subtree-scope the slice (e.g. `1100/1110`).
          */
         path?: string;
-        /**
-         * Inclusive ISO-8601 lower bound for actualized amounts.
-         */
-        dateFrom?: string;
-        /**
-         * Inclusive ISO-8601 upper bound for actualized amounts.
-         */
-        dateTo?: string;
     };
     url: '/projects/{projectId}/budget/totals';
 };
@@ -4012,10 +3990,6 @@ export type BudgetListLinesData = {
          */
         path?: string;
         /**
-         * Narrow to lines participating in a phase, by phase id or `type`.
-         */
-        phase?: string;
-        /**
          * Comma-separated tag ids/names; composed per `tagMode`.
          */
         tags?: string;
@@ -4040,21 +4014,9 @@ export type BudgetListLinesData = {
          */
         cursor?: string;
         /**
-         * Field to sort by (replaces legacy `sortBy`). A non-unique sort field appends `,id` as the tiebreaker. Allowed fields are typed per resource.
-         */
-        sort?: string;
-        /**
-         * Sort direction (replaces legacy `sortOrder`).
-         */
-        order?: 'asc' | 'desc';
-        /**
          * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
          */
         withCount?: boolean;
-        /**
-         * Replay a saved view (`?view={id}`), a named, persisted filter + shape bundle. The view's filter/sort/expand resolve first; any inline query params layer on top to refine. An unknown or unreadable view id returns `404 not_found`.
-         */
-        view?: Id;
     };
     url: '/projects/{projectId}/budget/lines';
 };
@@ -4112,7 +4074,7 @@ export type BudgetCreateLineData = {
     body: BudgetLineCreate;
     headers?: {
         /**
-         * Optional key for safe retries. Replaying it with a different body → `409 idempotency_conflict`.
+         * Optional key for same-body retries. Replaying it with a different body → `409 idempotency_conflict`.
          */
         'Idempotency-Key'?: string;
     };
@@ -4172,7 +4134,7 @@ export type BudgetCreateLinesBatchData = {
     body: BudgetLineBatchCreate;
     headers?: {
         /**
-         * Optional key for safe retries. Replaying it with a different body → `409 idempotency_conflict`.
+         * Optional key for same-body retries. Replaying it with a different body → `409 idempotency_conflict`.
          */
         'Idempotency-Key'?: string;
     };
@@ -4232,7 +4194,7 @@ export type BudgetUpsertInputsBatchData = {
     body: BudgetInputBatchUpsert;
     headers?: {
         /**
-         * Optional key for safe retries. Replaying it with a different body → `409 idempotency_conflict`.
+         * Optional key for same-body retries. Replaying it with a different body → `409 idempotency_conflict`.
          */
         'Idempotency-Key'?: string;
     };
@@ -4557,7 +4519,6 @@ export type BudgetCreatePhaseData = {
         name: string;
         alias?: string;
         color?: string;
-        sort?: number;
         isHidden?: boolean;
     };
     path: {
@@ -4703,9 +4664,8 @@ export type BudgetGetPhaseResponse = BudgetGetPhaseResponses[keyof BudgetGetPhas
 export type BudgetUpdatePhaseData = {
     body: {
         name?: string;
-        alias?: string | null;
+        alias?: string;
         color?: string | null;
-        sort?: number;
         isHidden?: boolean;
     };
     path: {

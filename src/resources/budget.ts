@@ -52,8 +52,6 @@ export interface BudgetLineListParams<E extends BudgetLineExpand = never> {
   accountId?: string;
   /** Coded account path for an exact single-row read (e.g. `1100/1110`). */
   path?: string;
-  /** Narrow to lines participating in a phase, by phase id or `type`. */
-  phase?: string;
   /** Comma-separated tag ids/names; composed per `tagMode`. */
   tags?: string;
   /** How `tags` composes (`any` OR, `all` AND, `none` exclude). */
@@ -66,12 +64,8 @@ export interface BudgetLineListParams<E extends BudgetLineExpand = never> {
   limit?: number;
   /** Opaque keyset cursor from a prior page's `nextCursor`. */
   cursor?: string;
-  sort?: string;
-  order?: 'asc' | 'desc';
   /** Opt in to a total `count` on the envelope. */
   withCount?: boolean;
-  /** Replay a saved view (`?view={id}`); inline filters layer on top. */
-  view?: string;
 }
 
 export interface BudgetGetLineParams<E extends BudgetLineExpand = never> {
@@ -80,9 +74,9 @@ export interface BudgetGetLineParams<E extends BudgetLineExpand = never> {
 
 export interface BudgetTotalsParams {
   phase?: string;
-  tags?: string;
-  tagMode?: TagMode;
   accountId?: string;
+  /** Coded account path for an exact subtree total (e.g. `1100/1110`). */
+  path?: string;
 }
 
 export interface BudgetDocumentParams {
@@ -173,17 +167,13 @@ export class BudgetLinesResource {
       query: {
         accountId: params.accountId,
         path: params.path,
-        phase: params.phase,
         tags: params.tags,
         tagMode: params.tagMode,
         kind: params.kind,
         expand: serializeExpand(params.expand),
         limit: params.limit,
         cursor: params.cursor,
-        sort: params.sort,
-        order: params.order,
         withCount: params.withCount,
-        view: params.view,
       },
     };
     type Row = Expanded<BudgetLine, BudgetLineExpandMap, E>;
@@ -204,7 +194,7 @@ export class BudgetLinesResource {
     }) as Promise<Expanded<BudgetLine, BudgetLineExpandMap, E>>;
   }
 
-  /** Create a budget line. Pass `idempotencyKey` for a safe retry. */
+  /** Create a budget line. Pass `idempotencyKey` to replay same-body retries. */
   async create(
     body: BudgetLineCreate,
     opts: { idempotencyKey?: string } = {},
@@ -348,9 +338,8 @@ export class BudgetTotalsResource {
       path: { projectId: this.projectId },
       query: {
         phase: params.phase,
-        tags: params.tags,
-        tagMode: params.tagMode,
         accountId: params.accountId,
+        path: params.path,
       },
     }) as Promise<BudgetTotals>;
   }

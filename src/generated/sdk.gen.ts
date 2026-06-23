@@ -32,7 +32,7 @@ export const budgetGetDocument = <ThrowOnError extends boolean = false>(options:
 /**
  * Get grand totals (optionally for a filtered slice)
  *
- * Returns the engine's grand totals as of `computedAt`. With filters (`phase`, `tags`/`tagMode`, `accountId`/`path` subtree, `dateFrom`/`dateTo`) the engine computes the slice total, e.g. "total VFX in the estimate phase". Totals are computed server-side, not summed by the client. Slices cache per (budget, changeToken, filterHash). `expand` is rejected.
+ * Returns the engine's grand totals as of `computedAt`. With supported filters (`phase`, `accountId`/`path` subtree) the response is the engine-coalesced slice total, computed server-side and never summed by the client. `path` matches only the materialized account path; `accountId` is a code classifier and can be ambiguous. `expand` is rejected.
  */
 export const budgetGetTotals = <ThrowOnError extends boolean = false>(options: Options<BudgetGetTotalsData, ThrowOnError>) => (options.client ?? client).get<BudgetGetTotalsResponses, BudgetGetTotalsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -103,7 +103,7 @@ export const budgetCreateLine = <ThrowOnError extends boolean = false>(options: 
 /**
  * Create budget lines in one all-or-nothing batch
  *
- * Creates multiple stored budget lines, each optionally carrying initial editable inputs keyed by phase id. The batch is transactional: either every line and input is written, or none are. Optional `Idempotency-Key` replays the original result for safe retries.
+ * Creates multiple stored budget lines, each optionally carrying initial editable inputs keyed by phase id. The batch is transactional: either every line and input is written, or none are. Optional `Idempotency-Key` replays the original result for same-body retries.
  */
 export const budgetCreateLinesBatch = <ThrowOnError extends boolean = false>(options: Options<BudgetCreateLinesBatchData, ThrowOnError>) => (options.client ?? client).post<BudgetCreateLinesBatchResponses, BudgetCreateLinesBatchErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -118,7 +118,7 @@ export const budgetCreateLinesBatch = <ThrowOnError extends boolean = false>(opt
 /**
  * Upsert editable budget inputs in one all-or-nothing batch
  *
- * Upserts raw editable estimate inputs for existing lines and phases. The batch is transactional: either every input is written, or none are. Optional `Idempotency-Key` replays the original result for safe retries.
+ * Upserts raw editable estimate inputs for existing lines and phases. The batch is transactional: either every input is written, or none are. Optional `Idempotency-Key` replays the original result for same-body retries.
  */
 export const budgetUpsertInputsBatch = <ThrowOnError extends boolean = false>(options: Options<BudgetUpsertInputsBatchData, ThrowOnError>) => (options.client ?? client).post<BudgetUpsertInputsBatchResponses, BudgetUpsertInputsBatchErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
