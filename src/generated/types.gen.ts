@@ -82,9 +82,9 @@ export type BudgetLineKind = 'account' | 'line' | 'subtotal' | 'fringe' | 'marku
 export type ComputedLineKind = 'account' | 'line' | 'credit' | 'fringe';
 
 /**
- * Allowed `expand` keys for budget-line reads (comma-separated, depth ≤ 2). `contact` is a relation expand; `account` projects classifier fields already inline on the row; `phases` adds the computed value matrix; `inputs` adds raw editable estimate inputs keyed by phase id; `sourceItem` dereferences the `sourceId` to its library origin (or an explicit tombstone, never null). An unknown or too-deep key returns `400 expand_invalid`. Legacy parity note: the legacy `lines.notes` expand is intentionally NOT ported; the note is now a plain-text `line.notes` field always present inline on the line, so there is nothing to expand (the rich-text `NoteData` / `/budget/note` resource is gone, see `BudgetLine.notes`).
+ * Allowed `expand` keys for budget-line reads (comma-separated, depth ≤ 2). `contact` is a relation expand; `account` projects classifier fields already inline on the row; `phases` adds the computed value matrix; `phaseData` adds raw editable estimate phase data keyed by phase id; `sourceItem` dereferences the `sourceId` to its library origin (or an explicit tombstone, never null). An unknown or too-deep key returns `400 expand_invalid`. Legacy parity note: the legacy `lines.notes` expand is intentionally NOT ported, the note is now a plain-text `line.notes` field always present inline on the line, so there is nothing to expand (the rich-text `NoteData` / `/budget/note` resource is gone, see `BudgetLine.notes`).
  */
-export type BudgetLineExpand = 'phases' | 'inputs' | 'contact' | 'account' | 'sourceItem';
+export type BudgetLineExpand = 'phases' | 'phaseData' | 'contact' | 'account' | 'sourceItem';
 
 /**
  * How a multi-value `tags` filter composes. `any` = OR (default), `all` = AND, `none` = exclude any tagged row.
@@ -169,7 +169,7 @@ export type BudgetPhase = {
 };
 
 /**
- * A stored budget row. `code` is the (non-unique, possibly empty) account number; `path` is the coded account path used for friendly lookups. The internal `address` is never returned. Expand-only relations (`contact`, `account`, `phases`, `inputs`, `sourceItem`) appear only when requested via `expand`.
+ * A stored budget row. `code` is the (non-unique, possibly empty) account number; `path` is the coded account path used for friendly lookups. The internal `address` is never returned. Expand-only relations (`contact`, `account`, `phases`, `phaseData`, `sourceItem`) appear only when requested via `expand`.
  */
 export type BudgetLine = {
     id: Id;
@@ -245,10 +245,10 @@ export type BudgetLine = {
         [key: string]: PhaseValues;
     };
     /**
-     * Present only with `expand=inputs`. Raw editable estimate inputs keyed by phase id.
+     * Present only with `expand=phaseData`. Raw editable estimate phase data keyed by phase id.
      */
-    inputs?: {
-        [key: string]: BudgetDocumentLineInputs;
+    phaseData?: {
+        [key: string]: BudgetDocumentLinePhaseData;
     };
 };
 
@@ -275,10 +275,10 @@ export type BudgetLineCreate = {
     subtotalIsBold?: boolean;
     markupAccountFilter?: string;
     /**
-     * Optional initial editable inputs keyed by phase id.
+     * Optional initial editable phase data keyed by phase id.
      */
-    inputs?: {
-        [key: string]: BudgetLineInputWrite;
+    phaseData?: {
+        [key: string]: BudgetLinePhaseDataWrite;
     };
 };
 
@@ -299,17 +299,17 @@ export type BudgetLineUpdate = {
     subtotalIsBold?: boolean;
     markupAccountFilter?: string | null;
     /**
-     * Upsert editable inputs keyed by phase id. Omitted input fields are left unchanged.
+     * Upsert editable phase data keyed by phase id. Omitted fields are left unchanged.
      */
-    inputs?: {
-        [key: string]: BudgetLineInputWrite;
+    phaseData?: {
+        [key: string]: BudgetLinePhaseDataWrite;
     };
 };
 
 /**
- * Raw editable input value. Numbers stay numbers; formulas and variable references stay exact strings; missing input is null.
+ * Raw editable phase-data value. Numbers stay numbers; formulas and variable references stay exact strings; missing value is null.
  */
-export type BudgetDocumentInputValue = number | string | null;
+export type BudgetDocumentPhaseDataValue = number | string | null;
 
 export type BudgetDocumentOvertime = {
     mode?: string | null;
@@ -327,12 +327,12 @@ export type BudgetDocumentOvertime = {
 } | null;
 
 /**
- * Editable estimate inputs for one line and phase. Notes and agent summaries are intentionally excluded.
+ * Editable estimate phase data for one line and phase. Notes and agent summaries are intentionally excluded.
  */
-export type BudgetDocumentLineInputs = {
-    rate: BudgetDocumentInputValue;
-    quantity: BudgetDocumentInputValue;
-    multiplier: BudgetDocumentInputValue;
+export type BudgetDocumentLinePhaseData = {
+    rate: BudgetDocumentPhaseDataValue;
+    quantity: BudgetDocumentPhaseDataValue;
+    multiplier: BudgetDocumentPhaseDataValue;
     qtyAutoDerived: boolean;
     unit: string | null;
     customUnitId: Id | null;
@@ -346,12 +346,12 @@ export type BudgetDocumentLineInputs = {
 };
 
 /**
- * Public write body for one editable input cell. Omitted fields are left unchanged on upsert.
+ * Public write body for one editable line/phase data cell. Omitted fields are left unchanged on upsert.
  */
-export type BudgetLineInputWrite = {
-    rate?: BudgetDocumentInputValue;
-    quantity?: BudgetDocumentInputValue;
-    multiplier?: BudgetDocumentInputValue;
+export type BudgetLinePhaseDataWrite = {
+    rate?: BudgetDocumentPhaseDataValue;
+    quantity?: BudgetDocumentPhaseDataValue;
+    multiplier?: BudgetDocumentPhaseDataValue;
     qtyAutoDerived?: boolean | null;
     unit?: string | null;
     customUnitId?: Id | null;
@@ -363,12 +363,12 @@ export type BudgetLineInputWrite = {
     overtime?: BudgetDocumentOvertime;
 };
 
-export type BudgetLineInputUpsert = BudgetLineInputWrite;
+export type BudgetLinePhaseDataUpsert = BudgetLinePhaseDataWrite;
 
-export type BudgetLineInputUpsertResponse = {
+export type BudgetLinePhaseDataUpsertResponse = {
     lineId: Id;
     phaseId: Id;
-    input: BudgetDocumentLineInputs;
+    phaseData: BudgetDocumentLinePhaseData;
 };
 
 export type BudgetLineBatchCreate = {
@@ -379,16 +379,16 @@ export type BudgetLineBatchCreateResponse = {
     data: Array<BudgetLine>;
 };
 
-export type BudgetInputBatchUpsert = {
-    inputs: Array<{
+export type BudgetLinePhaseDataBatchUpsert = {
+    items: Array<{
         lineId: Id;
         phaseId: Id;
-        input: BudgetLineInputWrite;
+        phaseData: BudgetLinePhaseDataWrite;
     }>;
 };
 
-export type BudgetInputBatchUpsertResponse = {
-    data: Array<BudgetLineInputUpsertResponse>;
+export type BudgetLinePhaseDataBatchUpsertResponse = {
+    data: Array<BudgetLinePhaseDataUpsertResponse>;
 };
 
 /**
@@ -457,7 +457,7 @@ export type BudgetDocumentSelection = {
 };
 
 /**
- * One flat line in the budget document. `values` are computed; `inputs` are raw editable estimate fields keyed by phase id.
+ * One flat line in the budget document. `values` are computed; `phaseData` contains raw editable estimate fields keyed by phase id.
  */
 export type BudgetDocumentLine = {
     id: Id;
@@ -470,13 +470,13 @@ export type BudgetDocumentLine = {
     values: {
         [key: string]: BudgetDocumentPhaseValues;
     };
-    inputs: {
-        [key: string]: BudgetDocumentLineInputs;
+    phaseData: {
+        [key: string]: BudgetDocumentLinePhaseData;
     };
 };
 
 /**
- * The full public budget document, combining visible phases, computed totals, flat lines, and editable inputs in one response.
+ * The full public budget document, combining visible phases, computed totals, flat lines, and editable phase data in one response.
  */
 export type BudgetDocument = {
     /**
@@ -485,9 +485,9 @@ export type BudgetDocument = {
     id: Id;
     computedAt: string;
     /**
-     * ISO-8601 timestamp after the raw input rows were read.
+     * ISO-8601 timestamp after the raw phase-data rows were read.
      */
-    inputsReadAt: string;
+    phaseDataReadAt: string;
     selection: BudgetDocumentSelection;
     phases: Array<BudgetPhase>;
     /**
@@ -4190,8 +4190,8 @@ export type BudgetCreateLinesBatchResponses = {
 
 export type BudgetCreateLinesBatchResponse = BudgetCreateLinesBatchResponses[keyof BudgetCreateLinesBatchResponses];
 
-export type BudgetUpsertInputsBatchData = {
-    body: BudgetInputBatchUpsert;
+export type BudgetUpsertLinePhaseDataBatchData = {
+    body: BudgetLinePhaseDataBatchUpsert;
     headers?: {
         /**
          * Optional key for same-body retries. Replaying it with a different body → `409 idempotency_conflict`.
@@ -4205,10 +4205,10 @@ export type BudgetUpsertInputsBatchData = {
         projectId: string;
     };
     query?: never;
-    url: '/projects/{projectId}/budget/inputs/batch';
+    url: '/projects/{projectId}/budget/lines/phase-data/batch';
 };
 
-export type BudgetUpsertInputsBatchErrors = {
+export type BudgetUpsertLinePhaseDataBatchErrors = {
     /**
      * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
      */
@@ -4235,16 +4235,16 @@ export type BudgetUpsertInputsBatchErrors = {
     429: Error;
 };
 
-export type BudgetUpsertInputsBatchError = BudgetUpsertInputsBatchErrors[keyof BudgetUpsertInputsBatchErrors];
+export type BudgetUpsertLinePhaseDataBatchError = BudgetUpsertLinePhaseDataBatchErrors[keyof BudgetUpsertLinePhaseDataBatchErrors];
 
-export type BudgetUpsertInputsBatchResponses = {
+export type BudgetUpsertLinePhaseDataBatchResponses = {
     /**
-     * The normalized editable inputs after the upsert.
+     * The normalized editable phase data after the upsert.
      */
-    200: BudgetInputBatchUpsertResponse;
+    200: BudgetLinePhaseDataBatchUpsertResponse;
 };
 
-export type BudgetUpsertInputsBatchResponse = BudgetUpsertInputsBatchResponses[keyof BudgetUpsertInputsBatchResponses];
+export type BudgetUpsertLinePhaseDataBatchResponse = BudgetUpsertLinePhaseDataBatchResponses[keyof BudgetUpsertLinePhaseDataBatchResponses];
 
 export type BudgetDeleteLineData = {
     body?: never;
@@ -4406,8 +4406,8 @@ export type BudgetUpdateLineResponses = {
 
 export type BudgetUpdateLineResponse = BudgetUpdateLineResponses[keyof BudgetUpdateLineResponses];
 
-export type BudgetUpsertLineInputData = {
-    body: BudgetLineInputUpsert;
+export type BudgetUpsertLinePhaseDataData = {
+    body: BudgetLinePhaseDataUpsert;
     path: {
         /**
          * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
@@ -4423,10 +4423,10 @@ export type BudgetUpsertLineInputData = {
         phaseId: Id;
     };
     query?: never;
-    url: '/projects/{projectId}/budget/lines/{lineId}/inputs/{phaseId}';
+    url: '/projects/{projectId}/budget/lines/{lineId}/phase-data/{phaseId}';
 };
 
-export type BudgetUpsertLineInputErrors = {
+export type BudgetUpsertLinePhaseDataErrors = {
     /**
      * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
      */
@@ -4449,16 +4449,16 @@ export type BudgetUpsertLineInputErrors = {
     429: Error;
 };
 
-export type BudgetUpsertLineInputError = BudgetUpsertLineInputErrors[keyof BudgetUpsertLineInputErrors];
+export type BudgetUpsertLinePhaseDataError = BudgetUpsertLinePhaseDataErrors[keyof BudgetUpsertLinePhaseDataErrors];
 
-export type BudgetUpsertLineInputResponses = {
+export type BudgetUpsertLinePhaseDataResponses = {
     /**
-     * The normalized editable input after the upsert.
+     * The normalized editable phase data after the upsert.
      */
-    200: BudgetLineInputUpsertResponse;
+    200: BudgetLinePhaseDataUpsertResponse;
 };
 
-export type BudgetUpsertLineInputResponse = BudgetUpsertLineInputResponses[keyof BudgetUpsertLineInputResponses];
+export type BudgetUpsertLinePhaseDataResponse = BudgetUpsertLinePhaseDataResponses[keyof BudgetUpsertLinePhaseDataResponses];
 
 export type BudgetListPhasesData = {
     body?: never;

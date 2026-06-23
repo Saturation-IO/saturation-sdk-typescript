@@ -11,8 +11,8 @@
  *     compile error, not a silent `undefined`).
  *
  * Each resource declares an `ExpandMap`: a record from its typed expand-key union
- * to the property name that key populates. `phases` populates `values`, `inputs`
- * populates `inputs`, `contact` populates `contact`, and so on. The widening is
+ * to the property name that key populates. `phases` populates `values`,
+ * `phaseData` populates `phaseData`, `contact` populates `contact`, and so on. The widening is
  * driven entirely by that map, so the surface stays mechanical and the keys stay
  * the OpenAPI's typed union (never a free string).
  */

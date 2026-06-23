@@ -6,10 +6,10 @@ import type {
   BudgetLineExpand,
   BudgetLineBatchCreate,
   BudgetLineBatchCreateResponse,
-  BudgetLineInputUpsert,
-  BudgetLineInputUpsertResponse,
-  BudgetInputBatchUpsert,
-  BudgetInputBatchUpsertResponse,
+  BudgetLinePhaseDataUpsert,
+  BudgetLinePhaseDataUpsertResponse,
+  BudgetLinePhaseDataBatchUpsert,
+  BudgetLinePhaseDataBatchUpsertResponse,
   BudgetCell,
   BudgetDocument,
   BudgetTotals,
@@ -31,8 +31,8 @@ import { Expanded, type ExpandMap, serializeExpand } from '../expand.js';
 /**
  * Map each budget-line expand key to the property it populates on `BudgetLine`,
  * so an expanded relation is widened to present-and-required in the return type.
- * `phases` populates the computed `values` matrix; `inputs` populates the raw
- * editable input matrix; the rest are 1:1 with their property name.
+ * `phases` populates the computed `values` matrix; `phaseData` populates the
+ * raw editable phase-data matrix; the rest are 1:1 with their property name.
  *
  * `account` is a valid expand key but projects classifier fields (`code`/`path`)
  * that are already inline on the row, so it has no dedicated widened property and
@@ -41,7 +41,7 @@ import { Expanded, type ExpandMap, serializeExpand } from '../expand.js';
  */
 const budgetLineExpandMap = {
   phases: 'values',
-  inputs: 'inputs',
+  phaseData: 'phaseData',
   contact: 'contact',
   sourceItem: 'sourceItem',
 } satisfies ExpandMap<BudgetLineExpand>;
@@ -115,11 +115,11 @@ export class BudgetResource {
     return new BudgetCellsResource(this.t, this.projectId);
   }
 
-  get inputs(): BudgetInputsResource {
-    return new BudgetInputsResource(this.t, this.projectId);
+  get phaseData(): BudgetPhaseDataResource {
+    return new BudgetPhaseDataResource(this.t, this.projectId);
   }
 
-  /** The full budget document: lines, visible phases, totals, and editable inputs. */
+  /** The full budget document: lines, visible phases, totals, and editable phase data. */
   async document(params: BudgetDocumentParams = {}): Promise<BudgetDocument> {
     return this.t.run(sdk.budgetGetDocument, {
       path: { projectId: this.projectId },
@@ -226,16 +226,16 @@ export class BudgetLinesResource {
     }) as Promise<BudgetLine>;
   }
 
-  /** Upsert one editable input for a line/phase intersection. */
-  async upsertInput(
+  /** Upsert one editable phase-data entry for a line/phase intersection. */
+  async upsertPhaseData(
     lineId: string,
     phaseId: string,
-    body: BudgetLineInputUpsert,
-  ): Promise<BudgetLineInputUpsertResponse> {
-    return this.t.run(sdk.budgetUpsertLineInput, {
+    body: BudgetLinePhaseDataUpsert,
+  ): Promise<BudgetLinePhaseDataUpsertResponse> {
+    return this.t.run(sdk.budgetUpsertLinePhaseData, {
       path: { projectId: this.projectId, lineId, phaseId },
       body,
-    }) as Promise<BudgetLineInputUpsertResponse>;
+    }) as Promise<BudgetLinePhaseDataUpsertResponse>;
   }
 
   /** Soft-delete a budget line. `reset` re-snapshots from source on resurrect. */
@@ -247,22 +247,22 @@ export class BudgetLinesResource {
   }
 }
 
-export class BudgetInputsResource {
+export class BudgetPhaseDataResource {
   constructor(
     private readonly t: Transport,
     private readonly projectId: string,
   ) {}
 
-  /** Upsert editable budget inputs in one all-or-nothing batch. */
+  /** Upsert editable line phase data in one all-or-nothing batch. */
   async upsertBatch(
-    body: BudgetInputBatchUpsert,
+    body: BudgetLinePhaseDataBatchUpsert,
     opts: { idempotencyKey?: string } = {},
-  ): Promise<BudgetInputBatchUpsertResponse> {
-    return this.t.run(sdk.budgetUpsertInputsBatch, {
+  ): Promise<BudgetLinePhaseDataBatchUpsertResponse> {
+    return this.t.run(sdk.budgetUpsertLinePhaseDataBatch, {
       path: { projectId: this.projectId },
       headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
       body,
-    }) as Promise<BudgetInputBatchUpsertResponse>;
+    }) as Promise<BudgetLinePhaseDataBatchUpsertResponse>;
   }
 }
 
