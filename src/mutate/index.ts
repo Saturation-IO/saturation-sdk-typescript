@@ -15,3 +15,8 @@ export type {
   WriteOp,
   WriteOpDef,
 } from './mutate.js';
+
+// The generated typed write CONTRACT + its interim bridge implementation.
+export type { WriteSurface } from './write-surface.interface.gen.js';
+export { createBridgeWriteSurface } from './write-surface.bridge.gen.js';
+export type { WriteBridge, WriteBridgeArgs } from './write-surface.bridge.gen.js';

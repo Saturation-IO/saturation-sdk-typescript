@@ -21,6 +21,10 @@ export type { Page, FetchLike } from './http.js';
 export { MutateClient, createMutate, WRITE_OPS, WRITE_OP_IDS } from './mutate/index.js';
 export type { MutateOptions, MutateArgs, WriteOp, WriteOpDef } from './mutate/index.js';
 
+// The generated typed write CONTRACT (`WriteSurface`) + its interim bridge impl.
+export { createBridgeWriteSurface } from './mutate/index.js';
+export type { WriteSurface, WriteBridge, WriteBridgeArgs } from './mutate/index.js';
+
 // Document assign targets (typed `{ transaction | purchaseOrder | … }` refs).
 export type { AssignTarget } from './resources/documents.js';
 
