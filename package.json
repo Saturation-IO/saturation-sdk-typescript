@@ -47,7 +47,7 @@
     "clean": "rm -rf dist",
     "generate": "openapi-ts",
     "generate:mutate": "tsx scripts/generate-write-surface.ts",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.typetest.json",
     "test": "vitest run",
     "prepublishOnly": "pnpm build"
   },

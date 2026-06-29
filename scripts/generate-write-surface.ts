@@ -262,9 +262,33 @@ function objectBlockFor(types: string, name: string, maxHops = 4): string | null
 function bodyTypeText(types: string, dataType: string): string {
   const dataBlock = readTypeBlock(types, dataType);
   if (!dataBlock) return 'unknown';
-  const bodyMatch = /\bbody\??:\s*([^;]+);/.exec(dataBlock);
-  if (!bodyMatch) return 'never';
-  const expr = bodyMatch[1]!.trim();
+  const bodyKey = /\bbody\??:\s*/.exec(dataBlock);
+  if (!bodyKey) return 'never';
+  const rest = dataBlock.slice(bodyKey.index + bodyKey[0].length);
+  let expr: string;
+  if (rest.startsWith('{')) {
+    // INLINE-OBJECT body: the value spans inner `;`-separated members, so we
+    // can't stop at the first `;` (that truncates the catalog string). Extract
+    // the FULL brace-balanced block, then compact it like the named-alias path.
+    let depth = 0;
+    let end = -1;
+    for (let i = 0; i < rest.length; i++) {
+      const ch = rest[i];
+      if (ch === '{') depth++;
+      else if (ch === '}') {
+        depth--;
+        if (depth === 0) {
+          end = i + 1;
+          break;
+        }
+      }
+    }
+    if (end === -1) return 'unknown';
+    return compactTypeBlock(rest.slice(0, end));
+  }
+  // A named alias / union / primitive ends at its member `;`.
+  const semi = rest.indexOf(';');
+  expr = (semi === -1 ? rest : rest.slice(0, semi)).trim();
   // Resolve a single named object alias (chasing alias hops); otherwise keep expr.
   if (/^[A-Z]\w*$/.test(expr)) {
     const named = objectBlockFor(types, expr);

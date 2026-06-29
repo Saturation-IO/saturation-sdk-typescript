@@ -56,7 +56,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/budget/phases',
     pathParams: ['projectId'],
     dataType: 'BudgetCreatePhaseData',
-    bodyType: "{\n        type: PhaseType",
+    bodyType: "{ type: PhaseType; name: string; alias?: string; color?: string; isHidden?: boolean; }",
     summary: 'Create a budget phase',
   },
   budgetUpdateLine: {
@@ -74,7 +74,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/budget/phases/{phaseId}',
     pathParams: ['projectId', 'phaseId'],
     dataType: 'BudgetUpdatePhaseData',
-    bodyType: "{\n        name?: string",
+    bodyType: "{ name?: string; alias?: string; color?: string | null; isHidden?: boolean; }",
     summary: 'Update a budget phase',
   },
   budgetUpsertLinePhaseData: {
@@ -128,7 +128,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/library/currencies/add',
     pathParams: ['projectId'],
     dataType: 'LibraryAddProjectCurrencyData',
-    bodyType: "{\n        sourceId: Id",
+    bodyType: "{ sourceId: Id; }",
     summary: 'Copy a workspace currency into the project',
   },
   libraryAddProjectFringe: {
@@ -137,7 +137,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/library/fringes/add',
     pathParams: ['projectId'],
     dataType: 'LibraryAddProjectFringeData',
-    bodyType: "{\n        sourceId: Id",
+    bodyType: "{ sourceId: Id; }",
     summary: 'Copy a workspace fringe into the project',
   },
   libraryAddProjectFringeTag: {
@@ -146,7 +146,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/library/fringe-tags/add',
     pathParams: ['projectId'],
     dataType: 'LibraryAddProjectFringeTagData',
-    bodyType: "{\n        sourceId: Id",
+    bodyType: "{ sourceId: Id; }",
     summary: 'Copy a workspace fringe-tag into the project',
   },
   libraryAddProjectGlobal: {
@@ -155,7 +155,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/library/globals/add',
     pathParams: ['projectId'],
     dataType: 'LibraryAddProjectGlobalData',
-    bodyType: "{\n        sourceId: Id",
+    bodyType: "{ sourceId: Id; }",
     summary: 'Copy a workspace global into the project',
   },
   libraryAddProjectIncentive: {
