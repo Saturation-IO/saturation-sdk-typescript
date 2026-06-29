@@ -192,10 +192,41 @@ function main(): void {
       `Allowlisted write ops absent from the generated SDK (typo or removed route): ${missing.join(', ')}`,
     );
   }
-  const nonWrite = selected.filter((o) => o.method === ('get' as WriteMethod));
+  // The surface is additive-only, and THE ALLOWLIST IS THE SECURITY BOUNDARY, so
+  // its safety invariants are asserted HERE — next to the allowlist — not only in
+  // next-api's integration test (a different package a `generate:mutate` run need
+  // not execute). A regen that violates these throws before it can emit.
+  //
+  // (1) Every op must resolve to a write verb (post/put/patch) — reject GET and,
+  //     defensively, any delete/head/options that slipped past the type.
+  const WRITE_METHODS = new Set<string>(['post', 'put', 'patch']);
+  const nonWrite = selected.filter((o) => !WRITE_METHODS.has(o.method));
   if (nonWrite.length > 0) {
     throw new Error(
-      `Allowlisted ops resolve to a read verb (GET): ${nonWrite.map((o) => o.op).join(', ')}`,
+      `Allowlisted ops resolve to a non-write verb (only post/put/patch are additive): ${nonWrite
+        .map((o) => `${o.op} [${o.method}]`)
+        .join(', ')}`,
+    );
+  }
+  // (2) No op whose NAME signals a destructive or lifecycle-mutating action may
+  //     ship, even on a write verb — these are deferred to the rollback ledger.
+  //     This is the authoritative source for the catalog guard mirrored in
+  //     mutate.integration.test.ts (kept in sync).
+  const DESTRUCTIVE_NAME =
+    /Delete|Disable|Deactivate|Remove|Unassign|Unlink|Void|Ping|Submit|Finalize|Cancel|Archive/;
+  const destructive = selected.filter((o) => DESTRUCTIVE_NAME.test(o.op));
+  if (destructive.length > 0) {
+    throw new Error(
+      `Allowlisted ops have destructive/lifecycle names (additive-only surface — defer to the rollback ledger): ${destructive
+        .map((o) => o.op)
+        .join(', ')}`,
+    );
+  }
+  // (3) A parse miss must never emit a malformed op with no path.
+  const noUrl = selected.filter((o) => o.url === '');
+  if (noUrl.length > 0) {
+    throw new Error(
+      `Allowlisted ops have no resolved url (parse miss): ${noUrl.map((o) => o.op).join(', ')}`,
     );
   }
 
