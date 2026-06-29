@@ -46,12 +46,14 @@
     "build:types": "tsc -p tsconfig.types.json",
     "clean": "rm -rf dist",
     "generate": "openapi-ts",
+    "generate:mutate": "tsx scripts/generate-write-surface.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "prepublishOnly": "pnpm build"
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "0.97.3",
+    "tsx": "^4.19.2",
     "typescript": "^5.4.3",
     "vitest": "^4.1.0"
   },

@@ -15,7 +15,11 @@ export type { ErrorCode } from './errors.js';
 
 // Pagination primitives.
 export { List } from './http.js';
-export type { Page } from './http.js';
+export type { Page, FetchLike } from './http.js';
+
+// The `mutate` write surface (generated allowlist + generic dispatcher).
+export { MutateClient, createMutate, WRITE_OPS, WRITE_OP_IDS } from './mutate/index.js';
+export type { MutateOptions, MutateArgs, WriteOp, WriteOpDef } from './mutate/index.js';
 
 // Document assign targets (typed `{ transaction | purchaseOrder | … }` refs).
 export type { AssignTarget } from './resources/documents.js';

@@ -1,4 +1,4 @@
-import { Transport } from './http.js';
+import { Transport, type FetchLike } from './http.js';
 import { LibraryResource } from './resources/library-workspace.js';
 import { ProjectLibraryResource } from './resources/library-project.js';
 import { BudgetResource } from './resources/budget.js';
@@ -26,6 +26,12 @@ export interface SaturationOptions {
   token: string;
   /** Override the API base URL (defaults to production). Use for local/staging. */
   baseURL?: string;
+  /**
+   * Override the request executor. Defaults to `globalThis.fetch`. Pass a Hono
+   * `app.fetch` to run the SDK **in-process** against the live `/v1` handlers
+   * (no socket) — the seam the agent `mutate` bridge plugs into.
+   */
+  fetch?: FetchLike;
 }
 
 /**
@@ -130,6 +136,7 @@ export class Saturation {
     this.t = new Transport({
       token: options.token,
       baseURL: options.baseURL,
+      fetch: options.fetch,
     });
     this.library = new LibraryResource(this.t);
     this.documents = new DocumentsResource(this.t);
