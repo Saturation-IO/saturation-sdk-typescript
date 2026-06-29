@@ -193,6 +193,87 @@ function pathParams(url: string): string[] {
 }
 
 /**
+ * Read the literal RHS block of `export type <name> = { … };` out of the
+ * generated types, or `null` if `<name>` is not an object-type alias. The block
+ * keeps brace depth so nested inline objects round-trip.
+ */
+function readTypeBlock(types: string, name: string): string | null {
+  const start = new RegExp(`^export type ${name} = \\{`, 'm').exec(types);
+  if (!start) return null;
+  const from = start.index + start[0].length - 1; // position of the opening `{`
+  let depth = 0;
+  for (let i = from; i < types.length; i++) {
+    const ch = types[i];
+    if (ch === '{') depth++;
+    else if (ch === '}') {
+      depth--;
+      if (depth === 0) return types.slice(from, i + 1);
+    }
+  }
+  return null;
+}
+
+/**
+ * Collapse a type block to a compact, comment-free, single-line field list the
+ * model can read off the catalog (`{ field: Type; field2?: Type2; … }`). JSDoc
+ * comment lines are stripped (the field NAMES + TYPES are the load-bearing part;
+ * prose blows the discovery token budget); indentation is flattened.
+ */
+function compactTypeBlock(block: string): string {
+  const out: string[] = [];
+  for (const raw of block.split('\n')) {
+    const line = raw.trim();
+    if (line === '') continue;
+    if (line.startsWith('/**') || line.startsWith('*') || line === '*/') continue;
+    out.push(line);
+  }
+  return out.join(' ').replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Resolve a named type to its object-literal block, following single-name alias
+ * hops (`export type A = B;`) up to `maxHops` deep — hey-api routinely emits an
+ * alias chain (e.g. `BudgetLinePhaseDataUpsert = BudgetLinePhaseDataWrite = { … }`)
+ * whose object literal is several names removed. Returns `null` if no object
+ * literal is reached (a union/primitive/cyclic alias).
+ */
+function objectBlockFor(types: string, name: string, maxHops = 4): string | null {
+  let current = name;
+  for (let hop = 0; hop < maxHops; hop++) {
+    const block = readTypeBlock(types, current);
+    if (block) return block;
+    const alias = new RegExp(`^export type ${current} = (\\w+);`, 'm').exec(types);
+    if (!alias) return null;
+    current = alias[1]!;
+  }
+  return null;
+}
+
+/**
+ * The model-facing body shape for an op: the real field types of `<Op>Data`'s
+ * `body` member. We read the `body` member's type expression, then — when it is
+ * a single named object alias (the hey-api norm, e.g. `body: ContactCreate`) —
+ * resolve into that alias's compacted field list (following alias hops) so the
+ * model reads actual fields, not just a type name. A bare `never`/primitive/union
+ * is emitted verbatim. Never throws: a doc-generation miss degrades to the type
+ * name, the typed `WriteSurface` contract (not this string) is the compile-time
+ * guarantee.
+ */
+function bodyTypeText(types: string, dataType: string): string {
+  const dataBlock = readTypeBlock(types, dataType);
+  if (!dataBlock) return 'unknown';
+  const bodyMatch = /\bbody\??:\s*([^;]+);/.exec(dataBlock);
+  if (!bodyMatch) return 'never';
+  const expr = bodyMatch[1]!.trim();
+  // Resolve a single named object alias (chasing alias hops); otherwise keep expr.
+  if (/^[A-Z]\w*$/.test(expr)) {
+    const named = objectBlockFor(types, expr);
+    if (named) return compactTypeBlock(named);
+  }
+  return expr;
+}
+
+/**
  * The response-type name for an op, derived purely from its request-data type:
  * hey-api emits a flattened singular `<Op>Response` (the unwrapped success body)
  * alongside `<Op>Data`, so `Data -> Response` is the deterministic transform.
@@ -418,12 +499,14 @@ function main(): void {
     .map((o) => {
       const params = pathParams(o.url);
       const summary = o.summary.replace(/'/g, "\\'");
+      const bodyType = JSON.stringify(bodyTypeText(types, o.dataType));
       return `  ${o.op}: {
     op: '${o.op}',
     method: '${o.method}',
     url: '${o.url}',
     pathParams: [${params.map((p) => `'${p}'`).join(', ')}],
     dataType: '${o.dataType}',
+    bodyType: ${bodyType},
     summary: '${summary}',
   },`;
     })
@@ -449,6 +532,14 @@ export interface WriteOpDef {
   readonly pathParams: readonly string[];
   /** The generated request-data type name (provenance; the body shape lives there). */
   readonly dataType: string;
+  /**
+   * The op's request \`body\` shape as a compact, model-readable field list
+   * (\`{ field: Type; field2?: Type2; … }\`) resolved one level from \`<Op>Data\`.
+   * This is what lets the model read REAL field types off the catalog instead of
+   * a bare type name; the typed \`WriteSurface\` contract remains the compile-time
+   * guarantee. \`never\` = no body; \`unknown\` = a doc-generation miss.
+   */
+  readonly bodyType: string;
   /** One-line human summary from the OpenAPI operation. */
   readonly summary: string;
 }

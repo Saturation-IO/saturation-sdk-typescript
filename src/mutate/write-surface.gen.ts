@@ -18,6 +18,14 @@ export interface WriteOpDef {
   readonly pathParams: readonly string[];
   /** The generated request-data type name (provenance; the body shape lives there). */
   readonly dataType: string;
+  /**
+   * The op's request `body` shape as a compact, model-readable field list
+   * (`{ field: Type; field2?: Type2; … }`) resolved one level from `<Op>Data`.
+   * This is what lets the model read REAL field types off the catalog instead of
+   * a bare type name; the typed `WriteSurface` contract remains the compile-time
+   * guarantee. `never` = no body; `unknown` = a doc-generation miss.
+   */
+  readonly bodyType: string;
   /** One-line human summary from the OpenAPI operation. */
   readonly summary: string;
 }
@@ -30,6 +38,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/budget/lines',
     pathParams: ['projectId'],
     dataType: 'BudgetCreateLineData',
+    bodyType: "{ name: string; kind?: BudgetLineKind; code?: string; parentId?: Id; contactId?: Id; lineColor?: string; emoji?: string; notes?: string; tagIds?: Array<Id>; subtotalSumAllAbove?: boolean; subtotalIsBold?: boolean; markupAccountFilter?: string; phaseData?: { [key: string]: BudgetLinePhaseDataWrite; }; }",
     summary: 'Create a budget line with optional phase data',
   },
   budgetCreateLinesBatch: {
@@ -38,6 +47,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/budget/lines/batch',
     pathParams: ['projectId'],
     dataType: 'BudgetCreateLinesBatchData',
+    bodyType: "{ lines: Array<BudgetLineCreate>; }",
     summary: 'Create budget lines in one all-or-nothing batch',
   },
   budgetCreatePhase: {
@@ -46,6 +56,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/budget/phases',
     pathParams: ['projectId'],
     dataType: 'BudgetCreatePhaseData',
+    bodyType: "{\n        type: PhaseType",
     summary: 'Create a budget phase',
   },
   budgetUpdateLine: {
@@ -54,6 +65,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/budget/lines/{lineId}',
     pathParams: ['projectId', 'lineId'],
     dataType: 'BudgetUpdateLineData',
+    bodyType: "{ name?: string; kind?: BudgetLineKind; code?: string; parentId?: Id; contactId?: Id | null; lineColor?: string | null; emoji?: string | null; notes?: string | null; tagIds?: Array<Id>; subtotalSumAllAbove?: boolean; subtotalIsBold?: boolean; markupAccountFilter?: string | null; phaseData?: { [key: string]: BudgetLinePhaseDataWrite; }; }",
     summary: 'Update a budget line',
   },
   budgetUpdatePhase: {
@@ -62,6 +74,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/budget/phases/{phaseId}',
     pathParams: ['projectId', 'phaseId'],
     dataType: 'BudgetUpdatePhaseData',
+    bodyType: "{\n        name?: string",
     summary: 'Update a budget phase',
   },
   budgetUpsertLinePhaseData: {
@@ -70,6 +83,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/budget/lines/{lineId}/phase-data/{phaseId}',
     pathParams: ['projectId', 'lineId', 'phaseId'],
     dataType: 'BudgetUpsertLinePhaseDataData',
+    bodyType: "{ rate?: BudgetDocumentPhaseDataValue; quantity?: BudgetDocumentPhaseDataValue; multiplier?: BudgetDocumentPhaseDataValue; qtyAutoDerived?: boolean | null; unit?: string | null; customUnitId?: Id | null; startDate?: string | null; endDate?: string | null; fringeIds?: Array<Id> | null; fringeTagIds?: Array<Id> | null; currencyId?: Id | null; overtime?: BudgetDocumentOvertime; }",
     summary: 'Upsert one editable line phase-data entry',
   },
   budgetUpsertLinePhaseDataBatch: {
@@ -78,6 +92,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/budget/lines/phase-data/batch',
     pathParams: ['projectId'],
     dataType: 'BudgetUpsertLinePhaseDataBatchData',
+    bodyType: "{ items: Array<{ lineId: Id; phaseId: Id; phaseData: BudgetLinePhaseDataWrite; }>; }",
     summary: 'Upsert editable line phase data in one all-or-nothing batch',
   },
   documentsAssign: {
@@ -86,6 +101,7 @@ export const WRITE_OPS = {
     url: '/documents/{documentId}/assign',
     pathParams: ['documentId'],
     dataType: 'DocumentsAssignData',
+    bodyType: "{ target: DocumentTargetRef; replace?: boolean; }",
     summary: 'Assign a document to a typed target',
   },
   documentsDrop: {
@@ -94,6 +110,7 @@ export const WRITE_OPS = {
     url: '/documents',
     pathParams: [],
     dataType: 'DocumentsDropData',
+    bodyType: "{ file: Blob | File; metadata?: DocumentCreateMetadata; }",
     summary: 'Drop a document (optionally assign atomically)',
   },
   documentsUpdate: {
@@ -102,6 +119,7 @@ export const WRITE_OPS = {
     url: '/documents/{documentId}',
     pathParams: ['documentId'],
     dataType: 'DocumentsUpdateData',
+    bodyType: "{ name?: string; description?: string | null; folderId?: Id | null; }",
     summary: 'Rename / move / re-describe a document',
   },
   libraryAddProjectCurrency: {
@@ -110,6 +128,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/library/currencies/add',
     pathParams: ['projectId'],
     dataType: 'LibraryAddProjectCurrencyData',
+    bodyType: "{\n        sourceId: Id",
     summary: 'Copy a workspace currency into the project',
   },
   libraryAddProjectFringe: {
@@ -118,6 +137,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/library/fringes/add',
     pathParams: ['projectId'],
     dataType: 'LibraryAddProjectFringeData',
+    bodyType: "{\n        sourceId: Id",
     summary: 'Copy a workspace fringe into the project',
   },
   libraryAddProjectFringeTag: {
@@ -126,6 +146,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/library/fringe-tags/add',
     pathParams: ['projectId'],
     dataType: 'LibraryAddProjectFringeTagData',
+    bodyType: "{\n        sourceId: Id",
     summary: 'Copy a workspace fringe-tag into the project',
   },
   libraryAddProjectGlobal: {
@@ -134,6 +155,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/library/globals/add',
     pathParams: ['projectId'],
     dataType: 'LibraryAddProjectGlobalData',
+    bodyType: "{\n        sourceId: Id",
     summary: 'Copy a workspace global into the project',
   },
   libraryAddProjectIncentive: {
@@ -142,6 +164,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/library/incentives/add',
     pathParams: ['projectId'],
     dataType: 'LibraryAddProjectIncentiveData',
+    bodyType: "{ programId: Id; versionId?: Id; }",
     summary: 'Add an incentive program into the project',
   },
   libraryAddProjectTag: {
@@ -150,6 +173,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/library/tags/{tagId}/add',
     pathParams: ['projectId', 'tagId'],
     dataType: 'LibraryAddProjectTagData',
+    bodyType: "{ tag?: TagCreate; }",
     summary: 'Add a workspace tag to the project',
   },
   libraryAddRatePack: {
@@ -158,6 +182,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/library/rates/{packId}/add',
     pathParams: ['projectId', 'packId'],
     dataType: 'LibraryAddRatePackData',
+    bodyType: "never",
     summary: 'Add a rate pack into the project',
   },
   libraryCreateCurrencyTemplate: {
@@ -166,6 +191,7 @@ export const WRITE_OPS = {
     url: '/library/currencies',
     pathParams: [],
     dataType: 'LibraryCreateCurrencyTemplateData',
+    bodyType: "{ code?: string; name?: string | null; rate?: number | null; sort?: number; }",
     summary: 'Create a workspace currency template',
   },
   libraryCreateCustomUnit: {
@@ -174,6 +200,7 @@ export const WRITE_OPS = {
     url: '/library/units/custom',
     pathParams: [],
     dataType: 'LibraryCreateCustomUnitData',
+    bodyType: "{ label: string; description?: string; }",
     summary: 'Create a workspace custom unit',
   },
   libraryCreateFringeTagTemplate: {
@@ -182,6 +209,7 @@ export const WRITE_OPS = {
     url: '/library/fringe-tags',
     pathParams: [],
     dataType: 'LibraryCreateFringeTagTemplateData',
+    bodyType: "{ name?: string; color?: TagColor; sort?: number; }",
     summary: 'Create a workspace fringe-tag template',
   },
   libraryCreateFringeTemplate: {
@@ -190,6 +218,7 @@ export const WRITE_OPS = {
     url: '/library/fringes',
     pathParams: [],
     dataType: 'LibraryCreateFringeTemplateData',
+    bodyType: "{ name?: string; rate?: number | null; cap?: Money | null; sort?: number; }",
     summary: 'Create a workspace fringe template',
   },
   libraryCreateGlobalTemplate: {
@@ -198,6 +227,7 @@ export const WRITE_OPS = {
     url: '/library/globals',
     pathParams: [],
     dataType: 'LibraryCreateGlobalTemplateData',
+    bodyType: "{ name?: string; value?: number | null; unit?: string | null; sort?: number; }",
     summary: 'Create a workspace global template',
   },
   libraryCreateRatePack: {
@@ -206,6 +236,7 @@ export const WRITE_OPS = {
     url: '/library/rates',
     pathParams: [],
     dataType: 'LibraryCreateRatePackData',
+    bodyType: "{ name: string; description?: string; category?: string; tags?: Array<string>; }",
     summary: 'Author a PRIVATE workspace-owned rate pack',
   },
   libraryCreateRatePackItem: {
@@ -214,6 +245,7 @@ export const WRITE_OPS = {
     url: '/library/rates/{packId}/items',
     pathParams: ['packId'],
     dataType: 'LibraryCreateRatePackItemData',
+    bodyType: "{ title: string; rate: Money; unit: string; currency?: string; description?: string; quantity?: number; multiplier?: number; group?: string; agreement?: string; local?: string; effectiveDate?: string; labels?: Array<string>; displayTags?: Array<string>; searchAliases?: Array<string>; facets?: { [key: string]: unknown; }; sourceRefs?: Array<string>; qualityFlags?: Array<string>; rateBasis?: string; }",
     summary: 'Add an item to an owned pack',
   },
   libraryCreateTag: {
@@ -222,6 +254,7 @@ export const WRITE_OPS = {
     url: '/library/tags',
     pathParams: [],
     dataType: 'LibraryCreateTagData',
+    bodyType: "{ name: string; color?: TagColor; description?: string; eligibilityKey?: string; sort?: number; }",
     summary: 'Create a workspace tag',
   },
   libraryEnableIncentivePack: {
@@ -230,6 +263,7 @@ export const WRITE_OPS = {
     url: '/library/incentives/{packId}/enable',
     pathParams: ['packId'],
     dataType: 'LibraryEnableIncentivePackData',
+    bodyType: "never",
     summary: 'Enable an incentive pack for the workspace',
   },
   libraryEnableRatePack: {
@@ -238,6 +272,7 @@ export const WRITE_OPS = {
     url: '/library/rates/{packId}/enable',
     pathParams: ['packId'],
     dataType: 'LibraryEnableRatePackData',
+    bodyType: "never",
     summary: 'Enable a rate pack for the workspace',
   },
   libraryUpdateCurrencyTemplate: {
@@ -246,6 +281,7 @@ export const WRITE_OPS = {
     url: '/library/currencies/{currencyId}',
     pathParams: ['currencyId'],
     dataType: 'LibraryUpdateCurrencyTemplateData',
+    bodyType: "{ code?: string; name?: string | null; rate?: number | null; sort?: number; }",
     summary: 'Update a workspace currency template',
   },
   libraryUpdateCustomUnit: {
@@ -254,6 +290,7 @@ export const WRITE_OPS = {
     url: '/library/units/custom/{unitId}',
     pathParams: ['unitId'],
     dataType: 'LibraryUpdateCustomUnitData',
+    bodyType: "{ label?: string; description?: string | null; }",
     summary: 'Update a workspace custom unit',
   },
   libraryUpdateFringeTagTemplate: {
@@ -262,6 +299,7 @@ export const WRITE_OPS = {
     url: '/library/fringe-tags/{fringeTagId}',
     pathParams: ['fringeTagId'],
     dataType: 'LibraryUpdateFringeTagTemplateData',
+    bodyType: "{ name?: string; color?: TagColor; sort?: number; }",
     summary: 'Update a workspace fringe-tag template',
   },
   libraryUpdateFringeTemplate: {
@@ -270,6 +308,7 @@ export const WRITE_OPS = {
     url: '/library/fringes/{fringeId}',
     pathParams: ['fringeId'],
     dataType: 'LibraryUpdateFringeTemplateData',
+    bodyType: "{ name?: string; rate?: number | null; cap?: Money | null; sort?: number; }",
     summary: 'Update a workspace fringe template',
   },
   libraryUpdateGlobalTemplate: {
@@ -278,6 +317,7 @@ export const WRITE_OPS = {
     url: '/library/globals/{globalId}',
     pathParams: ['globalId'],
     dataType: 'LibraryUpdateGlobalTemplateData',
+    bodyType: "{ name?: string; value?: number | null; unit?: string | null; sort?: number; }",
     summary: 'Update a workspace global template',
   },
   libraryUpdateProjectCurrency: {
@@ -286,6 +326,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/library/currencies/{currencyId}',
     pathParams: ['projectId', 'currencyId'],
     dataType: 'LibraryUpdateProjectCurrencyData',
+    bodyType: "{ code?: string; name?: string | null; rate?: number | null; sort?: number; }",
     summary: 'Update a project currency copy',
   },
   libraryUpdateProjectFringe: {
@@ -294,6 +335,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/library/fringes/{fringeId}',
     pathParams: ['projectId', 'fringeId'],
     dataType: 'LibraryUpdateProjectFringeData',
+    bodyType: "{ name?: string; rate?: number | null; cap?: Money | null; sort?: number; }",
     summary: 'Update a project fringe copy',
   },
   libraryUpdateProjectFringeTag: {
@@ -302,6 +344,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/library/fringe-tags/{fringeTagId}',
     pathParams: ['projectId', 'fringeTagId'],
     dataType: 'LibraryUpdateProjectFringeTagData',
+    bodyType: "{ name?: string; color?: TagColor; sort?: number; }",
     summary: 'Update a project fringe-tag copy',
   },
   libraryUpdateProjectGlobal: {
@@ -310,6 +353,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/library/globals/{globalId}',
     pathParams: ['projectId', 'globalId'],
     dataType: 'LibraryUpdateProjectGlobalData',
+    bodyType: "{ name?: string; value?: number | null; unit?: string | null; sort?: number; }",
     summary: 'Update a project global copy',
   },
   libraryUpdateProjectIncentive: {
@@ -318,6 +362,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/library/incentives/{incentiveId}',
     pathParams: ['projectId', 'incentiveId'],
     dataType: 'LibraryUpdateProjectIncentiveData',
+    bodyType: "{ name?: string; description?: string | null; isApplied?: boolean; }",
     summary: 'Update a project incentive',
   },
   libraryUpdateRatePack: {
@@ -326,6 +371,7 @@ export const WRITE_OPS = {
     url: '/library/rates/{packId}',
     pathParams: ['packId'],
     dataType: 'LibraryUpdateRatePackData',
+    bodyType: "{ name?: string; description?: string | null; category?: string; tags?: Array<string>; }",
     summary: 'Update an owned rate pack',
   },
   libraryUpdateRatePackItem: {
@@ -334,6 +380,7 @@ export const WRITE_OPS = {
     url: '/library/rates/{packId}/items/{itemId}',
     pathParams: ['packId', 'itemId'],
     dataType: 'LibraryUpdateRatePackItemData',
+    bodyType: "{ title?: string; rate?: Money; unit?: string; currency?: string; description?: string | null; quantity?: number | null; multiplier?: number | null; group?: string | null; agreement?: string | null; local?: string | null; effectiveDate?: string | null; labels?: Array<string>; displayTags?: Array<string>; searchAliases?: Array<string>; facets?: { [key: string]: unknown; }; sourceRefs?: Array<string>; qualityFlags?: Array<string>; rateBasis?: string | null; }",
     summary: 'Update a pack item',
   },
   libraryUpdateTag: {
@@ -342,6 +389,7 @@ export const WRITE_OPS = {
     url: '/library/tags/{tagId}',
     pathParams: ['tagId'],
     dataType: 'LibraryUpdateTagData',
+    bodyType: "{ name?: string; color?: TagColor; description?: string | null; eligibilityKey?: string | null; sort?: number; }",
     summary: 'Update a workspace tag',
   },
   masterDataCreateComment: {
@@ -350,6 +398,7 @@ export const WRITE_OPS = {
     url: '/comments',
     pathParams: [],
     dataType: 'MasterDataCreateCommentData',
+    bodyType: "{ content: string; target: CommentTarget; threadId?: Id | null; }",
     summary: 'Create a comment',
   },
   masterDataCreateContact: {
@@ -358,6 +407,7 @@ export const WRITE_OPS = {
     url: '/contacts',
     pathParams: [],
     dataType: 'MasterDataCreateContactData',
+    bodyType: "{ name: string; company?: string | null; title?: string | null; type?: ContactType; email?: string | null; phone?: string | null; address?: string | null; website?: string | null; instagram?: string | null; imdb?: string | null; defaultRate?: Money | null; track1099?: boolean; notes?: string | null; }",
     summary: 'Create a contact',
   },
   masterDataCreateProject: {
@@ -366,6 +416,7 @@ export const WRITE_OPS = {
     url: '/projects',
     pathParams: [],
     dataType: 'MasterDataCreateProjectData',
+    bodyType: "{ name: string; slug?: string; emoji?: string | null; image?: string | null; summary?: string | null; spaceId?: Id | null; }",
     summary: 'Create a project',
   },
   masterDataCreateSpace: {
@@ -374,6 +425,7 @@ export const WRITE_OPS = {
     url: '/spaces',
     pathParams: [],
     dataType: 'MasterDataCreateSpaceData',
+    bodyType: "{ name: string; slug?: string; image?: string | null; parentId?: Id | null; }",
     summary: 'Create a space',
   },
   masterDataUpdateComment: {
@@ -382,6 +434,7 @@ export const WRITE_OPS = {
     url: '/comments/{commentId}',
     pathParams: ['commentId'],
     dataType: 'MasterDataUpdateCommentData',
+    bodyType: "{ content?: string; resolved?: boolean; }",
     summary: 'Update a comment',
   },
   masterDataUpdateContact: {
@@ -390,6 +443,7 @@ export const WRITE_OPS = {
     url: '/contacts/{contactId}',
     pathParams: ['contactId'],
     dataType: 'MasterDataUpdateContactData',
+    bodyType: "{ name?: string; company?: string | null; title?: string | null; type?: ContactType; email?: string | null; phone?: string | null; address?: string | null; website?: string | null; instagram?: string | null; imdb?: string | null; defaultRate?: Money | null; track1099?: boolean; notes?: string | null; }",
     summary: 'Update a contact',
   },
   masterDataUpdateProject: {
@@ -398,6 +452,7 @@ export const WRITE_OPS = {
     url: '/projects/{slugOrId}',
     pathParams: ['slugOrId'],
     dataType: 'MasterDataUpdateProjectData',
+    bodyType: "{ name?: string; slug?: string; emoji?: string | null; image?: string | null; summary?: string | null; spaceId?: Id | null; status?: 'active' | 'archived'; }",
     summary: 'Update a project',
   },
   masterDataUpdateSpace: {
@@ -406,6 +461,7 @@ export const WRITE_OPS = {
     url: '/spaces/{spaceId}',
     pathParams: ['spaceId'],
     dataType: 'MasterDataUpdateSpaceData',
+    bodyType: "{ name?: string; slug?: string; image?: string | null; parentId?: Id | null; archived?: boolean; }",
     summary: 'Update a space',
   },
   purchaseOrdersCreate: {
@@ -414,6 +470,7 @@ export const WRITE_OPS = {
     url: '/purchase-orders',
     pathParams: [],
     dataType: 'PurchaseOrdersCreateData',
+    bodyType: "{ projectId?: string; number?: string; title?: string; contactId?: string; budgetLineId?: string; date?: string; serviceStartAt?: string; serviceEndAt?: string; notes?: string; sort?: number; items?: Array<PurchaseOrderItemWrite>; }",
     summary: 'Create a purchase order',
   },
   purchaseOrdersCreateItem: {
@@ -422,6 +479,7 @@ export const WRITE_OPS = {
     url: '/purchase-orders/{purchaseOrderId}/items',
     pathParams: ['purchaseOrderId'],
     dataType: 'PurchaseOrdersCreateItemData',
+    bodyType: "{ lineNumber?: number | null; description?: string | null; budgetLineId?: string | null; qty?: number | null; unit?: string | null; rate?: number | null; amount?: number | null; sort?: number | null; }",
     summary: 'Add a purchase order item',
   },
   purchaseOrdersLink: {
@@ -430,6 +488,7 @@ export const WRITE_OPS = {
     url: '/purchase-orders/{purchaseOrderId}/link',
     pathParams: ['purchaseOrderId'],
     dataType: 'PurchaseOrdersLinkData',
+    bodyType: "{ transactionId: Id; }",
     summary: 'Link a transaction to a purchase order',
   },
   purchaseOrdersUpdate: {
@@ -438,6 +497,7 @@ export const WRITE_OPS = {
     url: '/purchase-orders/{purchaseOrderId}',
     pathParams: ['purchaseOrderId'],
     dataType: 'PurchaseOrdersUpdateData',
+    bodyType: "{ projectId?: string | null; number?: string | null; title?: string | null; contactId?: string | null; budgetLineId?: string | null; date?: string | null; serviceStartAt?: string | null; serviceEndAt?: string | null; notes?: string | null; sort?: number | null; }",
     summary: 'Update a purchase order',
   },
   purchaseOrdersUpdateItem: {
@@ -446,6 +506,7 @@ export const WRITE_OPS = {
     url: '/purchase-orders/{purchaseOrderId}/items/{itemId}',
     pathParams: ['purchaseOrderId', 'itemId'],
     dataType: 'PurchaseOrdersUpdateItemData',
+    bodyType: "{ lineNumber?: number | null; description?: string | null; budgetLineId?: string | null; qty?: number | null; unit?: string | null; rate?: number | null; amount?: number | null; sort?: number | null; }",
     summary: 'Update a purchase order item',
   },
   transactionsBatchCreate: {
@@ -454,6 +515,7 @@ export const WRITE_OPS = {
     url: '/transactions/batch',
     pathParams: [],
     dataType: 'TransactionsBatchCreateData',
+    bodyType: "{ transactions: Array<TransactionJournalCreate>; }",
     summary: 'Bulk journal import',
   },
   transactionsCreate: {
@@ -462,6 +524,7 @@ export const WRITE_OPS = {
     url: '/transactions',
     pathParams: [],
     dataType: 'TransactionsCreateData',
+    bodyType: "{ type: TransactionJournalType; amount: Money; currency?: string; timestamp: string; status?: TransactionStatus; description?: string; projectId?: Id; contactId?: Id; budgetLineId?: Id; fringeId?: Id; number?: string; ref?: string; notes?: string; actualized?: boolean; }",
     summary: 'Create a journal transaction',
   },
   transactionsItemsCreate: {
@@ -470,6 +533,7 @@ export const WRITE_OPS = {
     url: '/transactions/{txId}/items',
     pathParams: ['txId'],
     dataType: 'TransactionsItemsCreateData',
+    bodyType: "{ description?: string; budgetLineId?: Id; fringeId?: Id; qty?: number; unit?: string; rate?: Money; amount: Money; overtime?: boolean; taxable?: boolean; nonTaxable?: boolean; }",
     summary: 'Add a transaction item',
   },
   transactionsItemsUpdate: {
@@ -478,6 +542,7 @@ export const WRITE_OPS = {
     url: '/transactions/{txId}/items/{itemId}',
     pathParams: ['txId', 'itemId'],
     dataType: 'TransactionsItemsUpdateData',
+    bodyType: "{ description?: string | null; budgetLineId?: Id | null; fringeId?: Id | null; qty?: number | null; unit?: string | null; rate?: Money | null; amount?: Money; overtime?: boolean | null; taxable?: boolean | null; nonTaxable?: boolean | null; }",
     summary: 'Update a transaction item',
   },
   transactionsUpdate: {
@@ -486,6 +551,7 @@ export const WRITE_OPS = {
     url: '/transactions/{txId}',
     pathParams: ['txId'],
     dataType: 'TransactionsUpdateData',
+    bodyType: "{ projectId?: Id | null; contactId?: Id | null; budgetLineId?: Id | null; fringeId?: Id | null; notes?: string | null; number?: string | null; ref?: string | null; amount?: Money; currency?: string; timestamp?: string; type?: TransactionType; status?: TransactionStatus; description?: string | null; merchant?: string | null; sourceLast4?: string | null; sourceName?: string | null; actualized?: boolean; }",
     summary: 'Update a transaction',
   },
   webhooksCreate: {
@@ -494,6 +560,7 @@ export const WRITE_OPS = {
     url: '/webhooks',
     pathParams: [],
     dataType: 'WebhooksCreateData',
+    bodyType: "{ url: string; events: Array<WebhookEvent>; secret?: string; payloadStyle?: WebhookPayloadStyle; projectId?: Id; }",
     summary: 'Create a webhook subscription',
   },
   webhooksUpdate: {
@@ -502,6 +569,7 @@ export const WRITE_OPS = {
     url: '/webhooks/{webhookId}',
     pathParams: ['webhookId'],
     dataType: 'WebhooksUpdateData',
+    bodyType: "{ url?: string; events?: Array<WebhookEvent>; payloadStyle?: WebhookPayloadStyle; isActive?: boolean; }",
     summary: 'Update a webhook subscription',
   },
 } as const satisfies Record<string, WriteOpDef>;
