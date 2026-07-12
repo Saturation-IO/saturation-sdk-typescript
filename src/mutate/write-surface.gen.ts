@@ -4,7 +4,7 @@
 // (CREATE + value-UPDATE, additive only). Regenerate with:
 //   pnpm --filter @saturation/sdk generate:mutate
 //
-// 60 write operations selected from 151 total operations.
+// 63 write operations selected from 151 total operations.
 
 /** A single write operation's static metadata, derived from the OpenAPI spec. */
 export interface WriteOpDef {
@@ -464,6 +464,15 @@ export const WRITE_OPS = {
     bodyType: "{ name?: string; slug?: string; image?: string | null; parentId?: Id | null; archived?: boolean; }",
     summary: 'Update a space',
   },
+  purchaseOrdersCancelSubmission: {
+    op: 'purchaseOrdersCancelSubmission',
+    method: 'post',
+    url: '/purchase-orders/{purchaseOrderId}/cancel-submission',
+    pathParams: ['purchaseOrderId'],
+    dataType: 'PurchaseOrdersCancelSubmissionData',
+    bodyType: "never",
+    summary: 'Cancel a pending submission',
+  },
   purchaseOrdersCreate: {
     op: 'purchaseOrdersCreate',
     method: 'post',
@@ -481,6 +490,15 @@ export const WRITE_OPS = {
     dataType: 'PurchaseOrdersCreateItemData',
     bodyType: "{ lineNumber?: number | null; description?: string | null; budgetLineId?: string | null; qty?: number | null; unit?: string | null; rate?: number | null; amount?: number | null; sort?: number | null; }",
     summary: 'Add a purchase order item',
+  },
+  purchaseOrdersFinalize: {
+    op: 'purchaseOrdersFinalize',
+    method: 'post',
+    url: '/purchase-orders/{purchaseOrderId}/finalize',
+    pathParams: ['purchaseOrderId'],
+    dataType: 'PurchaseOrdersFinalizeData',
+    bodyType: "never",
+    summary: 'Finalize a committed purchase order',
   },
   purchaseOrdersLink: {
     op: 'purchaseOrdersLink',
@@ -508,6 +526,15 @@ export const WRITE_OPS = {
     dataType: 'PurchaseOrdersUpdateItemData',
     bodyType: "{ lineNumber?: number | null; description?: string | null; budgetLineId?: string | null; qty?: number | null; unit?: string | null; rate?: number | null; amount?: number | null; sort?: number | null; }",
     summary: 'Update a purchase order item',
+  },
+  purchaseOrdersVoid: {
+    op: 'purchaseOrdersVoid',
+    method: 'post',
+    url: '/purchase-orders/{purchaseOrderId}/void',
+    pathParams: ['purchaseOrderId'],
+    dataType: 'PurchaseOrdersVoidData',
+    bodyType: "never",
+    summary: 'Void a purchase order',
   },
   transactionsBatchCreate: {
     op: 'transactionsBatchCreate',

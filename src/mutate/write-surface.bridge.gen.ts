@@ -7,7 +7,7 @@
 // lives in each method's signature; the runtime is the generic gated bridge.
 // Regenerate with:  pnpm --filter @saturation/sdk generate:mutate
 //
-// 60 write operations.
+// 63 write operations.
 
 import type {
   BudgetCreateLineData,
@@ -106,16 +106,22 @@ import type {
   MasterDataUpdateProjectResponse,
   MasterDataUpdateSpaceData,
   MasterDataUpdateSpaceResponse,
+  PurchaseOrdersCancelSubmissionData,
+  PurchaseOrdersCancelSubmissionResponse,
   PurchaseOrdersCreateData,
   PurchaseOrdersCreateItemData,
   PurchaseOrdersCreateItemResponse,
   PurchaseOrdersCreateResponse,
+  PurchaseOrdersFinalizeData,
+  PurchaseOrdersFinalizeResponse,
   PurchaseOrdersLinkData,
   PurchaseOrdersLinkResponse,
   PurchaseOrdersUpdateData,
   PurchaseOrdersUpdateItemData,
   PurchaseOrdersUpdateItemResponse,
   PurchaseOrdersUpdateResponse,
+  PurchaseOrdersVoidData,
+  PurchaseOrdersVoidResponse,
   TransactionsBatchCreateData,
   TransactionsBatchCreateResponse,
   TransactionsCreateData,
@@ -319,11 +325,17 @@ export function createBridgeWriteSurface(bridge: WriteBridge): WriteSurface {
     masterDataUpdateSpace(data: MasterDataUpdateSpaceData): Promise<MasterDataUpdateSpaceResponse> {
       return forward('masterDataUpdateSpace', data) as Promise<MasterDataUpdateSpaceResponse>;
     },
+    purchaseOrdersCancelSubmission(data: PurchaseOrdersCancelSubmissionData): Promise<PurchaseOrdersCancelSubmissionResponse> {
+      return forward('purchaseOrdersCancelSubmission', data) as Promise<PurchaseOrdersCancelSubmissionResponse>;
+    },
     purchaseOrdersCreate(data: PurchaseOrdersCreateData): Promise<PurchaseOrdersCreateResponse> {
       return forward('purchaseOrdersCreate', data) as Promise<PurchaseOrdersCreateResponse>;
     },
     purchaseOrdersCreateItem(data: PurchaseOrdersCreateItemData): Promise<PurchaseOrdersCreateItemResponse> {
       return forward('purchaseOrdersCreateItem', data) as Promise<PurchaseOrdersCreateItemResponse>;
+    },
+    purchaseOrdersFinalize(data: PurchaseOrdersFinalizeData): Promise<PurchaseOrdersFinalizeResponse> {
+      return forward('purchaseOrdersFinalize', data) as Promise<PurchaseOrdersFinalizeResponse>;
     },
     purchaseOrdersLink(data: PurchaseOrdersLinkData): Promise<PurchaseOrdersLinkResponse> {
       return forward('purchaseOrdersLink', data) as Promise<PurchaseOrdersLinkResponse>;
@@ -333,6 +345,9 @@ export function createBridgeWriteSurface(bridge: WriteBridge): WriteSurface {
     },
     purchaseOrdersUpdateItem(data: PurchaseOrdersUpdateItemData): Promise<PurchaseOrdersUpdateItemResponse> {
       return forward('purchaseOrdersUpdateItem', data) as Promise<PurchaseOrdersUpdateItemResponse>;
+    },
+    purchaseOrdersVoid(data: PurchaseOrdersVoidData): Promise<PurchaseOrdersVoidResponse> {
+      return forward('purchaseOrdersVoid', data) as Promise<PurchaseOrdersVoidResponse>;
     },
     transactionsBatchCreate(data: TransactionsBatchCreateData): Promise<TransactionsBatchCreateResponse> {
       return forward('transactionsBatchCreate', data) as Promise<TransactionsBatchCreateResponse>;

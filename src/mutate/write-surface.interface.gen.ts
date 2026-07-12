@@ -8,7 +8,7 @@
 // the generated `types.gen.ts` request/response types) changes, every
 // `satisfies WriteSurface` implementation must update to match or fail `tsc`.
 //
-// 60 write operations.
+// 63 write operations.
 
 import type {
   BudgetCreateLineData,
@@ -107,16 +107,22 @@ import type {
   MasterDataUpdateProjectResponse,
   MasterDataUpdateSpaceData,
   MasterDataUpdateSpaceResponse,
+  PurchaseOrdersCancelSubmissionData,
+  PurchaseOrdersCancelSubmissionResponse,
   PurchaseOrdersCreateData,
   PurchaseOrdersCreateItemData,
   PurchaseOrdersCreateItemResponse,
   PurchaseOrdersCreateResponse,
+  PurchaseOrdersFinalizeData,
+  PurchaseOrdersFinalizeResponse,
   PurchaseOrdersLinkData,
   PurchaseOrdersLinkResponse,
   PurchaseOrdersUpdateData,
   PurchaseOrdersUpdateItemData,
   PurchaseOrdersUpdateItemResponse,
   PurchaseOrdersUpdateResponse,
+  PurchaseOrdersVoidData,
+  PurchaseOrdersVoidResponse,
   TransactionsBatchCreateData,
   TransactionsBatchCreateResponse,
   TransactionsCreateData,
@@ -235,16 +241,22 @@ export interface WriteSurface {
   masterDataUpdateProject(data: MasterDataUpdateProjectData): Promise<MasterDataUpdateProjectResponse>;
   /** Update a space (`PATCH /spaces/{spaceId}`). */
   masterDataUpdateSpace(data: MasterDataUpdateSpaceData): Promise<MasterDataUpdateSpaceResponse>;
+  /** Cancel a pending submission (`POST /purchase-orders/{purchaseOrderId}/cancel-submission`). */
+  purchaseOrdersCancelSubmission(data: PurchaseOrdersCancelSubmissionData): Promise<PurchaseOrdersCancelSubmissionResponse>;
   /** Create a purchase order (`POST /purchase-orders`). */
   purchaseOrdersCreate(data: PurchaseOrdersCreateData): Promise<PurchaseOrdersCreateResponse>;
   /** Add a purchase order item (`POST /purchase-orders/{purchaseOrderId}/items`). */
   purchaseOrdersCreateItem(data: PurchaseOrdersCreateItemData): Promise<PurchaseOrdersCreateItemResponse>;
+  /** Finalize a committed purchase order (`POST /purchase-orders/{purchaseOrderId}/finalize`). */
+  purchaseOrdersFinalize(data: PurchaseOrdersFinalizeData): Promise<PurchaseOrdersFinalizeResponse>;
   /** Link a transaction to a purchase order (`POST /purchase-orders/{purchaseOrderId}/link`). */
   purchaseOrdersLink(data: PurchaseOrdersLinkData): Promise<PurchaseOrdersLinkResponse>;
   /** Update a purchase order (`PATCH /purchase-orders/{purchaseOrderId}`). */
   purchaseOrdersUpdate(data: PurchaseOrdersUpdateData): Promise<PurchaseOrdersUpdateResponse>;
   /** Update a purchase order item (`PATCH /purchase-orders/{purchaseOrderId}/items/{itemId}`). */
   purchaseOrdersUpdateItem(data: PurchaseOrdersUpdateItemData): Promise<PurchaseOrdersUpdateItemResponse>;
+  /** Void a purchase order (`POST /purchase-orders/{purchaseOrderId}/void`). */
+  purchaseOrdersVoid(data: PurchaseOrdersVoidData): Promise<PurchaseOrdersVoidResponse>;
   /** Bulk journal import (`POST /transactions/batch`). */
   transactionsBatchCreate(data: TransactionsBatchCreateData): Promise<TransactionsBatchCreateResponse>;
   /** Create a journal transaction (`POST /transactions`). */

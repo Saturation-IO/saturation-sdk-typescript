@@ -8,10 +8,9 @@
  *   1. Parses the do-not-edit `src/generated/sdk.gen.ts` (one block per operation:
  *      JSDoc summary + `export const <op> = … .<method>({ url: '<url>' … })`).
  *   2. Keeps ONLY the operations whose id is in {@link WRITE_OP_ALLOWLIST} — the
- *      curated v1 set: **CREATE + value-UPDATE, additive only**. Row DELETE and
- *      destructive/lifecycle POSTs (void / disable / remove / unassign / submit /
- *      ping) are excluded by construction (spec §6.1: they gate on the rollback
- *      ledger). Fail-safe: a NEW write op is invisible to the agent until it is
+ *      curated v1 set: CREATE + value-UPDATE plus explicitly reviewed PO
+ *      lifecycle commands. Row DELETE and every other destructive/lifecycle
+ *      POST remain excluded by construction. Fail-safe: a NEW write op is invisible to the agent until it is
  *      added here, so an un-reviewed mutation can never silently appear.
  *   3. Emits three artifacts, all keyed off the SAME allowlist so they cannot
  *      drift from each other or from the real route set:
@@ -52,11 +51,11 @@ const OUT_BRIDGE = join(HERE, '../src/mutate/write-surface.bridge.gen.ts');
 type WriteMethod = 'post' | 'put' | 'patch';
 
 /**
- * The explicit v1 write allowlist: CREATE + value-UPDATE, additive only.
+ * The explicit v1 write allowlist: CREATE + value-UPDATE plus reviewed PO lifecycle.
  *
  * Curated from the route inventory. Excluded on purpose (NOT a write, or
  * destructive/deferred to the rollback ledger): every `*Delete*`, plus
- * `documentsUnassign`, `purchaseOrdersUnlink/Submit/Finalize/Void/CancelSubmission`,
+ * `documentsUnassign`, `purchaseOrdersUnlink/Submit`,
  * `library{Disable,Remove}*`, and `webhooksPing` (a side-effecting test action,
  * not a data write — the exact "computed POST" a verb filter would leak).
  */
@@ -116,9 +115,12 @@ const WRITE_OP_ALLOWLIST: ReadonlySet<string> = new Set<string>([
   // ── purchase orders: create header/item, link to budget, field updates ──
   'purchaseOrdersCreate',
   'purchaseOrdersCreateItem',
+  'purchaseOrdersCancelSubmission',
+  'purchaseOrdersFinalize',
   'purchaseOrdersLink',
   'purchaseOrdersUpdate',
   'purchaseOrdersUpdateItem',
+  'purchaseOrdersVoid',
   // ── transactions: create (single + batch), items, field updates ──
   'transactionsCreate',
   'transactionsBatchCreate',
@@ -462,7 +464,7 @@ function main(): void {
       `Allowlisted write ops absent from the generated SDK (typo or removed route): ${missing.join(', ')}`,
     );
   }
-  // The surface is additive-only, and THE ALLOWLIST IS THE SECURITY BOUNDARY, so
+  // The surface is curated, and THE ALLOWLIST IS THE SECURITY BOUNDARY, so
   // its safety invariants are asserted HERE — next to the allowlist — not only in
   // next-api's integration test (a different package a `generate:mutate` run need
   // not execute). A regen that violates these throws before it can emit.
@@ -484,7 +486,13 @@ function main(): void {
   //     mutate.integration.test.ts (kept in sync).
   const DESTRUCTIVE_NAME =
     /Delete|Disable|Deactivate|Remove|Unassign|Unlink|Void|Ping|Submit|Finalize|Cancel|Archive/;
-  const destructive = selected.filter((o) => DESTRUCTIVE_NAME.test(o.op));
+  const REVIEWED_LIFECYCLE_OPS = new Set([
+    'purchaseOrdersCancelSubmission',
+    'purchaseOrdersFinalize',
+    'purchaseOrdersVoid',
+  ]);
+  const destructive = selected.filter((o) =>
+    DESTRUCTIVE_NAME.test(o.op) && !REVIEWED_LIFECYCLE_OPS.has(o.op));
   if (destructive.length > 0) {
     throw new Error(
       `Allowlisted ops have destructive/lifecycle names (additive-only surface — defer to the rollback ledger): ${destructive
