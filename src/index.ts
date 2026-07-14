@@ -18,7 +18,7 @@ export { List } from './http.js';
 export type { Page, FetchLike } from './http.js';
 
 // The `mutate` write surface (generated allowlist + generic dispatcher).
-export { MutateClient, createMutate, WRITE_OPS, WRITE_OP_IDS } from './mutate/index.js';
+export { MutateClient, createMutate, validateMutateArgs, WRITE_OPS, WRITE_OP_IDS } from './mutate/index.js';
 export type { MutateOptions, MutateArgs, WriteOp, WriteOpDef } from './mutate/index.js';
 
 // The generated typed write CONTRACT (`WriteSurface`) + its interim bridge impl.

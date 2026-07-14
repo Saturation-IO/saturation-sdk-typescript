@@ -49,6 +49,83 @@ export interface MutateArgs {
   headers?: Record<string, string>;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/** Validate the generated request envelope without executing a write. This is
+ * intentionally structural: path/body presence and top-level fields come from
+ * generated metadata; route-owned value semantics remain authoritative at
+ * commit. */
+export function validateMutateArgs(op: string, args: MutateArgs = {}): void {
+  if (!MutateClient.isWriteOp(op)) {
+    throw new SaturationError({
+      status: 404,
+      code: 'not_found',
+      message: `'${op}' is not a mutate write operation.`,
+      requestId: 'mutate-preview',
+    });
+  }
+  const def = WRITE_OPS[op];
+  const providedPath = args.path ?? {};
+  const missingPath = def.pathParams.filter((field) => providedPath[field] === undefined);
+  if (missingPath.length > 0) {
+    throw new SaturationError({
+      status: 400,
+      code: 'validation',
+      message: `mutate('${op}') is missing path parameter(s): ${missingPath.join(', ')}.`,
+      requestId: 'mutate-preview',
+    });
+  }
+  if (def.bodyRequired && args.body === undefined) {
+    throw new SaturationError({
+      status: 400,
+      code: 'validation',
+      message: `mutate('${op}') requires a JSON body.`,
+      requestId: 'mutate-preview',
+    });
+  }
+  if (args.body === undefined) return;
+  if (String(def.bodyType) === 'never') {
+    throw new SaturationError({
+      status: 400,
+      code: 'validation',
+      message: `mutate('${op}') does not accept a JSON body.`,
+      requestId: 'mutate-preview',
+    });
+  }
+  const body = args.body;
+  if (!isRecord(body)) {
+    throw new SaturationError({
+      status: 400,
+      code: 'validation',
+      message: `mutate('${op}') body must be a JSON object.`,
+      requestId: 'mutate-preview',
+    });
+  }
+  const missingBody = def.requiredBodyFields.filter((field) => body[field] === undefined);
+  if (missingBody.length > 0) {
+    throw new SaturationError({
+      status: 400,
+      code: 'validation',
+      message: `mutate('${op}') is missing required body field(s): ${missingBody.join(', ')}.`,
+      requestId: 'mutate-preview',
+    });
+  }
+  if (def.allowedBodyFields.length > 0) {
+    const allowed = new Set<string>(def.allowedBodyFields);
+    const unknown = Object.keys(body).filter((field) => !allowed.has(field));
+    if (unknown.length > 0) {
+      throw new SaturationError({
+        status: 400,
+        code: 'validation',
+        message: `mutate('${op}') has unknown body field(s): ${unknown.join(', ')}.`,
+        requestId: 'mutate-preview',
+      });
+    }
+  }
+}
+
 /** The minimal hey-api client surface the dispatcher invokes by verb. */
 type MethodFn = (options: Record<string, unknown>) => Promise<{
   data?: unknown;
@@ -106,18 +183,7 @@ export class MutateClient {
    */
   async mutate(op: string, args: MutateArgs = {}): Promise<unknown> {
     const def = this.def(op);
-
-    // Validate the op declares every path param it was handed nothing for.
-    const provided = args.path ?? {};
-    const missing = def.pathParams.filter((p) => provided[p] === undefined);
-    if (missing.length > 0) {
-      throw new SaturationError({
-        status: 400,
-        code: 'validation',
-        message: `mutate('${op}') is missing path parameter(s): ${missing.join(', ')}.`,
-        requestId: 'mutate-local',
-      });
-    }
+    validateMutateArgs(op, args);
 
     // Build a synthetic operation that calls the verb-method with this op's URL,
     // then route it through the shared transport's success/error normalization.

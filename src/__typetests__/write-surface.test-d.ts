@@ -16,8 +16,8 @@ import { createBridgeWriteSurface, type WriteBridge } from '../mutate/write-surf
 import type {
   BudgetUpsertLinePhaseDataData,
   BudgetUpsertLinePhaseDataResponse,
-  MasterDataCreateContactData,
-  MasterDataCreateContactResponse,
+  MasterDataUpdateContactData,
+  MasterDataUpdateContactResponse,
   BudgetLine,
 } from '../generated/types.gen.js';
 
@@ -45,16 +45,16 @@ const badReturn = {
 } satisfies WriteSurface;
 
 // 4. FORCING FUNCTION — a single op whose return type drifts from the contract.
-const oneOp: Pick<WriteSurface, 'masterDataCreateContact'> = {
-  // @ts-expect-error — must resolve `MasterDataCreateContactResponse`, not `BudgetLine`.
-  masterDataCreateContact: (_data: MasterDataCreateContactData): Promise<BudgetLine> =>
+const oneOp: Pick<WriteSurface, 'masterDataUpdateContact'> = {
+  // @ts-expect-error — must resolve `MasterDataUpdateContactResponse`, not `BudgetLine`.
+  masterDataUpdateContact: (_data: MasterDataUpdateContactData): Promise<BudgetLine> =>
     Promise.reject(new Error('stub')),
 };
 
 // 5. FORCING FUNCTION — an impl MISSING ops does not satisfy the full contract.
-// @ts-expect-error — only one of the 60 ops is present; 59 are missing.
+// @ts-expect-error — only one operation is present; the remainder are missing.
 const incomplete: WriteSurface = {
-  masterDataCreateContact: (
-    _data: MasterDataCreateContactData,
-  ): Promise<MasterDataCreateContactResponse> => Promise.reject(new Error('stub')),
+  masterDataUpdateContact: (
+    _data: MasterDataUpdateContactData,
+  ): Promise<MasterDataUpdateContactResponse> => Promise.reject(new Error('stub')),
 };

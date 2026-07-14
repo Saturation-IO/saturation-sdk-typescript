@@ -6,6 +6,7 @@
 export {
   MutateClient,
   createMutate,
+  validateMutateArgs,
   WRITE_OPS,
   WRITE_OP_IDS,
 } from './mutate.js';

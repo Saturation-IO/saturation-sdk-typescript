@@ -7,11 +7,10 @@
  *
  *   1. Parses the do-not-edit `src/generated/sdk.gen.ts` (one block per operation:
  *      JSDoc summary + `export const <op> = … .<method>({ url: '<url>' … })`).
- *   2. Keeps ONLY the operations whose id is in {@link WRITE_OP_ALLOWLIST} — the
- *      curated v1 set: CREATE + value-UPDATE plus explicitly reviewed PO
- *      lifecycle commands. Row DELETE and every other destructive/lifecycle
- *      POST remain excluded by construction. Fail-safe: a NEW write op is invisible to the agent until it is
- *      added here, so an un-reviewed mutation can never silently appear.
+ *   2. Keeps ONLY allowlisted PATCH/PUT value updates. POST operations remain
+ *      excluded until durable retry identity is enforced end-to-end; DELETE and
+ *      destructive/lifecycle actions are excluded by construction. Fail-safe: a
+ *      new write op is invisible until it is explicitly reviewed here.
  *   3. Emits three artifacts, all keyed off the SAME allowlist so they cannot
  *      drift from each other or from the real route set:
  *      - `src/mutate/write-surface.gen.ts`: the typed write-op METADATA table the
@@ -51,7 +50,8 @@ const OUT_BRIDGE = join(HERE, '../src/mutate/write-surface.bridge.gen.ts');
 type WriteMethod = 'post' | 'put' | 'patch';
 
 /**
- * The explicit v1 write allowlist: CREATE + value-UPDATE plus reviewed PO lifecycle.
+ * The source v1 write inventory. The final hosted surface below narrows this to
+ * retry-safe PATCH/PUT value updates.
  *
  * Curated from the route inventory. Excluded on purpose (NOT a write, or
  * destructive/deferred to the rollback ledger): every `*Delete*`, plus
@@ -131,6 +131,12 @@ const WRITE_OP_ALLOWLIST: ReadonlySet<string> = new Set<string>([
   'webhooksCreate',
   'webhooksUpdate',
 ]);
+
+/** Canonical agent writes use the generic JSON bridge. POST operations stay
+ * out until their retry identity is durably enforced end-to-end; otherwise an
+ * outcome-ambiguous timeout can duplicate creates. Webhook update is also
+ * excluded because the public write scope intentionally omits update:Webhook. */
+const AGENT_WRITE_BLOCKED_OPS: ReadonlySet<string> = new Set(['webhooksUpdate']);
 
 interface ParsedOp {
   op: string;
@@ -299,6 +305,50 @@ function bodyTypeText(types: string, dataType: string): string {
   return expr;
 }
 
+interface BodyContract {
+  required: boolean;
+  allowedFields: string[];
+  requiredFields: string[];
+}
+
+/** Runtime-shape metadata derived at generation time from the same request type
+ * that powers bodyType. Nested object members stay inside their parent segment;
+ * the validator deliberately checks the top-level API envelope and leaves value
+ * semantics to the real route validator at commit. */
+function bodyContract(types: string, dataType: string): BodyContract {
+  const dataBlock = readTypeBlock(types, dataType);
+  if (!dataBlock) return { required: false, allowedFields: [], requiredFields: [] };
+  const bodyKey = /\bbody(\?)?:\s*/.exec(dataBlock);
+  if (!bodyKey) return { required: false, allowedFields: [], requiredFields: [] };
+  const bodyType = bodyTypeText(types, dataType);
+  if (!bodyType.startsWith('{')) {
+    return { required: bodyKey[1] !== '?', allowedFields: [], requiredFields: [] };
+  }
+
+  const members: string[] = [];
+  let start = 1;
+  let depth = 1;
+  for (let i = 1; i < bodyType.length - 1; i++) {
+    const ch = bodyType[i];
+    if (ch === '{' || ch === '[' || ch === '(' || ch === '<') depth++;
+    else if (ch === '}' || ch === ']' || ch === ')' || ch === '>') depth--;
+    else if (ch === ';' && depth === 1) {
+      members.push(bodyType.slice(start, i).trim());
+      start = i + 1;
+    }
+  }
+
+  const parsed = members.flatMap((member) => {
+    const match = /^([A-Za-z_$][\w$]*)(\?)?:/.exec(member);
+    return match ? [{ name: match[1]!, optional: match[2] === '?' }] : [];
+  });
+  return {
+    required: bodyKey[1] !== '?',
+    allowedFields: parsed.map((field) => field.name),
+    requiredFields: parsed.filter((field) => !field.optional).map((field) => field.name),
+  };
+}
+
 /**
  * The response-type name for an op, derived purely from its request-data type:
  * hey-api emits a flattened singular `<Op>Response` (the unwrapped success body)
@@ -451,13 +501,14 @@ function main(): void {
   const all = parseOperations(source);
 
   // Filter to the explicit allowlist; sort for a stable diff.
-  const selected = all
-    .filter((o) => WRITE_OP_ALLOWLIST.has(o.op))
+  const allowlisted = all.filter((o) => WRITE_OP_ALLOWLIST.has(o.op));
+  const selected = allowlisted
+    .filter((o) => o.method !== 'post' && !AGENT_WRITE_BLOCKED_OPS.has(o.op))
     .sort((a, b) => a.op.localeCompare(b.op));
 
   // Fail loud: every allowlisted op MUST resolve to a real generated operation,
   // and it must be a write verb. A typo'd allowlist entry is a generation bug.
-  const found = new Set(selected.map((o) => o.op));
+  const found = new Set(allowlisted.map((o) => o.op));
   const missing = [...WRITE_OP_ALLOWLIST].filter((op) => !found.has(op));
   if (missing.length > 0) {
     throw new Error(
@@ -532,6 +583,7 @@ function main(): void {
       const params = pathParams(o.url);
       const summary = o.summary.replace(/'/g, "\\'");
       const bodyType = JSON.stringify(bodyTypeText(types, o.dataType));
+      const contract = bodyContract(types, o.dataType);
       return `  ${o.op}: {
     op: '${o.op}',
     method: '${o.method}',
@@ -539,6 +591,9 @@ function main(): void {
     pathParams: [${params.map((p) => `'${p}'`).join(', ')}],
     dataType: '${o.dataType}',
     bodyType: ${bodyType},
+    bodyRequired: ${contract.required},
+    allowedBodyFields: ${JSON.stringify(contract.allowedFields)},
+    requiredBodyFields: ${JSON.stringify(contract.requiredFields)},
     summary: '${summary}',
   },`;
     })
@@ -572,6 +627,12 @@ export interface WriteOpDef {
    * guarantee. \`never\` = no body; \`unknown\` = a doc-generation miss.
    */
   readonly bodyType: string;
+  /** Whether the generated request envelope requires a JSON body. */
+  readonly bodyRequired: boolean;
+  /** Generated top-level body field allowlist used by side-effect-free preview validation. */
+  readonly allowedBodyFields: readonly string[];
+  /** Generated top-level body fields that must be present. */
+  readonly requiredBodyFields: readonly string[];
   /** One-line human summary from the OpenAPI operation. */
   readonly summary: string;
 }

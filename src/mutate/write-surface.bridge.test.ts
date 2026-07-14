@@ -40,19 +40,21 @@ describe('createBridgeWriteSurface delegates each op to the generic dispatcher',
     });
   });
 
-  it('forwards a body-only (path-less) op without an undefined path key', async () => {
+  it('forwards a path and body update without an undefined query key', async () => {
     const { bridge, calls } = spyBridge();
     const surface = createBridgeWriteSurface(bridge);
 
-    await surface.masterDataCreateContact({
+    await surface.masterDataUpdateContact({
+      path: { contactId: 'con_1' },
       body: { name: 'Jane Doe', email: 'jane@example.com' },
-      url: '/contacts',
+      url: '/contacts/{contactId}',
     });
 
-    expect(calls[0]!.op).toBe('masterDataCreateContact');
-    // No `path`/`query` keys leak through for an op that declares neither.
-    expect(calls[0]!.args).toEqual({ body: { name: 'Jane Doe', email: 'jane@example.com' } });
-    expect(Object.prototype.hasOwnProperty.call(calls[0]!.args, 'path')).toBe(false);
+    expect(calls[0]!.op).toBe('masterDataUpdateContact');
+    expect(calls[0]!.args).toEqual({
+      path: { contactId: 'con_1' },
+      body: { name: 'Jane Doe', email: 'jane@example.com' },
+    });
     expect(Object.prototype.hasOwnProperty.call(calls[0]!.args, 'query')).toBe(false);
   });
 

@@ -8,63 +8,17 @@
 // the generated `types.gen.ts` request/response types) changes, every
 // `satisfies WriteSurface` implementation must update to match or fail `tsc`.
 //
-// 63 write operations.
+// 25 write operations.
 
 import type {
-  BudgetCreateLineData,
-  BudgetCreateLineResponse,
-  BudgetCreateLinesBatchData,
-  BudgetCreateLinesBatchResponse,
-  BudgetCreatePhaseData,
-  BudgetCreatePhaseResponse,
   BudgetUpdateLineData,
   BudgetUpdateLineResponse,
   BudgetUpdatePhaseData,
   BudgetUpdatePhaseResponse,
-  BudgetUpsertLinePhaseDataBatchData,
-  BudgetUpsertLinePhaseDataBatchResponse,
   BudgetUpsertLinePhaseDataData,
   BudgetUpsertLinePhaseDataResponse,
-  DocumentsAssignData,
-  DocumentsAssignResponse,
-  DocumentsDropData,
-  DocumentsDropResponse,
   DocumentsUpdateData,
   DocumentsUpdateResponse,
-  LibraryAddProjectCurrencyData,
-  LibraryAddProjectCurrencyResponse,
-  LibraryAddProjectFringeData,
-  LibraryAddProjectFringeResponse,
-  LibraryAddProjectFringeTagData,
-  LibraryAddProjectFringeTagResponse,
-  LibraryAddProjectGlobalData,
-  LibraryAddProjectGlobalResponse,
-  LibraryAddProjectIncentiveData,
-  LibraryAddProjectIncentiveResponse,
-  LibraryAddProjectTagData,
-  LibraryAddProjectTagResponse,
-  LibraryAddRatePackData,
-  LibraryAddRatePackResponse,
-  LibraryCreateCurrencyTemplateData,
-  LibraryCreateCurrencyTemplateResponse,
-  LibraryCreateCustomUnitData,
-  LibraryCreateCustomUnitResponse,
-  LibraryCreateFringeTagTemplateData,
-  LibraryCreateFringeTagTemplateResponse,
-  LibraryCreateFringeTemplateData,
-  LibraryCreateFringeTemplateResponse,
-  LibraryCreateGlobalTemplateData,
-  LibraryCreateGlobalTemplateResponse,
-  LibraryCreateRatePackData,
-  LibraryCreateRatePackItemData,
-  LibraryCreateRatePackItemResponse,
-  LibraryCreateRatePackResponse,
-  LibraryCreateTagData,
-  LibraryCreateTagResponse,
-  LibraryEnableIncentivePackData,
-  LibraryEnableIncentivePackResponse,
-  LibraryEnableRatePackData,
-  LibraryEnableRatePackResponse,
   LibraryUpdateCurrencyTemplateData,
   LibraryUpdateCurrencyTemplateResponse,
   LibraryUpdateCustomUnitData,
@@ -91,14 +45,6 @@ import type {
   LibraryUpdateRatePackResponse,
   LibraryUpdateTagData,
   LibraryUpdateTagResponse,
-  MasterDataCreateCommentData,
-  MasterDataCreateCommentResponse,
-  MasterDataCreateContactData,
-  MasterDataCreateContactResponse,
-  MasterDataCreateProjectData,
-  MasterDataCreateProjectResponse,
-  MasterDataCreateSpaceData,
-  MasterDataCreateSpaceResponse,
   MasterDataUpdateCommentData,
   MasterDataUpdateCommentResponse,
   MasterDataUpdateContactData,
@@ -107,36 +53,14 @@ import type {
   MasterDataUpdateProjectResponse,
   MasterDataUpdateSpaceData,
   MasterDataUpdateSpaceResponse,
-  PurchaseOrdersCancelSubmissionData,
-  PurchaseOrdersCancelSubmissionResponse,
-  PurchaseOrdersCreateData,
-  PurchaseOrdersCreateItemData,
-  PurchaseOrdersCreateItemResponse,
-  PurchaseOrdersCreateResponse,
-  PurchaseOrdersFinalizeData,
-  PurchaseOrdersFinalizeResponse,
-  PurchaseOrdersLinkData,
-  PurchaseOrdersLinkResponse,
   PurchaseOrdersUpdateData,
   PurchaseOrdersUpdateItemData,
   PurchaseOrdersUpdateItemResponse,
   PurchaseOrdersUpdateResponse,
-  PurchaseOrdersVoidData,
-  PurchaseOrdersVoidResponse,
-  TransactionsBatchCreateData,
-  TransactionsBatchCreateResponse,
-  TransactionsCreateData,
-  TransactionsCreateResponse,
-  TransactionsItemsCreateData,
-  TransactionsItemsCreateResponse,
   TransactionsItemsUpdateData,
   TransactionsItemsUpdateResponse,
   TransactionsUpdateData,
   TransactionsUpdateResponse,
-  WebhooksCreateData,
-  WebhooksCreateResponse,
-  WebhooksUpdateData,
-  WebhooksUpdateResponse,
 } from '../generated/types.gen.js';
 
 /**
@@ -145,60 +69,14 @@ import type {
  * op and resolves the unwrapped success payload (the created/updated resource).
  */
 export interface WriteSurface {
-  /** Create a budget line with optional phase data (`POST /projects/{projectId}/budget/lines`). */
-  budgetCreateLine(data: BudgetCreateLineData): Promise<BudgetCreateLineResponse>;
-  /** Create budget lines in one all-or-nothing batch (`POST /projects/{projectId}/budget/lines/batch`). */
-  budgetCreateLinesBatch(data: BudgetCreateLinesBatchData): Promise<BudgetCreateLinesBatchResponse>;
-  /** Create a budget phase (`POST /projects/{projectId}/budget/phases`). */
-  budgetCreatePhase(data: BudgetCreatePhaseData): Promise<BudgetCreatePhaseResponse>;
   /** Update a budget line (`PATCH /projects/{projectId}/budget/lines/{lineId}`). */
   budgetUpdateLine(data: BudgetUpdateLineData): Promise<BudgetUpdateLineResponse>;
   /** Update a budget phase (`PATCH /projects/{projectId}/budget/phases/{phaseId}`). */
   budgetUpdatePhase(data: BudgetUpdatePhaseData): Promise<BudgetUpdatePhaseResponse>;
   /** Upsert one editable line phase-data entry (`PUT /projects/{projectId}/budget/lines/{lineId}/phase-data/{phaseId}`). */
   budgetUpsertLinePhaseData(data: BudgetUpsertLinePhaseDataData): Promise<BudgetUpsertLinePhaseDataResponse>;
-  /** Upsert editable line phase data in one all-or-nothing batch (`POST /projects/{projectId}/budget/lines/phase-data/batch`). */
-  budgetUpsertLinePhaseDataBatch(data: BudgetUpsertLinePhaseDataBatchData): Promise<BudgetUpsertLinePhaseDataBatchResponse>;
-  /** Assign a document to a typed target (`POST /documents/{documentId}/assign`). */
-  documentsAssign(data: DocumentsAssignData): Promise<DocumentsAssignResponse>;
-  /** Drop a document (optionally assign atomically) (`POST /documents`). */
-  documentsDrop(data: DocumentsDropData): Promise<DocumentsDropResponse>;
   /** Rename / move / re-describe a document (`PATCH /documents/{documentId}`). */
   documentsUpdate(data: DocumentsUpdateData): Promise<DocumentsUpdateResponse>;
-  /** Copy a workspace currency into the project (`POST /projects/{projectId}/library/currencies/add`). */
-  libraryAddProjectCurrency(data: LibraryAddProjectCurrencyData): Promise<LibraryAddProjectCurrencyResponse>;
-  /** Copy a workspace fringe into the project (`POST /projects/{projectId}/library/fringes/add`). */
-  libraryAddProjectFringe(data: LibraryAddProjectFringeData): Promise<LibraryAddProjectFringeResponse>;
-  /** Copy a workspace fringe-tag into the project (`POST /projects/{projectId}/library/fringe-tags/add`). */
-  libraryAddProjectFringeTag(data: LibraryAddProjectFringeTagData): Promise<LibraryAddProjectFringeTagResponse>;
-  /** Copy a workspace global into the project (`POST /projects/{projectId}/library/globals/add`). */
-  libraryAddProjectGlobal(data: LibraryAddProjectGlobalData): Promise<LibraryAddProjectGlobalResponse>;
-  /** Add an incentive program into the project (`POST /projects/{projectId}/library/incentives/add`). */
-  libraryAddProjectIncentive(data: LibraryAddProjectIncentiveData): Promise<LibraryAddProjectIncentiveResponse>;
-  /** Add a workspace tag to the project (`POST /projects/{projectId}/library/tags/{tagId}/add`). */
-  libraryAddProjectTag(data: LibraryAddProjectTagData): Promise<LibraryAddProjectTagResponse>;
-  /** Add a rate pack into the project (`POST /projects/{projectId}/library/rates/{packId}/add`). */
-  libraryAddRatePack(data: LibraryAddRatePackData): Promise<LibraryAddRatePackResponse>;
-  /** Create a workspace currency template (`POST /library/currencies`). */
-  libraryCreateCurrencyTemplate(data: LibraryCreateCurrencyTemplateData): Promise<LibraryCreateCurrencyTemplateResponse>;
-  /** Create a workspace custom unit (`POST /library/units/custom`). */
-  libraryCreateCustomUnit(data: LibraryCreateCustomUnitData): Promise<LibraryCreateCustomUnitResponse>;
-  /** Create a workspace fringe-tag template (`POST /library/fringe-tags`). */
-  libraryCreateFringeTagTemplate(data: LibraryCreateFringeTagTemplateData): Promise<LibraryCreateFringeTagTemplateResponse>;
-  /** Create a workspace fringe template (`POST /library/fringes`). */
-  libraryCreateFringeTemplate(data: LibraryCreateFringeTemplateData): Promise<LibraryCreateFringeTemplateResponse>;
-  /** Create a workspace global template (`POST /library/globals`). */
-  libraryCreateGlobalTemplate(data: LibraryCreateGlobalTemplateData): Promise<LibraryCreateGlobalTemplateResponse>;
-  /** Author a PRIVATE workspace-owned rate pack (`POST /library/rates`). */
-  libraryCreateRatePack(data: LibraryCreateRatePackData): Promise<LibraryCreateRatePackResponse>;
-  /** Add an item to an owned pack (`POST /library/rates/{packId}/items`). */
-  libraryCreateRatePackItem(data: LibraryCreateRatePackItemData): Promise<LibraryCreateRatePackItemResponse>;
-  /** Create a workspace tag (`POST /library/tags`). */
-  libraryCreateTag(data: LibraryCreateTagData): Promise<LibraryCreateTagResponse>;
-  /** Enable an incentive pack for the workspace (`POST /library/incentives/{packId}/enable`). */
-  libraryEnableIncentivePack(data: LibraryEnableIncentivePackData): Promise<LibraryEnableIncentivePackResponse>;
-  /** Enable a rate pack for the workspace (`POST /library/rates/{packId}/enable`). */
-  libraryEnableRatePack(data: LibraryEnableRatePackData): Promise<LibraryEnableRatePackResponse>;
   /** Update a workspace currency template (`PATCH /library/currencies/{currencyId}`). */
   libraryUpdateCurrencyTemplate(data: LibraryUpdateCurrencyTemplateData): Promise<LibraryUpdateCurrencyTemplateResponse>;
   /** Update a workspace custom unit (`PATCH /library/units/custom/{unitId}`). */
@@ -225,14 +103,6 @@ export interface WriteSurface {
   libraryUpdateRatePackItem(data: LibraryUpdateRatePackItemData): Promise<LibraryUpdateRatePackItemResponse>;
   /** Update a workspace tag (`PATCH /library/tags/{tagId}`). */
   libraryUpdateTag(data: LibraryUpdateTagData): Promise<LibraryUpdateTagResponse>;
-  /** Create a comment (`POST /comments`). */
-  masterDataCreateComment(data: MasterDataCreateCommentData): Promise<MasterDataCreateCommentResponse>;
-  /** Create a contact (`POST /contacts`). */
-  masterDataCreateContact(data: MasterDataCreateContactData): Promise<MasterDataCreateContactResponse>;
-  /** Create a project (`POST /projects`). */
-  masterDataCreateProject(data: MasterDataCreateProjectData): Promise<MasterDataCreateProjectResponse>;
-  /** Create a space (`POST /spaces`). */
-  masterDataCreateSpace(data: MasterDataCreateSpaceData): Promise<MasterDataCreateSpaceResponse>;
   /** Update a comment (`PATCH /comments/{commentId}`). */
   masterDataUpdateComment(data: MasterDataUpdateCommentData): Promise<MasterDataUpdateCommentResponse>;
   /** Update a contact (`PATCH /contacts/{contactId}`). */
@@ -241,34 +111,12 @@ export interface WriteSurface {
   masterDataUpdateProject(data: MasterDataUpdateProjectData): Promise<MasterDataUpdateProjectResponse>;
   /** Update a space (`PATCH /spaces/{spaceId}`). */
   masterDataUpdateSpace(data: MasterDataUpdateSpaceData): Promise<MasterDataUpdateSpaceResponse>;
-  /** Cancel a pending submission (`POST /purchase-orders/{purchaseOrderId}/cancel-submission`). */
-  purchaseOrdersCancelSubmission(data: PurchaseOrdersCancelSubmissionData): Promise<PurchaseOrdersCancelSubmissionResponse>;
-  /** Create a purchase order (`POST /purchase-orders`). */
-  purchaseOrdersCreate(data: PurchaseOrdersCreateData): Promise<PurchaseOrdersCreateResponse>;
-  /** Add a purchase order item (`POST /purchase-orders/{purchaseOrderId}/items`). */
-  purchaseOrdersCreateItem(data: PurchaseOrdersCreateItemData): Promise<PurchaseOrdersCreateItemResponse>;
-  /** Finalize a committed purchase order (`POST /purchase-orders/{purchaseOrderId}/finalize`). */
-  purchaseOrdersFinalize(data: PurchaseOrdersFinalizeData): Promise<PurchaseOrdersFinalizeResponse>;
-  /** Link a transaction to a purchase order (`POST /purchase-orders/{purchaseOrderId}/link`). */
-  purchaseOrdersLink(data: PurchaseOrdersLinkData): Promise<PurchaseOrdersLinkResponse>;
   /** Update a purchase order (`PATCH /purchase-orders/{purchaseOrderId}`). */
   purchaseOrdersUpdate(data: PurchaseOrdersUpdateData): Promise<PurchaseOrdersUpdateResponse>;
   /** Update a purchase order item (`PATCH /purchase-orders/{purchaseOrderId}/items/{itemId}`). */
   purchaseOrdersUpdateItem(data: PurchaseOrdersUpdateItemData): Promise<PurchaseOrdersUpdateItemResponse>;
-  /** Void a purchase order (`POST /purchase-orders/{purchaseOrderId}/void`). */
-  purchaseOrdersVoid(data: PurchaseOrdersVoidData): Promise<PurchaseOrdersVoidResponse>;
-  /** Bulk journal import (`POST /transactions/batch`). */
-  transactionsBatchCreate(data: TransactionsBatchCreateData): Promise<TransactionsBatchCreateResponse>;
-  /** Create a journal transaction (`POST /transactions`). */
-  transactionsCreate(data: TransactionsCreateData): Promise<TransactionsCreateResponse>;
-  /** Add a transaction item (`POST /transactions/{txId}/items`). */
-  transactionsItemsCreate(data: TransactionsItemsCreateData): Promise<TransactionsItemsCreateResponse>;
   /** Update a transaction item (`PATCH /transactions/{txId}/items/{itemId}`). */
   transactionsItemsUpdate(data: TransactionsItemsUpdateData): Promise<TransactionsItemsUpdateResponse>;
   /** Update a transaction (`PATCH /transactions/{txId}`). */
   transactionsUpdate(data: TransactionsUpdateData): Promise<TransactionsUpdateResponse>;
-  /** Create a webhook subscription (`POST /webhooks`). */
-  webhooksCreate(data: WebhooksCreateData): Promise<WebhooksCreateResponse>;
-  /** Update a webhook subscription (`PATCH /webhooks/{webhookId}`). */
-  webhooksUpdate(data: WebhooksUpdateData): Promise<WebhooksUpdateResponse>;
 }
