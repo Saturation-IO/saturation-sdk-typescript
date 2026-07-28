@@ -1321,7 +1321,7 @@ export const masterDataListProjects = <ThrowOnError extends boolean = false>(opt
 /**
  * Create a project
  *
- * Create a project in the workspace. Requires `create` on the `Project` subject (request-derived). Server-owned fields are rejected with `422 field_read_only`.
+ * Create a project in the workspace. Requires `create` on the generated full `Project` subject and a retry-safe idempotency key. Server-owned fields are rejected with `422 field_read_only`.
  */
 export const masterDataCreateProject = <ThrowOnError extends boolean = false>(options: Options<MasterDataCreateProjectData, ThrowOnError>) => (options.client ?? client).post<MasterDataCreateProjectResponses, MasterDataCreateProjectErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1684,7 +1684,7 @@ export const purchaseOrdersCancelSubmission = <ThrowOnError extends boolean = fa
 /**
  * Void a purchase order
  *
- * Move a PO from `approved|committed` → `void`. From any other status returns `409 po_invalid_status` with a `Cannot void…` message. Emits the `purchaseOrder.void` webhook event. There is no `/pay` verb, `paid` is reached by recording the payment as a transaction.
+ * Move a PO from `approved|actualizing` → `void`. From any other status returns `409 po_invalid_status` with a `Cannot void…` message. Emits the `purchaseOrder.void` webhook event. There is no `/pay` verb, `paid` is reached by recording the payment as a transaction.
  */
 export const purchaseOrdersVoid = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersVoidData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersVoidResponses, PurchaseOrdersVoidErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1693,9 +1693,9 @@ export const purchaseOrdersVoid = <ThrowOnError extends boolean = false>(options
 });
 
 /**
- * Finalize a committed purchase order
+ * Mark an approved or actualizing purchase order as paid
  *
- * Move a PO from `committed` → `paid`. From any other status returns `409 po_invalid_status` with a `Cannot finalize…` message. Emits the `purchaseOrder.paid` webhook event. There is no `/pay` verb, this is the public lifecycle transition that makes the published `paid` status reachable.
+ * Move a PO from `approved|actualizing` → `paid`. At least one transaction must already be linked. From any other status, or with no linked transaction, returns `409 po_invalid_status`. Emits the `purchaseOrder.paid` webhook event. Paid records a user decision and never moves backward when transactions are later unlinked.
  */
 export const purchaseOrdersFinalize = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersFinalizeData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersFinalizeResponses, PurchaseOrdersFinalizeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1706,7 +1706,7 @@ export const purchaseOrdersFinalize = <ThrowOnError extends boolean = false>(opt
 /**
  * Link a transaction to a purchase order
  *
- * Link a transaction in the same project to an approved or committed PO. The first successful link moves the PO to `committed` and emits `purchaseOrder.committed`. A transaction from another project returns `409 po_invalid_status`; a transaction already linked to a different PO returns `409 already_assigned`.
+ * Link a transaction in the same project to an approved or actualizing PO. The first successful link moves the PO to `actualizing` and emits `purchaseOrder.actualizing`. A transaction from another project returns `409 po_invalid_status`; a transaction already linked to a different PO returns `409 already_assigned`.
  */
 export const purchaseOrdersLink = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersLinkData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersLinkResponses, PurchaseOrdersLinkErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1721,7 +1721,7 @@ export const purchaseOrdersLink = <ThrowOnError extends boolean = false>(options
 /**
  * Unlink a transaction from a purchase order
  *
- * Remove a transaction link from a committed or paid PO, clear the transaction's `purchaseOrderId`, deactivate the entity edge, recompute remaining posted+actualized coverage, and emit `purchaseOrder.updated`. Paid POs stay `paid` only when the remaining actuals still cover every effective PO budget-line bucket; otherwise they fall back to `committed` or `approved`. From any status other than `committed` or `paid` returns `409 po_invalid_status`.
+ * Remove a transaction link from an actualizing or paid PO, clear the transaction's `purchaseOrderId`, deactivate the entity edge, and emit `purchaseOrder.updated`. An actualizing PO returns to `approved` when its last linked transaction is removed. A user-marked paid PO remains `paid` regardless of remaining coverage. From any status other than `actualizing` or `paid` returns `409 po_invalid_status`.
  */
 export const purchaseOrdersUnlink = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersUnlinkData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersUnlinkResponses, PurchaseOrdersUnlinkErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1736,7 +1736,7 @@ export const purchaseOrdersUnlink = <ThrowOnError extends boolean = false>(optio
 /**
  * Get the purchase order lifecycle projection
  *
- * Read the detailed lifecycle for a purchase order. Read-only, computed from approval decisions, matched transactions and payment signals. The base resource only ever exposes the 7-value `status`; this endpoint (or `expand=lifecycle`) is the only place the richer projection appears.
+ * Read the detailed lifecycle for a purchase order. Read-only, computed from approval decisions, matched transactions and payment signals. The base resource exposes the primary `status`; this endpoint (or `expand=lifecycle`) adds concurrent operational indicators and reconciliation amounts.
  */
 export const purchaseOrdersLifecycle = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersLifecycleData, ThrowOnError>) => (options.client ?? client).get<PurchaseOrdersLifecycleResponses, PurchaseOrdersLifecycleErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1799,7 +1799,7 @@ export const purchaseOrdersUpdateItem = <ThrowOnError extends boolean = false>(o
 /**
  * List transactions linked to a purchase order
  *
- * Reverse read of the transactions linked to this PO (the path by which `committed`/`paid` are reached). Paginated and permission-projected.
+ * Reverse read of the transactions linked to this PO (the path by which `actualizing`/`paid` are reached). Paginated and permission-projected.
  */
 export const purchaseOrdersListTransactions = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersListTransactionsData, ThrowOnError>) => (options.client ?? client).get<PurchaseOrdersListTransactionsResponses, PurchaseOrdersListTransactionsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],

@@ -114,10 +114,10 @@ export class TransactionsResource {
   /** Create a journal transaction. Pass `idempotencyKey` for a safe retry of the billable create. */
   async create(
     body: TransactionJournalCreate,
-    opts: { idempotencyKey?: string } = {},
+    opts: { idempotencyKey: string },
   ): Promise<Transaction> {
     return this.t.run(sdk.transactionsCreate, {
-      headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body: { ...body, projectId: body.projectId ?? this.projectId },
     }) as Promise<Transaction>;
   }
@@ -125,10 +125,10 @@ export class TransactionsResource {
   /** Batch-create journal transactions (replaces legacy `/actuals/batch`). */
   async batchCreate(
     body: TransactionBatchCreate,
-    opts: { idempotencyKey?: string } = {},
+    opts: { idempotencyKey: string },
   ): Promise<unknown> {
     return this.t.run(sdk.transactionsBatchCreate, {
-      headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body: {
         transactions: body.transactions.map((transaction) => ({
           ...transaction,

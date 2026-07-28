@@ -132,11 +132,96 @@ const WRITE_OP_ALLOWLIST: ReadonlySet<string> = new Set<string>([
   'webhooksUpdate',
 ]);
 
-/** Canonical agent writes use the generic JSON bridge. POST operations stay
- * out until their retry identity is durably enforced end-to-end; otherwise an
- * outcome-ambiguous timeout can duplicate creates. Webhook update is also
- * excluded because the public write scope intentionally omits update:Webhook. */
-const AGENT_WRITE_BLOCKED_OPS: ReadonlySet<string> = new Set(['webhooksUpdate']);
+/**
+ * The canonical MODEL-FACING write surface (SAT-5831): ONE explicit list, no
+ * verb filter. POSTs re-admitted 2026-07-28 — durable transactional
+ * idempotency receipts (next-api) enforce retry identity end-to-end, and the
+ * declaration gate below proves every keyed create declares its REQUIRED
+ * `Idempotency-Key` header in the generated types (so an outcome-ambiguous
+ * timeout replays instead of duplicating).
+ *
+ * Out by omission (rationale, not a second list):
+ * - `webhooksCreate`/`webhooksUpdate`: standing config, not data writes — the
+ *   public write scope intentionally omits `*:Webhook`.
+ * - `documentsDrop`: document bytes ride the dedicated `upload` tool.
+ * - `masterDataCreateComment`/`masterDataCreateSpace`,
+ *   `transactionsBatchCreate`/`transactionsItemsCreate`,
+ *   `purchaseOrdersLink` + PO lifecycle
+ *   (`purchaseOrdersCancelSubmission`/`Finalize`/`Void` — MCP POs are
+ *   draft-only in v1), and the library template/pack creates+enables:
+ *   allowlisted for the server seam, not model-exposed in v1 (spec §10).
+ */
+const AGENT_WRITE_EXPOSED_OPS: readonly string[] = [
+  // ── value updates (the pre-existing exposed set) ──
+  'budgetUpdateLine',
+  'budgetUpdatePhase',
+  'budgetUpsertLinePhaseData',
+  'documentsUpdate',
+  'libraryUpdateCurrencyTemplate',
+  'libraryUpdateCustomUnit',
+  'libraryUpdateFringeTagTemplate',
+  'libraryUpdateFringeTemplate',
+  'libraryUpdateGlobalTemplate',
+  'libraryUpdateProjectCurrency',
+  'libraryUpdateProjectFringe',
+  'libraryUpdateProjectFringeTag',
+  'libraryUpdateProjectGlobal',
+  'libraryUpdateProjectIncentive',
+  'libraryUpdateRatePack',
+  'libraryUpdateRatePackItem',
+  'libraryUpdateTag',
+  'masterDataUpdateComment',
+  'masterDataUpdateContact',
+  'masterDataUpdateProject',
+  'masterDataUpdateSpace',
+  'purchaseOrdersUpdate',
+  'purchaseOrdersUpdateItem',
+  'transactionsItemsUpdate',
+  'transactionsUpdate',
+  // ── keyed creates (receipt-backed; Idempotency-Key REQUIRED — D6) ──
+  'budgetCreateLine',
+  'budgetCreateLinesBatch',
+  'budgetCreatePhase',
+  'budgetUpsertLinePhaseDataBatch',
+  'masterDataCreateContact',
+  'masterDataCreateProject',
+  'purchaseOrdersCreate',
+  'purchaseOrdersCreateItem',
+  'transactionsCreate',
+  // ── naturally idempotent creates (no key; repeat call returns the original) ──
+  'documentsAssign',
+  'libraryAddProjectIncentive',
+  'libraryAddRatePack',
+];
+const AGENT_WRITE_EXPOSED_SET: ReadonlySet<string> = new Set(AGENT_WRITE_EXPOSED_OPS);
+
+/**
+ * POSTs whose retry identity is a durable receipt: the /v1 route REQUIRES the
+ * `Idempotency-Key` header (400 without it), and the generated `<Op>Data` type
+ * must declare it NON-OPTIONAL — the gate below parses `types.gen.ts` and
+ * fails generation on drift in either direction.
+ */
+const KEYED_CREATE_OPS: ReadonlySet<string> = new Set([
+  'budgetCreateLine',
+  'budgetCreateLinesBatch',
+  'budgetCreatePhase',
+  'budgetUpsertLinePhaseDataBatch',
+  'masterDataCreateContact',
+  'masterDataCreateProject',
+  'purchaseOrdersCreate',
+  'purchaseOrdersCreateItem',
+  'transactionsCreate',
+]);
+
+/**
+ * POSTs that are replay-equivalent WITHOUT a key, each with its mechanism —
+ * a repeat call returns the ORIGINAL record, never a duplicate or a 409.
+ */
+const NATURALLY_IDEMPOTENT_OPS: Readonly<Record<string, string>> = {
+  documentsAssign: 'same-id FK set; the route has an explicit same-target no-op branch',
+  libraryAddProjectIncentive: 'copy-on-use `@@unique([projectId, source])` — repeat add returns the existing link',
+  libraryAddRatePack: 'copy-on-use `@@unique([projectId, ratePackId])` — repeat add returns the existing link',
+};
 
 interface ParsedOp {
   op: string;
@@ -453,6 +538,8 @@ export interface WriteBridgeArgs {
   path?: Record<string, unknown>;
   body?: unknown;
   query?: Record<string, unknown>;
+  /** Request headers (the \`Idempotency-Key\` channel for keyed creates). */
+  headers?: Record<string, string>;
 }
 
 /**
@@ -469,6 +556,7 @@ type OptionsEnvelope = {
   path?: unknown;
   body?: unknown;
   query?: unknown;
+  headers?: unknown;
 };
 
 /**
@@ -487,6 +575,7 @@ export function createBridgeWriteSurface(bridge: WriteBridge): WriteSurface {
       ...(data.path !== undefined ? { path: data.path as Record<string, unknown> } : {}),
       ...(data.body !== undefined ? { body: data.body } : {}),
       ...(data.query !== undefined ? { query: data.query as Record<string, unknown> } : {}),
+      ...(data.headers !== undefined ? { headers: data.headers as Record<string, string> } : {}),
     });
 
   return {
@@ -503,8 +592,31 @@ function main(): void {
   // Filter to the explicit allowlist; sort for a stable diff.
   const allowlisted = all.filter((o) => WRITE_OP_ALLOWLIST.has(o.op));
   const selected = allowlisted
-    .filter((o) => o.method !== 'post' && !AGENT_WRITE_BLOCKED_OPS.has(o.op))
+    .filter((o) => AGENT_WRITE_EXPOSED_SET.has(o.op))
     .sort((a, b) => a.op.localeCompare(b.op));
+
+  // The exposed list is the model-facing boundary: every entry must be a real
+  // allowlisted op (a typo would silently shrink the surface), and both
+  // idempotency sets must be subsets of it.
+  const notAllowlisted = AGENT_WRITE_EXPOSED_OPS.filter((op) => !WRITE_OP_ALLOWLIST.has(op));
+  if (notAllowlisted.length > 0) {
+    throw new Error(
+      `AGENT_WRITE_EXPOSED_OPS entries missing from WRITE_OP_ALLOWLIST: ${notAllowlisted.join(', ')}`,
+    );
+  }
+  const strayIdempotency = [...KEYED_CREATE_OPS, ...Object.keys(NATURALLY_IDEMPOTENT_OPS)]
+    .filter((op) => !AGENT_WRITE_EXPOSED_SET.has(op));
+  if (strayIdempotency.length > 0) {
+    throw new Error(
+      `Idempotency-classified ops not in AGENT_WRITE_EXPOSED_OPS: ${strayIdempotency.join(', ')}`,
+    );
+  }
+  const notGenerated = AGENT_WRITE_EXPOSED_OPS.filter((op) => !allowlisted.some((o) => o.op === op));
+  if (notGenerated.length > 0) {
+    throw new Error(
+      `AGENT_WRITE_EXPOSED_OPS entries absent from the generated SDK: ${notGenerated.join(', ')}`,
+    );
+  }
 
   // Fail loud: every allowlisted op MUST resolve to a real generated operation,
   // and it must be a write verb. A typo'd allowlist entry is a generation bug.
@@ -578,12 +690,57 @@ function main(): void {
     );
   }
 
+  // ── Idempotency-declaration gate (spec P2-14) ────────────────────────────
+  // Ground truth is the GENERATED type: a keyed create's `<Op>Data.headers`
+  // must declare `'Idempotency-Key': string` NON-OPTIONAL (the /v1 route 400s
+  // without the header — an optional declaration would let generated clients
+  // ship calls the server rejects). A naturally-idempotent create must NOT
+  // require a key. Any exposed POST outside both sets is unclassified — fail.
+  const headerDeclaration = (dataType: string): 'required' | 'optional' | 'absent' => {
+    const block = new RegExp(
+      `export type ${dataType} = \\{[\\s\\S]*?\\n\\};`, 'm',
+    ).exec(types)?.[0];
+    if (!block) return 'absent';
+    const decl = /'Idempotency-Key'(\?)?:\s*string/.exec(block);
+    if (!decl) return 'absent';
+    return decl[1] === '?' ? 'optional' : 'required';
+  };
+  for (const o of selected) {
+    if (o.method !== 'post') continue;
+    const declared = headerDeclaration(o.dataType);
+    if (KEYED_CREATE_OPS.has(o.op)) {
+      if (declared !== 'required') {
+        throw new Error(
+          `Keyed create ${o.op}: the generated ${o.dataType} must declare a REQUIRED ` +
+            `'Idempotency-Key' header (found: ${declared}). Fix the OpenAPI declaration and regenerate.`,
+        );
+      }
+    } else if (o.op in NATURALLY_IDEMPOTENT_OPS) {
+      if (declared === 'required') {
+        throw new Error(
+          `Naturally-idempotent op ${o.op} declares a REQUIRED Idempotency-Key — ` +
+            `either reclassify it as a keyed create or fix the OpenAPI declaration.`,
+        );
+      }
+    } else {
+      throw new Error(
+        `Exposed POST ${o.op} has no idempotency classification: add it to ` +
+          `KEYED_CREATE_OPS (receipt-backed) or NATURALLY_IDEMPOTENT_OPS (with its mechanism).`,
+      );
+    }
+  }
+
   const entries = selected
     .map((o) => {
       const params = pathParams(o.url);
       const summary = o.summary.replace(/'/g, "\\'");
       const bodyType = JSON.stringify(bodyTypeText(types, o.dataType));
       const contract = bodyContract(types, o.dataType);
+      const idempotency = KEYED_CREATE_OPS.has(o.op)
+        ? 'required'
+        : o.op in NATURALLY_IDEMPOTENT_OPS
+          ? 'natural'
+          : 'none';
       return `  ${o.op}: {
     op: '${o.op}',
     method: '${o.method}',
@@ -594,6 +751,7 @@ function main(): void {
     bodyRequired: ${contract.required},
     allowedBodyFields: ${JSON.stringify(contract.allowedFields)},
     requiredBodyFields: ${JSON.stringify(contract.requiredFields)},
+    idempotency: '${idempotency}',
     summary: '${summary}',
   },`;
     })
@@ -633,6 +791,14 @@ export interface WriteOpDef {
   readonly allowedBodyFields: readonly string[];
   /** Generated top-level body fields that must be present. */
   readonly requiredBodyFields: readonly string[];
+  /**
+   * Retry identity: \`required\` = the /v1 route requires an \`Idempotency-Key\`
+   * header (receipt-backed replay); \`natural\` = replay-equivalent without a
+   * key (repeat call returns the original record); \`none\` = a value update
+   * (inherently retry-safe). Derived at generation time and gate-checked
+   * against the generated header declarations.
+   */
+  readonly idempotency: 'required' | 'natural' | 'none';
   /** One-line human summary from the OpenAPI operation. */
   readonly summary: string;
 }

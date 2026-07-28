@@ -4,7 +4,7 @@
 // (CREATE + value-UPDATE, additive only). Regenerate with:
 //   pnpm --filter @saturation/sdk generate:mutate
 //
-// 25 write operations selected from 151 total operations.
+// 37 write operations selected from 151 total operations.
 
 /** A single write operation's static metadata, derived from the OpenAPI spec. */
 export interface WriteOpDef {
@@ -32,12 +32,59 @@ export interface WriteOpDef {
   readonly allowedBodyFields: readonly string[];
   /** Generated top-level body fields that must be present. */
   readonly requiredBodyFields: readonly string[];
+  /**
+   * Retry identity: `required` = the /v1 route requires an `Idempotency-Key`
+   * header (receipt-backed replay); `natural` = replay-equivalent without a
+   * key (repeat call returns the original record); `none` = a value update
+   * (inherently retry-safe). Derived at generation time and gate-checked
+   * against the generated header declarations.
+   */
+  readonly idempotency: 'required' | 'natural' | 'none';
   /** One-line human summary from the OpenAPI operation. */
   readonly summary: string;
 }
 
 /** The generated write-op table, keyed by operation id. */
 export const WRITE_OPS = {
+  budgetCreateLine: {
+    op: 'budgetCreateLine',
+    method: 'post',
+    url: '/projects/{projectId}/budget/lines',
+    pathParams: ['projectId'],
+    dataType: 'BudgetCreateLineData',
+    bodyType: "{ name: string; kind?: BudgetLineKind; code?: string; parentId?: Id; contactId?: Id; lineColor?: string; emoji?: string; notes?: string; tagIds?: Array<Id>; subtotalSumAllAbove?: boolean; subtotalIsBold?: boolean; markupAccountFilter?: string; phaseData?: { [key: string]: BudgetLinePhaseDataWrite; }; }",
+    bodyRequired: true,
+    allowedBodyFields: ["name","kind","code","parentId","contactId","lineColor","emoji","notes","tagIds","subtotalSumAllAbove","subtotalIsBold","markupAccountFilter","phaseData"],
+    requiredBodyFields: ["name"],
+    idempotency: 'required',
+    summary: 'Create a budget line with optional phase data',
+  },
+  budgetCreateLinesBatch: {
+    op: 'budgetCreateLinesBatch',
+    method: 'post',
+    url: '/projects/{projectId}/budget/lines/batch',
+    pathParams: ['projectId'],
+    dataType: 'BudgetCreateLinesBatchData',
+    bodyType: "{ lines: Array<BudgetLineCreate>; }",
+    bodyRequired: true,
+    allowedBodyFields: ["lines"],
+    requiredBodyFields: ["lines"],
+    idempotency: 'required',
+    summary: 'Create budget lines in one all-or-nothing batch',
+  },
+  budgetCreatePhase: {
+    op: 'budgetCreatePhase',
+    method: 'post',
+    url: '/projects/{projectId}/budget/phases',
+    pathParams: ['projectId'],
+    dataType: 'BudgetCreatePhaseData',
+    bodyType: "{ type: PhaseType; name: string; alias?: string; color?: string; isHidden?: boolean; }",
+    bodyRequired: true,
+    allowedBodyFields: ["type","name","alias","color","isHidden"],
+    requiredBodyFields: ["type","name"],
+    idempotency: 'required',
+    summary: 'Create a budget phase',
+  },
   budgetUpdateLine: {
     op: 'budgetUpdateLine',
     method: 'patch',
@@ -48,6 +95,7 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["name","kind","code","parentId","contactId","lineColor","emoji","notes","tagIds","subtotalSumAllAbove","subtotalIsBold","markupAccountFilter","phaseData"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a budget line',
   },
   budgetUpdatePhase: {
@@ -60,6 +108,7 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["name","alias","color","isHidden"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a budget phase',
   },
   budgetUpsertLinePhaseData: {
@@ -72,7 +121,34 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["rate","quantity","multiplier","qtyAutoDerived","unit","customUnitId","startDate","endDate","fringeIds","fringeTagIds","currencyId","overtime"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Upsert one editable line phase-data entry',
+  },
+  budgetUpsertLinePhaseDataBatch: {
+    op: 'budgetUpsertLinePhaseDataBatch',
+    method: 'post',
+    url: '/projects/{projectId}/budget/lines/phase-data/batch',
+    pathParams: ['projectId'],
+    dataType: 'BudgetUpsertLinePhaseDataBatchData',
+    bodyType: "{ items: Array<{ lineId: Id; phaseId: Id; phaseData: BudgetLinePhaseDataWrite; }>; }",
+    bodyRequired: true,
+    allowedBodyFields: ["items"],
+    requiredBodyFields: ["items"],
+    idempotency: 'required',
+    summary: 'Upsert editable line phase data in one all-or-nothing batch',
+  },
+  documentsAssign: {
+    op: 'documentsAssign',
+    method: 'post',
+    url: '/documents/{documentId}/assign',
+    pathParams: ['documentId'],
+    dataType: 'DocumentsAssignData',
+    bodyType: "{ target: DocumentTargetRef; replace?: boolean; }",
+    bodyRequired: true,
+    allowedBodyFields: ["target","replace"],
+    requiredBodyFields: ["target"],
+    idempotency: 'natural',
+    summary: 'Assign a document to a typed target',
   },
   documentsUpdate: {
     op: 'documentsUpdate',
@@ -84,7 +160,34 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["name","description","folderId"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Rename / move / re-describe a document',
+  },
+  libraryAddProjectIncentive: {
+    op: 'libraryAddProjectIncentive',
+    method: 'post',
+    url: '/projects/{projectId}/library/incentives/add',
+    pathParams: ['projectId'],
+    dataType: 'LibraryAddProjectIncentiveData',
+    bodyType: "{ programId: Id; versionId?: Id; }",
+    bodyRequired: true,
+    allowedBodyFields: ["programId","versionId"],
+    requiredBodyFields: ["programId"],
+    idempotency: 'natural',
+    summary: 'Add an incentive program into the project',
+  },
+  libraryAddRatePack: {
+    op: 'libraryAddRatePack',
+    method: 'post',
+    url: '/projects/{projectId}/library/rates/{packId}/add',
+    pathParams: ['projectId', 'packId'],
+    dataType: 'LibraryAddRatePackData',
+    bodyType: "never",
+    bodyRequired: false,
+    allowedBodyFields: [],
+    requiredBodyFields: [],
+    idempotency: 'natural',
+    summary: 'Add a rate pack into the project',
   },
   libraryUpdateCurrencyTemplate: {
     op: 'libraryUpdateCurrencyTemplate',
@@ -96,6 +199,7 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["code","name","rate","sort"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a workspace currency template',
   },
   libraryUpdateCustomUnit: {
@@ -108,6 +212,7 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["label","description"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a workspace custom unit',
   },
   libraryUpdateFringeTagTemplate: {
@@ -120,6 +225,7 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["name","color","sort"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a workspace fringe-tag template',
   },
   libraryUpdateFringeTemplate: {
@@ -132,6 +238,7 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["name","rate","cap","sort"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a workspace fringe template',
   },
   libraryUpdateGlobalTemplate: {
@@ -144,6 +251,7 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["name","value","unit","sort"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a workspace global template',
   },
   libraryUpdateProjectCurrency: {
@@ -156,6 +264,7 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["code","name","rate","sort"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a project currency copy',
   },
   libraryUpdateProjectFringe: {
@@ -168,6 +277,7 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["name","rate","cap","sort"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a project fringe copy',
   },
   libraryUpdateProjectFringeTag: {
@@ -180,6 +290,7 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["name","color","sort"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a project fringe-tag copy',
   },
   libraryUpdateProjectGlobal: {
@@ -192,6 +303,7 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["name","value","unit","sort"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a project global copy',
   },
   libraryUpdateProjectIncentive: {
@@ -204,6 +316,7 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["name","description","isApplied"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a project incentive',
   },
   libraryUpdateRatePack: {
@@ -216,6 +329,7 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["name","description","category","tags"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update an owned rate pack',
   },
   libraryUpdateRatePackItem: {
@@ -228,6 +342,7 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["title","rate","unit","currency","description","quantity","multiplier","group","agreement","local","effectiveDate","labels","displayTags","searchAliases","facets","sourceRefs","qualityFlags","rateBasis"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a pack item',
   },
   libraryUpdateTag: {
@@ -240,7 +355,34 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["name","color","description","eligibilityKey","sort"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a workspace tag',
+  },
+  masterDataCreateContact: {
+    op: 'masterDataCreateContact',
+    method: 'post',
+    url: '/contacts',
+    pathParams: [],
+    dataType: 'MasterDataCreateContactData',
+    bodyType: "{ name: string; company?: string | null; title?: string | null; type?: ContactType; email?: string | null; phone?: string | null; address?: string | null; website?: string | null; instagram?: string | null; imdb?: string | null; defaultRate?: Money | null; track1099?: boolean; notes?: string | null; }",
+    bodyRequired: true,
+    allowedBodyFields: ["name","company","title","type","email","phone","address","website","instagram","imdb","defaultRate","track1099","notes"],
+    requiredBodyFields: ["name"],
+    idempotency: 'required',
+    summary: 'Create a contact',
+  },
+  masterDataCreateProject: {
+    op: 'masterDataCreateProject',
+    method: 'post',
+    url: '/projects',
+    pathParams: [],
+    dataType: 'MasterDataCreateProjectData',
+    bodyType: "{ name: string; slug?: string; emoji?: string | null; image?: string | null; summary?: string | null; spaceId?: Id | null; }",
+    bodyRequired: true,
+    allowedBodyFields: ["name","slug","emoji","image","summary","spaceId"],
+    requiredBodyFields: ["name"],
+    idempotency: 'required',
+    summary: 'Create a project',
   },
   masterDataUpdateComment: {
     op: 'masterDataUpdateComment',
@@ -252,6 +394,7 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["content","resolved"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a comment',
   },
   masterDataUpdateContact: {
@@ -264,6 +407,7 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["name","company","title","type","email","phone","address","website","instagram","imdb","defaultRate","track1099","notes"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a contact',
   },
   masterDataUpdateProject: {
@@ -276,6 +420,7 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["name","slug","emoji","image","summary","spaceId","status"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a project',
   },
   masterDataUpdateSpace: {
@@ -288,7 +433,34 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["name","slug","image","parentId","archived"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a space',
+  },
+  purchaseOrdersCreate: {
+    op: 'purchaseOrdersCreate',
+    method: 'post',
+    url: '/purchase-orders',
+    pathParams: [],
+    dataType: 'PurchaseOrdersCreateData',
+    bodyType: "{ projectId?: string; number?: string; title?: string; contactId?: string; budgetLineId?: string; date?: string; serviceStartAt?: string; serviceEndAt?: string; notes?: string; sort?: number; items?: Array<PurchaseOrderItemWrite>; }",
+    bodyRequired: true,
+    allowedBodyFields: ["projectId","number","title","contactId","budgetLineId","date","serviceStartAt","serviceEndAt","notes","sort","items"],
+    requiredBodyFields: [],
+    idempotency: 'required',
+    summary: 'Create a purchase order',
+  },
+  purchaseOrdersCreateItem: {
+    op: 'purchaseOrdersCreateItem',
+    method: 'post',
+    url: '/purchase-orders/{purchaseOrderId}/items',
+    pathParams: ['purchaseOrderId'],
+    dataType: 'PurchaseOrdersCreateItemData',
+    bodyType: "{ lineNumber?: number | null; description?: string | null; budgetLineId?: string | null; qty?: number | null; unit?: string | null; rate?: number | null; amount?: number | null; sort?: number | null; }",
+    bodyRequired: true,
+    allowedBodyFields: ["lineNumber","description","budgetLineId","qty","unit","rate","amount","sort"],
+    requiredBodyFields: [],
+    idempotency: 'required',
+    summary: 'Add a purchase order item',
   },
   purchaseOrdersUpdate: {
     op: 'purchaseOrdersUpdate',
@@ -300,6 +472,7 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["projectId","number","title","contactId","budgetLineId","date","serviceStartAt","serviceEndAt","notes","sort"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a purchase order',
   },
   purchaseOrdersUpdateItem: {
@@ -312,7 +485,21 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["lineNumber","description","budgetLineId","qty","unit","rate","amount","sort"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a purchase order item',
+  },
+  transactionsCreate: {
+    op: 'transactionsCreate',
+    method: 'post',
+    url: '/transactions',
+    pathParams: [],
+    dataType: 'TransactionsCreateData',
+    bodyType: "{ type: TransactionJournalType; amount: Money; currency?: string; timestamp: string; status?: TransactionStatus; description?: string; projectId?: Id; contactId?: Id; budgetLineId?: Id; fringeId?: Id; number?: string; ref?: string; notes?: string; actualized?: boolean; }",
+    bodyRequired: true,
+    allowedBodyFields: ["type","amount","currency","timestamp","status","description","projectId","contactId","budgetLineId","fringeId","number","ref","notes","actualized"],
+    requiredBodyFields: ["type","amount","timestamp"],
+    idempotency: 'required',
+    summary: 'Create a journal transaction',
   },
   transactionsItemsUpdate: {
     op: 'transactionsItemsUpdate',
@@ -324,6 +511,7 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["description","budgetLineId","fringeId","qty","unit","rate","amount","overtime","taxable","nonTaxable"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a transaction item',
   },
   transactionsUpdate: {
@@ -336,6 +524,7 @@ export const WRITE_OPS = {
     bodyRequired: true,
     allowedBodyFields: ["projectId","contactId","budgetLineId","fringeId","notes","number","ref","amount","currency","timestamp","type","status","description","merchant","sourceLast4","sourceName","actualized"],
     requiredBodyFields: [],
+    idempotency: 'none',
     summary: 'Update a transaction',
   },
 } as const satisfies Record<string, WriteOpDef>;

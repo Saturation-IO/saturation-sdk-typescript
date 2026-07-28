@@ -197,11 +197,11 @@ export class BudgetLinesResource {
   /** Create a budget line. Pass `idempotencyKey` to replay same-body retries. */
   async create(
     body: BudgetLineCreate,
-    opts: { idempotencyKey?: string } = {},
+    opts: { idempotencyKey: string },
   ): Promise<BudgetLine> {
     return this.t.run(sdk.budgetCreateLine, {
       path: { projectId: this.projectId },
-      headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<BudgetLine>;
   }
@@ -209,11 +209,11 @@ export class BudgetLinesResource {
   /** Create budget lines in one all-or-nothing batch. */
   async createBatch(
     body: BudgetLineBatchCreate,
-    opts: { idempotencyKey?: string } = {},
+    opts: { idempotencyKey: string },
   ): Promise<BudgetLineBatchCreateResponse> {
     return this.t.run(sdk.budgetCreateLinesBatch, {
       path: { projectId: this.projectId },
-      headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<BudgetLineBatchCreateResponse>;
   }
@@ -256,11 +256,11 @@ export class BudgetPhaseDataResource {
   /** Upsert editable line phase data in one all-or-nothing batch. */
   async upsertBatch(
     body: BudgetLinePhaseDataBatchUpsert,
-    opts: { idempotencyKey?: string } = {},
+    opts: { idempotencyKey: string },
   ): Promise<BudgetLinePhaseDataBatchUpsertResponse> {
     return this.t.run(sdk.budgetUpsertLinePhaseDataBatch, {
       path: { projectId: this.projectId },
-      headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<BudgetLinePhaseDataBatchUpsertResponse>;
   }
@@ -288,9 +288,10 @@ export class BudgetPhasesResource {
     }) as Promise<BudgetPhase>;
   }
 
-  async create(body: BudgetPhaseCreate): Promise<BudgetPhase> {
+  async create(body: BudgetPhaseCreate, opts: { idempotencyKey: string }): Promise<BudgetPhase> {
     return this.t.run(sdk.budgetCreatePhase, {
       path: { projectId: this.projectId },
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<BudgetPhase>;
   }

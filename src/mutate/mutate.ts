@@ -182,6 +182,17 @@ export class MutateClient {
    * `422 field_read_only`). `204 No Content` resolves to `undefined`.
    */
   async mutate(op: string, args: MutateArgs = {}): Promise<unknown> {
+    const { data } = await this.mutateWithMeta(op, args);
+    return data;
+  }
+
+  /**
+   * Like {@link mutate}, but also surfaces retry-identity metadata from the
+   * response headers: `replayed` is true when the /v1 route answered from a
+   * stored idempotency receipt (`Idempotency-Replayed: true`) instead of
+   * creating a new record.
+   */
+  async mutateWithMeta(op: string, args: MutateArgs = {}): Promise<{ data: unknown; replayed: boolean }> {
     const def = this.def(op);
     validateMutateArgs(op, args);
 
@@ -201,12 +212,13 @@ export class MutateClient {
       });
     };
 
-    return this.transport.run(runOp, {
+    const { data, response } = await this.transport.runWithResponse(runOp, {
       ...(args.path ? { path: args.path } : {}),
       ...(args.body !== undefined ? { body: args.body } : {}),
       ...(args.query ? { query: args.query } : {}),
       ...(args.headers ? { headers: args.headers } : {}),
     });
+    return { data, replayed: response.headers.get('idempotency-replayed') === 'true' };
   }
 }
 
