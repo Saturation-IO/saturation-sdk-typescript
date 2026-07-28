@@ -51,13 +51,13 @@ describe('PurchaseOrdersResource scope defaults', () => {
       projectId: 'project_1',
     }));
 
-    await projectResource.create(body);
+    await projectResource.create(body, { idempotencyKey: 'itg-po-key-0123456789' });
     expect((run.mock.calls[0]?.[1] as Options).body).toEqual({
       title: 'Camera package',
       projectId: 'project_1',
     });
 
-    await workspaceResource.create(body);
+    await workspaceResource.create(body, { idempotencyKey: 'itg-po-key-9876543210' });
     expect((run.mock.calls[1]?.[1] as Options).body).toEqual({
       title: 'Camera package',
     });

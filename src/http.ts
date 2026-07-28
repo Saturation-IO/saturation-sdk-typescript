@@ -77,6 +77,19 @@ export class Transport {
     op: Operation<TOptions>,
     options: TOptions,
   ): Promise<unknown> {
+    const { data } = await this.runWithResponse(op, options);
+    return data;
+  }
+
+  /**
+   * Like {@link run}, but also returns the raw `Response` on success — for
+   * callers that need response HEADERS (e.g. `Idempotency-Replayed` on keyed
+   * creates). Error normalization is identical.
+   */
+  async runWithResponse<TOptions>(
+    op: Operation<TOptions>,
+    options: TOptions,
+  ): Promise<{ data: unknown; response: Response }> {
     const result = await op({
       ...(options as TOptions),
       client: this.client,
@@ -104,7 +117,7 @@ export class Transport {
       }
       throw err;
     }
-    return result.data;
+    return { data: result.data, response };
   }
 
   /**

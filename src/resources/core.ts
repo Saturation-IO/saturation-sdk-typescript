@@ -83,9 +83,9 @@ export class ContactsResource {
     }) as Promise<Expanded<Contact, ContactExpandMap, E>>;
   }
 
-  async create(body: ContactCreate, opts: { idempotencyKey?: string } = {}): Promise<Contact> {
+  async create(body: ContactCreate, opts: { idempotencyKey: string }): Promise<Contact> {
     return this.t.run(sdk.masterDataCreateContact, {
-      headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<Contact>;
   }
@@ -134,9 +134,9 @@ export class ProjectsResource {
     }) as Promise<Project>;
   }
 
-  async create(body: ProjectCreate, opts: { idempotencyKey?: string } = {}): Promise<Project> {
+  async create(body: ProjectCreate, opts: { idempotencyKey: string }): Promise<Project> {
     return this.t.run(sdk.masterDataCreateProject, {
-      headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<Project>;
   }

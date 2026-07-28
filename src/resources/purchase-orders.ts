@@ -87,10 +87,10 @@ export class PurchaseOrdersResource {
     }) as Promise<Expanded<PurchaseOrder, PoExpandMap, E>>;
   }
 
-  async create(body: PurchaseOrderCreate, opts: { idempotencyKey?: string } = {}): Promise<PurchaseOrder> {
+  async create(body: PurchaseOrderCreate, opts: { idempotencyKey: string }): Promise<PurchaseOrder> {
     const projectId = body.projectId ?? this.projectId;
     return this.t.run(sdk.purchaseOrdersCreate, {
-      headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body: projectId === undefined ? body : { ...body, projectId },
     }) as Promise<PurchaseOrder>;
   }
@@ -169,9 +169,10 @@ export class PurchaseOrderItemsResource {
     );
   }
 
-  async create(body: PurchaseOrderItemWrite): Promise<PurchaseOrderItem> {
+  async create(body: PurchaseOrderItemWrite, opts: { idempotencyKey: string }): Promise<PurchaseOrderItem> {
     return this.t.run(sdk.purchaseOrdersCreateItem, {
       path: { purchaseOrderId: this.purchaseOrderId },
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<PurchaseOrderItem>;
   }

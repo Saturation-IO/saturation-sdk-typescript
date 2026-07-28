@@ -12,7 +12,7 @@ export type Id = string;
 /**
  * The closed set of stable, typed error codes returned at the `/v1` boundary. (The internal catalog is numeric; these public string codes live only inside the public-API envelope.)
  */
-export type ErrorCode = 'unauthenticated' | 'invalid_token' | 'missing_authorization' | 'token_revoked' | 'permission_revoked' | 'scope_exceeded' | 'forbidden' | 'feature_not_available' | 'role_ceiling_exceeded' | 'not_found' | 'document_target_not_found' | 'validation' | 'cursor_invalid' | 'expand_invalid' | 'invalid_date_range' | 'webhook_https_required' | 'document_invalid_target_kind' | 'range_too_large' | 'account_path_ambiguous' | 'account_code_ambiguous' | 'budget_compute_stale' | 'idempotency_conflict' | 'already_assigned' | 'status_unreachable_for_source' | 'po_invalid_status' | 'webhook_url_invalid_ssrf' | 'field_read_only' | 'source_not_postable' | 'webhook_url_blocked' | 'document_assign_forbidden' | 'budget_too_large' | 'batch_too_large' | 'rate_limited' | 'signing_key_not_configured' | 'internal_error' | 'budget_compute_timeout';
+export type ErrorCode = 'unauthenticated' | 'invalid_token' | 'missing_authorization' | 'token_revoked' | 'permission_revoked' | 'scope_exceeded' | 'forbidden' | 'feature_not_available' | 'upgrade_required' | 'capacity_exceeded' | 'approval_required' | 'resource_locked' | 'temporarily_unavailable' | 'role_ceiling_exceeded' | 'api_access_disabled' | 'not_found' | 'document_target_not_found' | 'validation' | 'cursor_invalid' | 'expand_invalid' | 'invalid_date_range' | 'webhook_https_required' | 'document_invalid_target_kind' | 'range_too_large' | 'account_path_ambiguous' | 'account_code_ambiguous' | 'budget_compute_stale' | 'idempotency_conflict' | 'already_assigned' | 'status_unreachable_for_source' | 'po_invalid_status' | 'webhook_url_invalid_ssrf' | 'legacy_fringe_unsupported' | 'field_read_only' | 'scenario_too_large' | 'source_not_postable' | 'webhook_url_blocked' | 'document_assign_forbidden' | 'budget_too_large' | 'batch_too_large' | 'rate_limited' | 'signing_key_not_configured' | 'internal_error' | 'budget_compute_timeout';
 
 /**
  * The uniform error envelope. Only errors carry `success: false`; success responses are the bare resource or a `{ data, nextCursor? }` collection.
@@ -45,6 +45,28 @@ export type Error = {
      * Present on `rate_limited` (429): seconds to wait before retrying (mirrors the `Retry-After` header).
      */
     retryAfter?: number;
+    /**
+     * Present when a product-access decision denied the operation. Consumers must route remediation by its typed reason rather than by HTTP status alone.
+     */
+    accessDecision?: ProductAccessDecision;
+};
+
+/**
+ * Redacted product-access denial evidence. Internal workspace, principal, resource, idempotency, catalog, and subscription evidence is never exposed.
+ */
+export type ProductAccessDecision = {
+    operationId: string;
+    allowed: boolean;
+    state: 'allowed' | 'warning' | 'denied' | 'indeterminate';
+    primary: {
+        kind: 'principal' | 'authority' | 'policy' | 'rollout' | 'provider' | 'entitlement' | 'quota';
+        status: 'warning' | 'denied' | 'indeterminate';
+        reason: 'principal_unauthenticated' | 'principal_expired' | 'principal_suspended' | 'resource_unreachable' | 'permission_denied' | 'resource_locked' | 'approval_required' | 'safety_restricted' | 'rollout_disabled' | 'delivery_unavailable' | 'provider_unavailable' | 'provider_ineligible' | 'legal_restricted' | 'plan_excluded' | 'contract_restricted' | 'subscription_restricted' | 'quota_warning' | 'quota_exhausted' | 'quota_unknown' | 'quota_reservation_required' | 'dependency_unknown';
+        usage?: number;
+        limit?: number;
+    };
+    remediations: Array<'self_serve_upgrade' | 'contact_billing_owner' | 'contact_sales' | 'buy_capacity' | 'cleanup' | 'authenticate' | 'request_access' | 'resolve_policy' | 'wait_for_rollout' | 'resolve_provider' | 'recover_payment' | 'reactivate_subscription' | 'contact_support' | 'renew_link'>;
+    resolvingPlanId: 'free' | 'pro' | 'team' | 'enterprise';
 };
 
 /**
@@ -2090,6 +2112,10 @@ export type HealthStatus = {
      * The deployed `/v1` contract version (e.g. `1.0.0`).
      */
     version?: string;
+    /**
+     * Git commit SHA of the deployed build, stamped by the deployment pipeline. Absent when no release SHA was stamped (e.g. local dev). The release workflow polls this to verify the public edge has cut over to the promoted commit.
+     */
+    sha?: string;
 };
 
 /**
@@ -2177,17 +2203,17 @@ export type WorkspaceCollection = {
 };
 
 /**
- * The read-only purchase-order status. A client never writes it: it advances through the action endpoints (`/submit`, `/cancel-submission`, `/void`) and through commit / finalize / payment activity (linking a transaction sets `committed`, recording payment sets `paid`). The more granular lifecycle is returned separately at `GET.../{purchaseOrderId}/lifecycle` (or `expand=lifecycle`); its states (`payment_processing`, `variance_review`, `closed`, `canceled`, and others) never appear here.
+ * The read-only purchase-order status. A client never writes it: it advances through the action endpoints through approval actions and `/void`, and through actualization / finalize activity (linking a transaction sets `actualizing`, and the user-driven finalize action sets `paid`). Invoice, payment, and review conditions are returned separately at `GET.../{purchaseOrderId}/lifecycle` (or `expand=lifecycle`) and never replace this status.
  */
-export type PurchaseOrderStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'committed' | 'paid' | 'void';
+export type PurchaseOrderStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'actualizing' | 'paid' | 'void';
 
 /**
- * The granular lifecycle state (21 values). Returned only inside the `PurchaseOrderLifecycle` object, never on the base resource.
+ * A concurrent invoice, payment, or matching condition. Several indicators may be present on one PO.
  */
-export type PurchaseOrderLifecycleState = 'draft' | 'po_approval_pending' | 'po_rejected' | 'approved_awaiting_invoice' | 'invoice_received' | 'invoice_requested' | 'payment_requested' | 'payment_approval_pending' | 'payment_approved' | 'payment_sent' | 'payment_processing' | 'payment_failed' | 'payment_rejected' | 'partially_paid' | 'paid' | 'variance_review' | 'split_review' | 'transaction_match_review' | 'closed' | 'canceled' | 'void';
+export type PurchaseOrderLifecycleIndicatorType = 'invoice_requested' | 'invoice_received' | 'invoice_rejected' | 'payment_approval_pending' | 'payment_approved' | 'payment_processing' | 'payment_failed' | 'payment_returned' | 'variance_review' | 'split_review' | 'transaction_match_review';
 
 /**
- * Severity band for the current lifecycle state.
+ * Severity band for one operational indicator.
  */
 export type PurchaseOrderLifecycleSeverity = 'info' | 'warning' | 'critical';
 
@@ -2336,15 +2362,24 @@ export type PurchaseOrderItem = {
 };
 
 /**
- * The read-only computed lifecycle for a purchase order. Returns the granular 21-state lifecycle, the encumbrance / variance amounts, and the matching and source signals behind the state. It never changes the 7-value base `status`.
+ * The read-only computed lifecycle for a purchase order. The primary PO status stays separate from concurrent invoice, payment, and review indicators.
  */
 export type PurchaseOrderLifecycle = {
-    state: PurchaseOrderLifecycleState;
+    poStatus: PurchaseOrderStatus;
+    indicators: Array<PurchaseOrderLifecycleIndicator>;
     /**
-     * Human-readable label for `state`.
+     * Highest-priority actionable indicator, or null when no warning or failure needs attention.
      */
-    stateLabel: string;
-    severity: PurchaseOrderLifecycleSeverity;
+    primaryAttention: PurchaseOrderLifecycleIndicator | null;
+    payments: {
+        totalCount?: number;
+        processingCount?: number;
+        postedCount?: number;
+        failedCount?: number;
+        returnedCount?: number;
+        amountPosted?: number;
+        paymentIds?: Array<string>;
+    };
     /**
      * Encumbrance / variance amounts, each integer minor units of the project currency.
      */
@@ -2368,16 +2403,25 @@ export type PurchaseOrderLifecycle = {
         reviewReasons?: Array<string>;
     };
     /**
-     * The id sets behind the current lifecycle state (ids only; the referenced records are not inlined).
+     * The id sets behind the current indicators and reconciliation amounts.
      */
     sourceSignals: {
         payableSignalIds?: Array<string>;
+        invoiceRequestIds?: Array<string>;
         paymentRequestIds?: Array<string>;
         bankingPaymentIds?: Array<string>;
         documentIds?: Array<string>;
         transactionIds?: Array<string>;
         flowRunIds?: Array<string>;
     };
+};
+
+export type PurchaseOrderLifecycleIndicator = {
+    type: PurchaseOrderLifecycleIndicatorType;
+    label: string;
+    severity: PurchaseOrderLifecycleSeverity;
+    count: number;
+    sourceIds: Array<string>;
 };
 
 /**
@@ -3185,9 +3229,9 @@ export type UsageOperationsResponse = {
 };
 
 /**
- * A subscribable outbound event, named `resource.verb` in the same vocabulary as the API ( /). Closed enum, anything outside this set is never delivered (no undocumented events). `budget.changed` is synthesized at the webhook layer over every kind of budget change (budget / line / phase-data / tag assign-unassign / rate-pack edits), so it has no per-edit blind spot. The `purchaseOrder.*` suffix is the exact `status` the PO entered (flow-derived, read-only), there is no `submitted` / `approve` / `pay` event because there is no such status ( / Appendix A); `committed` and `paid` are emitted from the lifecycle, never a verb. Deferred to v1.1 (reserved names, not yet emitted, subscribing to them in v1 is a no-op): `pack.enabled` (a workspace rate/incentive pack enabled, distinct from `pack.installed` which is the project-scoped install) and `usage.threshold_reached` (credit/usage budget alerting). They are documented here so the deferral is explicit rather than implied by absence.
+ * A subscribable outbound event, named `resource.verb` in the same vocabulary as the API ( /). Closed enum, anything outside this set is never delivered (no undocumented events). `budget.changed` is synthesized at the webhook layer over every kind of budget change (budget / line / phase-data / tag assign-unassign / rate-pack edits), so it has no per-edit blind spot. The `purchaseOrder.*` suffix is the exact `status` the PO entered (flow-derived, read-only), there is no `submitted` / `approve` / `pay` event because there is no such status ( / Appendix A); `actualizing` and `paid` are emitted from the lifecycle, never a verb. Deferred to v1.1 (reserved names, not yet emitted, subscribing to them in v1 is a no-op): `pack.enabled` (a workspace rate/incentive pack enabled, distinct from `pack.installed` which is the project-scoped install) and `usage.threshold_reached` (credit/usage budget alerting). They are documented here so the deferral is explicit rather than implied by absence.
  */
-export type WebhookEvent = 'transaction.created' | 'transaction.updated' | 'budget.changed' | 'purchaseOrder.created' | 'purchaseOrder.pending' | 'purchaseOrder.approved' | 'purchaseOrder.rejected' | 'purchaseOrder.committed' | 'purchaseOrder.paid' | 'purchaseOrder.void' | 'document.created' | 'document.assigned' | 'document.unassigned' | 'document.deleted' | 'incentive.added' | 'pack.installed' | 'pack.uninstalled';
+export type WebhookEvent = 'transaction.created' | 'transaction.updated' | 'budget.changed' | 'purchaseOrder.created' | 'purchaseOrder.pending' | 'purchaseOrder.approved' | 'purchaseOrder.rejected' | 'purchaseOrder.actualizing' | 'purchaseOrder.paid' | 'purchaseOrder.void' | 'document.created' | 'document.assigned' | 'document.unassigned' | 'document.deleted' | 'incentive.added' | 'pack.installed' | 'pack.uninstalled';
 
 /**
  * Delivery payload shape. `thin` (default) sends an id-only payload and the consumer re-fetches the object (smallest payloads, privacy-safe). `full` inlines the same object `GET` would return, filtered to the permissions of the subscription's owning identity and re-checked at delivery time; if that identity's access narrowed between enqueue and delivery, the delivery is dropped or downgraded to `thin`, never leaking a field it can no longer read.
@@ -4072,11 +4116,11 @@ export type BudgetListLinesResponse = BudgetListLinesResponses[keyof BudgetListL
 
 export type BudgetCreateLineData = {
     body: BudgetLineCreate;
-    headers?: {
+    headers: {
         /**
-         * Optional key for same-body retries. Replaying it with a different body → `409 idempotency_conflict`.
+         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
          */
-        'Idempotency-Key'?: string;
+        'Idempotency-Key': string;
     };
     path: {
         /**
@@ -4132,11 +4176,11 @@ export type BudgetCreateLineResponse = BudgetCreateLineResponses[keyof BudgetCre
 
 export type BudgetCreateLinesBatchData = {
     body: BudgetLineBatchCreate;
-    headers?: {
+    headers: {
         /**
-         * Optional key for same-body retries. Replaying it with a different body → `409 idempotency_conflict`.
+         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
          */
-        'Idempotency-Key'?: string;
+        'Idempotency-Key': string;
     };
     path: {
         /**
@@ -4192,11 +4236,11 @@ export type BudgetCreateLinesBatchResponse = BudgetCreateLinesBatchResponses[key
 
 export type BudgetUpsertLinePhaseDataBatchData = {
     body: BudgetLinePhaseDataBatchUpsert;
-    headers?: {
+    headers: {
         /**
-         * Optional key for same-body retries. Replaying it with a different body → `409 idempotency_conflict`.
+         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
          */
-        'Idempotency-Key'?: string;
+        'Idempotency-Key': string;
     };
     path: {
         /**
@@ -4520,6 +4564,12 @@ export type BudgetCreatePhaseData = {
         alias?: string;
         color?: string;
         isHidden?: boolean;
+    };
+    headers: {
+        /**
+         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         */
+        'Idempotency-Key': string;
     };
     path: {
         /**
@@ -9419,11 +9469,11 @@ export type MasterDataListProjectsResponse = MasterDataListProjectsResponses[key
 
 export type MasterDataCreateProjectData = {
     body: ProjectCreate;
-    headers?: {
+    headers: {
         /**
-         * Optional client-generated key for safe retries of this create. Replaying the same key with a different body returns `409 idempotency_conflict`.
+         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
          */
-        'Idempotency-Key'?: string;
+        'Idempotency-Key': string;
     };
     path?: never;
     query?: never;
@@ -9439,6 +9489,10 @@ export type MasterDataCreateProjectErrors = {
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
+    /**
+     * The plan or project capacity does not allow creation.
+     */
+    402: Error;
     /**
      * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
      */
@@ -9456,9 +9510,17 @@ export type MasterDataCreateProjectErrors = {
      */
     422: Error;
     /**
+     * Project creation is locked by policy.
+     */
+    423: Error;
+    /**
      * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
      */
     429: Error;
+    /**
+     * Product access could not be established safely.
+     */
+    503: Error;
 };
 
 export type MasterDataCreateProjectError = MasterDataCreateProjectErrors[keyof MasterDataCreateProjectErrors];
@@ -9921,11 +9983,11 @@ export type MasterDataListContactsResponse = MasterDataListContactsResponses[key
 
 export type MasterDataCreateContactData = {
     body: ContactCreate;
-    headers?: {
+    headers: {
         /**
-         * Optional client-generated key for safe retries of this create. Replaying the same key with a different body returns `409 idempotency_conflict`.
+         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
          */
-        'Idempotency-Key'?: string;
+        'Idempotency-Key': string;
     };
     path?: never;
     query?: never;
@@ -10751,11 +10813,11 @@ export type PurchaseOrdersListResponse = PurchaseOrdersListResponses[keyof Purch
 
 export type PurchaseOrdersCreateData = {
     body: PurchaseOrderCreate;
-    headers?: {
+    headers: {
         /**
-         * Optional client-supplied key for safe retries of this create. Replaying the same key with a different body returns `409 idempotency_conflict`.
+         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
          */
-        'Idempotency-Key'?: string;
+        'Idempotency-Key': string;
     };
     path?: never;
     query?: {
@@ -11183,7 +11245,7 @@ export type PurchaseOrdersLinkError = PurchaseOrdersLinkErrors[keyof PurchaseOrd
 
 export type PurchaseOrdersLinkResponses = {
     /**
-     * The committed purchase order.
+     * The actualizing purchase order.
      */
     200: PurchaseOrder;
 };
@@ -11339,11 +11401,11 @@ export type PurchaseOrdersListItemsResponse = PurchaseOrdersListItemsResponses[k
 
 export type PurchaseOrdersCreateItemData = {
     body: PurchaseOrderItemWrite;
-    headers?: {
+    headers: {
         /**
-         * Optional client-supplied key for safe retries of this billable item create. Replaying the same key with a different body returns `409 idempotency_conflict`.
+         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
          */
-        'Idempotency-Key'?: string;
+        'Idempotency-Key': string;
     };
     path: {
         /**
@@ -11820,11 +11882,11 @@ export type TransactionsListResponse = TransactionsListResponses[keyof Transacti
 
 export type TransactionsCreateData = {
     body: TransactionJournalCreate;
-    headers?: {
+    headers: {
         /**
-         * Optional client-generated key for safe retries of this billable create. Replaying the same key with a different body returns `409 idempotency_conflict`.
+         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
          */
-        'Idempotency-Key'?: string;
+        'Idempotency-Key': string;
     };
     path?: never;
     query?: never;
@@ -11983,11 +12045,11 @@ export type TransactionsTypesResponse = TransactionsTypesResponses[keyof Transac
 
 export type TransactionsBatchCreateData = {
     body: TransactionBatchCreate;
-    headers?: {
+    headers: {
         /**
-         * Optional client-generated key for safe retries of this billable batch create. Replaying the same key with a different body returns `409 idempotency_conflict`.
+         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
          */
-        'Idempotency-Key'?: string;
+        'Idempotency-Key': string;
     };
     path?: never;
     query?: never;

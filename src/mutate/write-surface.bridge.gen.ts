@@ -7,17 +7,31 @@
 // lives in each method's signature; the runtime is the generic gated bridge.
 // Regenerate with:  pnpm --filter @saturation/sdk generate:mutate
 //
-// 25 write operations.
+// 37 write operations.
 
 import type {
+  BudgetCreateLineData,
+  BudgetCreateLineResponse,
+  BudgetCreateLinesBatchData,
+  BudgetCreateLinesBatchResponse,
+  BudgetCreatePhaseData,
+  BudgetCreatePhaseResponse,
   BudgetUpdateLineData,
   BudgetUpdateLineResponse,
   BudgetUpdatePhaseData,
   BudgetUpdatePhaseResponse,
+  BudgetUpsertLinePhaseDataBatchData,
+  BudgetUpsertLinePhaseDataBatchResponse,
   BudgetUpsertLinePhaseDataData,
   BudgetUpsertLinePhaseDataResponse,
+  DocumentsAssignData,
+  DocumentsAssignResponse,
   DocumentsUpdateData,
   DocumentsUpdateResponse,
+  LibraryAddProjectIncentiveData,
+  LibraryAddProjectIncentiveResponse,
+  LibraryAddRatePackData,
+  LibraryAddRatePackResponse,
   LibraryUpdateCurrencyTemplateData,
   LibraryUpdateCurrencyTemplateResponse,
   LibraryUpdateCustomUnitData,
@@ -44,6 +58,10 @@ import type {
   LibraryUpdateRatePackResponse,
   LibraryUpdateTagData,
   LibraryUpdateTagResponse,
+  MasterDataCreateContactData,
+  MasterDataCreateContactResponse,
+  MasterDataCreateProjectData,
+  MasterDataCreateProjectResponse,
   MasterDataUpdateCommentData,
   MasterDataUpdateCommentResponse,
   MasterDataUpdateContactData,
@@ -52,10 +70,16 @@ import type {
   MasterDataUpdateProjectResponse,
   MasterDataUpdateSpaceData,
   MasterDataUpdateSpaceResponse,
+  PurchaseOrdersCreateData,
+  PurchaseOrdersCreateItemData,
+  PurchaseOrdersCreateItemResponse,
+  PurchaseOrdersCreateResponse,
   PurchaseOrdersUpdateData,
   PurchaseOrdersUpdateItemData,
   PurchaseOrdersUpdateItemResponse,
   PurchaseOrdersUpdateResponse,
+  TransactionsCreateData,
+  TransactionsCreateResponse,
   TransactionsItemsUpdateData,
   TransactionsItemsUpdateResponse,
   TransactionsUpdateData,
@@ -68,6 +92,8 @@ export interface WriteBridgeArgs {
   path?: Record<string, unknown>;
   body?: unknown;
   query?: Record<string, unknown>;
+  /** Request headers (the `Idempotency-Key` channel for keyed creates). */
+  headers?: Record<string, string>;
 }
 
 /**
@@ -84,6 +110,7 @@ type OptionsEnvelope = {
   path?: unknown;
   body?: unknown;
   query?: unknown;
+  headers?: unknown;
 };
 
 /**
@@ -102,9 +129,19 @@ export function createBridgeWriteSurface(bridge: WriteBridge): WriteSurface {
       ...(data.path !== undefined ? { path: data.path as Record<string, unknown> } : {}),
       ...(data.body !== undefined ? { body: data.body } : {}),
       ...(data.query !== undefined ? { query: data.query as Record<string, unknown> } : {}),
+      ...(data.headers !== undefined ? { headers: data.headers as Record<string, string> } : {}),
     });
 
   return {
+    budgetCreateLine(data: BudgetCreateLineData): Promise<BudgetCreateLineResponse> {
+      return forward('budgetCreateLine', data) as Promise<BudgetCreateLineResponse>;
+    },
+    budgetCreateLinesBatch(data: BudgetCreateLinesBatchData): Promise<BudgetCreateLinesBatchResponse> {
+      return forward('budgetCreateLinesBatch', data) as Promise<BudgetCreateLinesBatchResponse>;
+    },
+    budgetCreatePhase(data: BudgetCreatePhaseData): Promise<BudgetCreatePhaseResponse> {
+      return forward('budgetCreatePhase', data) as Promise<BudgetCreatePhaseResponse>;
+    },
     budgetUpdateLine(data: BudgetUpdateLineData): Promise<BudgetUpdateLineResponse> {
       return forward('budgetUpdateLine', data) as Promise<BudgetUpdateLineResponse>;
     },
@@ -114,8 +151,20 @@ export function createBridgeWriteSurface(bridge: WriteBridge): WriteSurface {
     budgetUpsertLinePhaseData(data: BudgetUpsertLinePhaseDataData): Promise<BudgetUpsertLinePhaseDataResponse> {
       return forward('budgetUpsertLinePhaseData', data) as Promise<BudgetUpsertLinePhaseDataResponse>;
     },
+    budgetUpsertLinePhaseDataBatch(data: BudgetUpsertLinePhaseDataBatchData): Promise<BudgetUpsertLinePhaseDataBatchResponse> {
+      return forward('budgetUpsertLinePhaseDataBatch', data) as Promise<BudgetUpsertLinePhaseDataBatchResponse>;
+    },
+    documentsAssign(data: DocumentsAssignData): Promise<DocumentsAssignResponse> {
+      return forward('documentsAssign', data) as Promise<DocumentsAssignResponse>;
+    },
     documentsUpdate(data: DocumentsUpdateData): Promise<DocumentsUpdateResponse> {
       return forward('documentsUpdate', data) as Promise<DocumentsUpdateResponse>;
+    },
+    libraryAddProjectIncentive(data: LibraryAddProjectIncentiveData): Promise<LibraryAddProjectIncentiveResponse> {
+      return forward('libraryAddProjectIncentive', data) as Promise<LibraryAddProjectIncentiveResponse>;
+    },
+    libraryAddRatePack(data: LibraryAddRatePackData): Promise<LibraryAddRatePackResponse> {
+      return forward('libraryAddRatePack', data) as Promise<LibraryAddRatePackResponse>;
     },
     libraryUpdateCurrencyTemplate(data: LibraryUpdateCurrencyTemplateData): Promise<LibraryUpdateCurrencyTemplateResponse> {
       return forward('libraryUpdateCurrencyTemplate', data) as Promise<LibraryUpdateCurrencyTemplateResponse>;
@@ -156,6 +205,12 @@ export function createBridgeWriteSurface(bridge: WriteBridge): WriteSurface {
     libraryUpdateTag(data: LibraryUpdateTagData): Promise<LibraryUpdateTagResponse> {
       return forward('libraryUpdateTag', data) as Promise<LibraryUpdateTagResponse>;
     },
+    masterDataCreateContact(data: MasterDataCreateContactData): Promise<MasterDataCreateContactResponse> {
+      return forward('masterDataCreateContact', data) as Promise<MasterDataCreateContactResponse>;
+    },
+    masterDataCreateProject(data: MasterDataCreateProjectData): Promise<MasterDataCreateProjectResponse> {
+      return forward('masterDataCreateProject', data) as Promise<MasterDataCreateProjectResponse>;
+    },
     masterDataUpdateComment(data: MasterDataUpdateCommentData): Promise<MasterDataUpdateCommentResponse> {
       return forward('masterDataUpdateComment', data) as Promise<MasterDataUpdateCommentResponse>;
     },
@@ -168,11 +223,20 @@ export function createBridgeWriteSurface(bridge: WriteBridge): WriteSurface {
     masterDataUpdateSpace(data: MasterDataUpdateSpaceData): Promise<MasterDataUpdateSpaceResponse> {
       return forward('masterDataUpdateSpace', data) as Promise<MasterDataUpdateSpaceResponse>;
     },
+    purchaseOrdersCreate(data: PurchaseOrdersCreateData): Promise<PurchaseOrdersCreateResponse> {
+      return forward('purchaseOrdersCreate', data) as Promise<PurchaseOrdersCreateResponse>;
+    },
+    purchaseOrdersCreateItem(data: PurchaseOrdersCreateItemData): Promise<PurchaseOrdersCreateItemResponse> {
+      return forward('purchaseOrdersCreateItem', data) as Promise<PurchaseOrdersCreateItemResponse>;
+    },
     purchaseOrdersUpdate(data: PurchaseOrdersUpdateData): Promise<PurchaseOrdersUpdateResponse> {
       return forward('purchaseOrdersUpdate', data) as Promise<PurchaseOrdersUpdateResponse>;
     },
     purchaseOrdersUpdateItem(data: PurchaseOrdersUpdateItemData): Promise<PurchaseOrdersUpdateItemResponse> {
       return forward('purchaseOrdersUpdateItem', data) as Promise<PurchaseOrdersUpdateItemResponse>;
+    },
+    transactionsCreate(data: TransactionsCreateData): Promise<TransactionsCreateResponse> {
+      return forward('transactionsCreate', data) as Promise<TransactionsCreateResponse>;
     },
     transactionsItemsUpdate(data: TransactionsItemsUpdateData): Promise<TransactionsItemsUpdateResponse> {
       return forward('transactionsItemsUpdate', data) as Promise<TransactionsItemsUpdateResponse>;

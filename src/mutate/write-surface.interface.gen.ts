@@ -8,17 +8,31 @@
 // the generated `types.gen.ts` request/response types) changes, every
 // `satisfies WriteSurface` implementation must update to match or fail `tsc`.
 //
-// 25 write operations.
+// 37 write operations.
 
 import type {
+  BudgetCreateLineData,
+  BudgetCreateLineResponse,
+  BudgetCreateLinesBatchData,
+  BudgetCreateLinesBatchResponse,
+  BudgetCreatePhaseData,
+  BudgetCreatePhaseResponse,
   BudgetUpdateLineData,
   BudgetUpdateLineResponse,
   BudgetUpdatePhaseData,
   BudgetUpdatePhaseResponse,
+  BudgetUpsertLinePhaseDataBatchData,
+  BudgetUpsertLinePhaseDataBatchResponse,
   BudgetUpsertLinePhaseDataData,
   BudgetUpsertLinePhaseDataResponse,
+  DocumentsAssignData,
+  DocumentsAssignResponse,
   DocumentsUpdateData,
   DocumentsUpdateResponse,
+  LibraryAddProjectIncentiveData,
+  LibraryAddProjectIncentiveResponse,
+  LibraryAddRatePackData,
+  LibraryAddRatePackResponse,
   LibraryUpdateCurrencyTemplateData,
   LibraryUpdateCurrencyTemplateResponse,
   LibraryUpdateCustomUnitData,
@@ -45,6 +59,10 @@ import type {
   LibraryUpdateRatePackResponse,
   LibraryUpdateTagData,
   LibraryUpdateTagResponse,
+  MasterDataCreateContactData,
+  MasterDataCreateContactResponse,
+  MasterDataCreateProjectData,
+  MasterDataCreateProjectResponse,
   MasterDataUpdateCommentData,
   MasterDataUpdateCommentResponse,
   MasterDataUpdateContactData,
@@ -53,10 +71,16 @@ import type {
   MasterDataUpdateProjectResponse,
   MasterDataUpdateSpaceData,
   MasterDataUpdateSpaceResponse,
+  PurchaseOrdersCreateData,
+  PurchaseOrdersCreateItemData,
+  PurchaseOrdersCreateItemResponse,
+  PurchaseOrdersCreateResponse,
   PurchaseOrdersUpdateData,
   PurchaseOrdersUpdateItemData,
   PurchaseOrdersUpdateItemResponse,
   PurchaseOrdersUpdateResponse,
+  TransactionsCreateData,
+  TransactionsCreateResponse,
   TransactionsItemsUpdateData,
   TransactionsItemsUpdateResponse,
   TransactionsUpdateData,
@@ -69,14 +93,28 @@ import type {
  * op and resolves the unwrapped success payload (the created/updated resource).
  */
 export interface WriteSurface {
+  /** Create a budget line with optional phase data (`POST /projects/{projectId}/budget/lines`). */
+  budgetCreateLine(data: BudgetCreateLineData): Promise<BudgetCreateLineResponse>;
+  /** Create budget lines in one all-or-nothing batch (`POST /projects/{projectId}/budget/lines/batch`). */
+  budgetCreateLinesBatch(data: BudgetCreateLinesBatchData): Promise<BudgetCreateLinesBatchResponse>;
+  /** Create a budget phase (`POST /projects/{projectId}/budget/phases`). */
+  budgetCreatePhase(data: BudgetCreatePhaseData): Promise<BudgetCreatePhaseResponse>;
   /** Update a budget line (`PATCH /projects/{projectId}/budget/lines/{lineId}`). */
   budgetUpdateLine(data: BudgetUpdateLineData): Promise<BudgetUpdateLineResponse>;
   /** Update a budget phase (`PATCH /projects/{projectId}/budget/phases/{phaseId}`). */
   budgetUpdatePhase(data: BudgetUpdatePhaseData): Promise<BudgetUpdatePhaseResponse>;
   /** Upsert one editable line phase-data entry (`PUT /projects/{projectId}/budget/lines/{lineId}/phase-data/{phaseId}`). */
   budgetUpsertLinePhaseData(data: BudgetUpsertLinePhaseDataData): Promise<BudgetUpsertLinePhaseDataResponse>;
+  /** Upsert editable line phase data in one all-or-nothing batch (`POST /projects/{projectId}/budget/lines/phase-data/batch`). */
+  budgetUpsertLinePhaseDataBatch(data: BudgetUpsertLinePhaseDataBatchData): Promise<BudgetUpsertLinePhaseDataBatchResponse>;
+  /** Assign a document to a typed target (`POST /documents/{documentId}/assign`). */
+  documentsAssign(data: DocumentsAssignData): Promise<DocumentsAssignResponse>;
   /** Rename / move / re-describe a document (`PATCH /documents/{documentId}`). */
   documentsUpdate(data: DocumentsUpdateData): Promise<DocumentsUpdateResponse>;
+  /** Add an incentive program into the project (`POST /projects/{projectId}/library/incentives/add`). */
+  libraryAddProjectIncentive(data: LibraryAddProjectIncentiveData): Promise<LibraryAddProjectIncentiveResponse>;
+  /** Add a rate pack into the project (`POST /projects/{projectId}/library/rates/{packId}/add`). */
+  libraryAddRatePack(data: LibraryAddRatePackData): Promise<LibraryAddRatePackResponse>;
   /** Update a workspace currency template (`PATCH /library/currencies/{currencyId}`). */
   libraryUpdateCurrencyTemplate(data: LibraryUpdateCurrencyTemplateData): Promise<LibraryUpdateCurrencyTemplateResponse>;
   /** Update a workspace custom unit (`PATCH /library/units/custom/{unitId}`). */
@@ -103,6 +141,10 @@ export interface WriteSurface {
   libraryUpdateRatePackItem(data: LibraryUpdateRatePackItemData): Promise<LibraryUpdateRatePackItemResponse>;
   /** Update a workspace tag (`PATCH /library/tags/{tagId}`). */
   libraryUpdateTag(data: LibraryUpdateTagData): Promise<LibraryUpdateTagResponse>;
+  /** Create a contact (`POST /contacts`). */
+  masterDataCreateContact(data: MasterDataCreateContactData): Promise<MasterDataCreateContactResponse>;
+  /** Create a project (`POST /projects`). */
+  masterDataCreateProject(data: MasterDataCreateProjectData): Promise<MasterDataCreateProjectResponse>;
   /** Update a comment (`PATCH /comments/{commentId}`). */
   masterDataUpdateComment(data: MasterDataUpdateCommentData): Promise<MasterDataUpdateCommentResponse>;
   /** Update a contact (`PATCH /contacts/{contactId}`). */
@@ -111,10 +153,16 @@ export interface WriteSurface {
   masterDataUpdateProject(data: MasterDataUpdateProjectData): Promise<MasterDataUpdateProjectResponse>;
   /** Update a space (`PATCH /spaces/{spaceId}`). */
   masterDataUpdateSpace(data: MasterDataUpdateSpaceData): Promise<MasterDataUpdateSpaceResponse>;
+  /** Create a purchase order (`POST /purchase-orders`). */
+  purchaseOrdersCreate(data: PurchaseOrdersCreateData): Promise<PurchaseOrdersCreateResponse>;
+  /** Add a purchase order item (`POST /purchase-orders/{purchaseOrderId}/items`). */
+  purchaseOrdersCreateItem(data: PurchaseOrdersCreateItemData): Promise<PurchaseOrdersCreateItemResponse>;
   /** Update a purchase order (`PATCH /purchase-orders/{purchaseOrderId}`). */
   purchaseOrdersUpdate(data: PurchaseOrdersUpdateData): Promise<PurchaseOrdersUpdateResponse>;
   /** Update a purchase order item (`PATCH /purchase-orders/{purchaseOrderId}/items/{itemId}`). */
   purchaseOrdersUpdateItem(data: PurchaseOrdersUpdateItemData): Promise<PurchaseOrdersUpdateItemResponse>;
+  /** Create a journal transaction (`POST /transactions`). */
+  transactionsCreate(data: TransactionsCreateData): Promise<TransactionsCreateResponse>;
   /** Update a transaction item (`PATCH /transactions/{txId}/items/{itemId}`). */
   transactionsItemsUpdate(data: TransactionsItemsUpdateData): Promise<TransactionsItemsUpdateResponse>;
   /** Update a transaction (`PATCH /transactions/{txId}`). */

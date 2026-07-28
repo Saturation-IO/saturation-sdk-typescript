@@ -23,9 +23,33 @@ describe('validateMutateArgs', () => {
     })).toThrow(/unknown body field.*invented/);
   });
 
-  it('excludes outcome-ambiguous POST operations from the canonical surface', () => {
-    expect(Object.values(WRITE_OPS).every((op) => String(op.method) !== 'post')).toBe(true);
+  it('every POST on the surface carries a retry identity (receipt key or natural idempotency)', () => {
+    // POSTs are re-admitted (SAT-5831): durable transactional idempotency
+    // receipts enforce retry identity, so an outcome-ambiguous timeout replays
+    // instead of duplicating. The generator gate proves the declarations; this
+    // pins the emitted classification.
+    const posts = Object.values(WRITE_OPS).filter((op) => String(op.method) === 'post');
+    expect(posts.length).toBeGreaterThan(0);
+    expect(posts.every((op) => op.idempotency === 'required' || op.idempotency === 'natural')).toBe(true);
+
+    const keyed = posts.filter((op) => op.idempotency === 'required').map((op) => op.op).sort();
+    expect(keyed).toEqual([
+      'budgetCreateLine',
+      'budgetCreateLinesBatch',
+      'budgetCreatePhase',
+      'budgetUpsertLinePhaseDataBatch',
+      'masterDataCreateContact',
+      'masterDataCreateProject',
+      'purchaseOrdersCreate',
+      'purchaseOrdersCreateItem',
+      'transactionsCreate',
+    ]);
+    const natural = posts.filter((op) => op.idempotency === 'natural').map((op) => op.op).sort();
+    expect(natural).toEqual(['documentsAssign', 'libraryAddProjectIncentive', 'libraryAddRatePack']);
+
+    // Still out: upload rides its own tool; webhooks are standing config.
     expect(WRITE_OPS).not.toHaveProperty('documentsDrop');
+    expect(WRITE_OPS).not.toHaveProperty('webhooksCreate');
     expect(WRITE_OPS).not.toHaveProperty('webhooksUpdate');
   });
 });
