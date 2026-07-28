@@ -549,6 +549,13 @@ export interface WriteBridgeArgs {
  */
 export interface WriteBridge {
   mutate(op: string, args: WriteBridgeArgs): Promise<unknown>;
+  /**
+   * Optional meta-aware dispatch: also surfaces whether the /v1 route answered
+   * from a stored idempotency receipt (\`Idempotency-Replayed: true\`). Hosts
+   * that need replay-visible output (the MCP write adapter) call this;
+   * \`MutateClient.mutateWithMeta\` satisfies it.
+   */
+  mutateWithMeta?(op: string, args: WriteBridgeArgs): Promise<{ data: unknown; replayed: boolean }>;
 }
 
 /** A generated hey-api options envelope (the \`<Op>Data\` request shape). */

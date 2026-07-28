@@ -4564,6 +4564,14 @@ export type BudgetCreatePhaseData = {
         alias?: string;
         color?: string;
         isHidden?: boolean;
+        /**
+         * Create a SCENARIO: an estimate phase derived from an existing estimate phase in the same budget, with that phase's values copied server-side. Both the base and the new phase must be `type: estimate`.
+         */
+        derivedFromPhaseId?: string;
+        /**
+         * Copy the base phase's values into the new phase. Only meaningful with `derivedFromPhaseId`; defaults to `true`. Pass `false` for an empty derived phase that still records its lineage.
+         */
+        copyValues?: boolean;
     };
     headers: {
         /**
