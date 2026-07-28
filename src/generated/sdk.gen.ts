@@ -103,7 +103,7 @@ export const budgetCreateLine = <ThrowOnError extends boolean = false>(options: 
 /**
  * Create budget lines in one all-or-nothing batch
  *
- * Creates multiple stored budget lines, each optionally carrying initial editable phase data keyed by phase id. The batch is transactional: either every line and phase-data entry is written, or none are. Optional `Idempotency-Key` replays the original result for same-body retries.
+ * Creates multiple stored budget lines, each optionally carrying initial editable phase data keyed by phase id. The batch is transactional: either every line and phase-data entry is written, or none are. A required `Idempotency-Key` provides exactly-once same-body retries.
  */
 export const budgetCreateLinesBatch = <ThrowOnError extends boolean = false>(options: Options<BudgetCreateLinesBatchData, ThrowOnError>) => (options.client ?? client).post<BudgetCreateLinesBatchResponses, BudgetCreateLinesBatchErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -118,7 +118,7 @@ export const budgetCreateLinesBatch = <ThrowOnError extends boolean = false>(opt
 /**
  * Upsert editable line phase data in one all-or-nothing batch
  *
- * Upserts raw editable estimate phase data for existing lines and phases. The batch is transactional: either every phase-data entry is written, or none are. Optional `Idempotency-Key` replays the original result for same-body retries.
+ * Upserts raw editable estimate phase data for existing lines and phases. The batch is transactional: either every phase-data entry is written, or none are. A required `Idempotency-Key` provides exactly-once same-body retries.
  */
 export const budgetUpsertLinePhaseDataBatch = <ThrowOnError extends boolean = false>(options: Options<BudgetUpsertLinePhaseDataBatchData, ThrowOnError>) => (options.client ?? client).post<BudgetUpsertLinePhaseDataBatchResponses, BudgetUpsertLinePhaseDataBatchErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1607,7 +1607,7 @@ export const purchaseOrdersList = <ThrowOnError extends boolean = false>(options
 /**
  * Create a purchase order
  *
- * Create a purchase order. The server forces `status='draft'` and sets `createdById`. Pass an optional `projectId` in the body to assign the PO to a project; omit it to create a workspace-level (unassigned) purchase order. Naming a server-owned field (`status`, `createdById`, `workspaceId`, any `flow*`/`activity*` column) returns `422 field_read_only`. Accepts an optional `Idempotency-Key` header.
+ * Create a purchase order. The server forces `status='draft'` and sets `createdById`. Pass an optional `projectId` in the body to assign the PO to a project; omit it to create a workspace-level (unassigned) purchase order. Naming a server-owned field (`status`, `createdById`, `workspaceId`, any `flow*`/`activity*` column) returns `422 field_read_only`. Requires an `Idempotency-Key` header.
  */
 export const purchaseOrdersCreate = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersCreateData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersCreateResponses, PurchaseOrdersCreateErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1758,7 +1758,7 @@ export const purchaseOrdersListItems = <ThrowOnError extends boolean = false>(op
 /**
  * Add a purchase order item
  *
- * Add a line item. Allowed only while the parent PO `status ∈ {draft, rejected}`; otherwise `409 po_invalid_status`. `id` and `purchaseOrderId` are server-owned. This is a billable create, pass an optional `Idempotency-Key` header for safe retries; replaying the same key with a different body returns `409 idempotency_conflict`.
+ * Add a line item. Allowed only while the parent PO `status ∈ {draft, rejected}`; otherwise `409 po_invalid_status`. `id` and `purchaseOrderId` are server-owned. This billable create requires an `Idempotency-Key` header for exactly-once retries; replaying the same key with a different body returns `409 idempotency_conflict`.
  */
 export const purchaseOrdersCreateItem = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersCreateItemData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersCreateItemResponses, PurchaseOrdersCreateItemErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1846,7 +1846,7 @@ export const transactionsList = <ThrowOnError extends boolean = false>(options?:
 /**
  * Create a journal transaction
  *
- * Create a manual (journal) transaction. `source` is forced to `journal`; a sourced `source` in the body -> `422 source_not_postable` (sourced rows arrive via their rail). The optional `projectId` body field assigns the row to a project (omit for a workspace-level / unassigned transaction). permission `create` with the request-derived `{kind:'Transaction', workspaceId, projectId}` subject. The `status` is validated against the status x source reachability matrix. Fires `transaction.created`. This is a billable create, accepts an optional `Idempotency-Key` header; replaying a key with a different body -> `409 idempotency_conflict`.
+ * Create a manual (journal) transaction. `source` is forced to `journal`; a sourced `source` in the body -> `422 source_not_postable` (sourced rows arrive via their rail). The optional `projectId` body field assigns the row to a project (omit for a workspace-level / unassigned transaction). permission `create` with the request-derived `{kind:'Transaction', workspaceId, projectId}` subject. The `status` is validated against the status x source reachability matrix. Fires `transaction.created`. This billable create requires an `Idempotency-Key` header; replaying a key with a different body -> `409 idempotency_conflict`.
  */
 export const transactionsCreate = <ThrowOnError extends boolean = false>(options: Options<TransactionsCreateData, ThrowOnError>) => (options.client ?? client).post<TransactionsCreateResponses, TransactionsCreateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1883,7 +1883,7 @@ export const transactionsTypes = <ThrowOnError extends boolean = false>(options?
 /**
  * Bulk journal import
  *
- * Create many JOURNAL transactions in one request. Every row is forced to `source=journal`; a non-journal source on any row -> `422 source_not_postable`. Each row may carry an optional `projectId` to assign it to a project (omit for a workspace-level / unassigned row). Over the cap (500) -> `413 batch_too_large`. Pair with an `Idempotency-Key` header; replaying a key with a different body -> `409 idempotency_conflict`. This is the highest-stakes billable create (one credit charge per created row), so pairing an `Idempotency-Key` is strongly recommended. Fires one `transaction.created` per created row.
+ * Create many JOURNAL transactions in one request. Every row is forced to `source=journal`; a non-journal source on any row -> `422 source_not_postable`. Each row may carry an optional `projectId` to assign it to a project (omit for a workspace-level / unassigned row). Over the cap (500) -> `413 batch_too_large`. Requires an `Idempotency-Key` header; replaying a key with a different body -> `409 idempotency_conflict`. This is the highest-stakes billable create (one credit charge per created row). Fires one `transaction.created` per created row.
  */
 export const transactionsBatchCreate = <ThrowOnError extends boolean = false>(options: Options<TransactionsBatchCreateData, ThrowOnError>) => (options.client ?? client).post<TransactionsBatchCreateResponses, TransactionsBatchCreateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
