@@ -2042,10 +2042,6 @@ export type View = {
     format: ViewFormat;
     visibility: ViewVisibility;
     /**
-     * Whether this is the project's default view for its subject.
-     */
-    isDefault?: boolean;
-    /**
      * The persisted deep filter (operators, AND/OR groups, negation) the view replays. Opaque to the client; resolved server-side by `/views/{viewId}/data`.
      */
     filter?: {
