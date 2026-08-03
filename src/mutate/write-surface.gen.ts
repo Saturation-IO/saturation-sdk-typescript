@@ -4,14 +4,14 @@
 // (CREATE + value-UPDATE, additive only). Regenerate with:
 //   pnpm --filter @saturation/sdk generate:mutate
 //
-// 37 write operations selected from 151 total operations.
+// 44 write operations selected from 151 total operations.
 
 /** A single write operation's static metadata, derived from the OpenAPI spec. */
 export interface WriteOpDef {
   /** The operation id — the `mutate` op key the model passes. */
   readonly op: string;
   /** HTTP verb the gated /v1 handler is reached through. */
-  readonly method: 'post' | 'put' | 'patch';
+  readonly method: 'post' | 'put' | 'patch' | 'delete';
   /** Templated path (`{param}` segments filled from `path`). */
   readonly url: string;
   /** Ordered path-parameter names this op requires (e.g. `projectId`, `lineId`). */
@@ -84,6 +84,32 @@ export const WRITE_OPS = {
     requiredBodyFields: ["type","name"],
     idempotency: 'required',
     summary: 'Create a budget phase',
+  },
+  budgetDeleteLine: {
+    op: 'budgetDeleteLine',
+    method: 'delete',
+    url: '/projects/{projectId}/budget/lines/{lineId}',
+    pathParams: ['projectId', 'lineId'],
+    dataType: 'BudgetDeleteLineData',
+    bodyType: "never",
+    bodyRequired: false,
+    allowedBodyFields: [],
+    requiredBodyFields: [],
+    idempotency: 'none',
+    summary: 'Soft-delete a budget line',
+  },
+  budgetDeletePhase: {
+    op: 'budgetDeletePhase',
+    method: 'delete',
+    url: '/projects/{projectId}/budget/phases/{phaseId}',
+    pathParams: ['projectId', 'phaseId'],
+    dataType: 'BudgetDeletePhaseData',
+    bodyType: "never",
+    bodyRequired: false,
+    allowedBodyFields: [],
+    requiredBodyFields: [],
+    idempotency: 'none',
+    summary: 'Soft-delete a budget phase',
   },
   budgetUpdateLine: {
     op: 'budgetUpdateLine',
@@ -188,6 +214,32 @@ export const WRITE_OPS = {
     requiredBodyFields: [],
     idempotency: 'natural',
     summary: 'Add a rate pack into the project',
+  },
+  libraryEnableIncentivePack: {
+    op: 'libraryEnableIncentivePack',
+    method: 'post',
+    url: '/library/incentives/{packId}/enable',
+    pathParams: ['packId'],
+    dataType: 'LibraryEnableIncentivePackData',
+    bodyType: "never",
+    bodyRequired: false,
+    allowedBodyFields: [],
+    requiredBodyFields: [],
+    idempotency: 'natural',
+    summary: 'Enable an incentive pack for the workspace',
+  },
+  libraryEnableRatePack: {
+    op: 'libraryEnableRatePack',
+    method: 'post',
+    url: '/library/rates/{packId}/enable',
+    pathParams: ['packId'],
+    dataType: 'LibraryEnableRatePackData',
+    bodyType: "never",
+    bodyRequired: false,
+    allowedBodyFields: [],
+    requiredBodyFields: [],
+    idempotency: 'natural',
+    summary: 'Enable a rate pack for the workspace',
   },
   libraryUpdateCurrencyTemplate: {
     op: 'libraryUpdateCurrencyTemplate',
@@ -384,6 +436,19 @@ export const WRITE_OPS = {
     idempotency: 'required',
     summary: 'Create a project',
   },
+  masterDataDeleteContact: {
+    op: 'masterDataDeleteContact',
+    method: 'delete',
+    url: '/contacts/{contactId}',
+    pathParams: ['contactId'],
+    dataType: 'MasterDataDeleteContactData',
+    bodyType: "never",
+    bodyRequired: false,
+    allowedBodyFields: [],
+    requiredBodyFields: [],
+    idempotency: 'none',
+    summary: 'Delete a contact',
+  },
   masterDataUpdateComment: {
     op: 'masterDataUpdateComment',
     method: 'patch',
@@ -462,6 +527,19 @@ export const WRITE_OPS = {
     idempotency: 'required',
     summary: 'Add a purchase order item',
   },
+  purchaseOrdersDelete: {
+    op: 'purchaseOrdersDelete',
+    method: 'delete',
+    url: '/purchase-orders/{purchaseOrderId}',
+    pathParams: ['purchaseOrderId'],
+    dataType: 'PurchaseOrdersDeleteData',
+    bodyType: "never",
+    bodyRequired: false,
+    allowedBodyFields: [],
+    requiredBodyFields: [],
+    idempotency: 'none',
+    summary: 'Delete a purchase order',
+  },
   purchaseOrdersUpdate: {
     op: 'purchaseOrdersUpdate',
     method: 'patch',
@@ -500,6 +578,19 @@ export const WRITE_OPS = {
     requiredBodyFields: ["type","amount","timestamp"],
     idempotency: 'required',
     summary: 'Create a journal transaction',
+  },
+  transactionsDelete: {
+    op: 'transactionsDelete',
+    method: 'delete',
+    url: '/transactions/{txId}',
+    pathParams: ['txId'],
+    dataType: 'TransactionsDeleteData',
+    bodyType: "never",
+    bodyRequired: false,
+    allowedBodyFields: [],
+    requiredBodyFields: [],
+    idempotency: 'none',
+    summary: 'Delete a journal transaction',
   },
   transactionsItemsUpdate: {
     op: 'transactionsItemsUpdate',

@@ -8,7 +8,7 @@
 // the generated `types.gen.ts` request/response types) changes, every
 // `satisfies WriteSurface` implementation must update to match or fail `tsc`.
 //
-// 37 write operations.
+// 44 write operations.
 
 import type {
   BudgetCreateLineData,
@@ -17,6 +17,10 @@ import type {
   BudgetCreateLinesBatchResponse,
   BudgetCreatePhaseData,
   BudgetCreatePhaseResponse,
+  BudgetDeleteLineData,
+  BudgetDeleteLineResponse,
+  BudgetDeletePhaseData,
+  BudgetDeletePhaseResponse,
   BudgetUpdateLineData,
   BudgetUpdateLineResponse,
   BudgetUpdatePhaseData,
@@ -33,6 +37,10 @@ import type {
   LibraryAddProjectIncentiveResponse,
   LibraryAddRatePackData,
   LibraryAddRatePackResponse,
+  LibraryEnableIncentivePackData,
+  LibraryEnableIncentivePackResponse,
+  LibraryEnableRatePackData,
+  LibraryEnableRatePackResponse,
   LibraryUpdateCurrencyTemplateData,
   LibraryUpdateCurrencyTemplateResponse,
   LibraryUpdateCustomUnitData,
@@ -63,6 +71,8 @@ import type {
   MasterDataCreateContactResponse,
   MasterDataCreateProjectData,
   MasterDataCreateProjectResponse,
+  MasterDataDeleteContactData,
+  MasterDataDeleteContactResponse,
   MasterDataUpdateCommentData,
   MasterDataUpdateCommentResponse,
   MasterDataUpdateContactData,
@@ -75,12 +85,16 @@ import type {
   PurchaseOrdersCreateItemData,
   PurchaseOrdersCreateItemResponse,
   PurchaseOrdersCreateResponse,
+  PurchaseOrdersDeleteData,
+  PurchaseOrdersDeleteResponse,
   PurchaseOrdersUpdateData,
   PurchaseOrdersUpdateItemData,
   PurchaseOrdersUpdateItemResponse,
   PurchaseOrdersUpdateResponse,
   TransactionsCreateData,
   TransactionsCreateResponse,
+  TransactionsDeleteData,
+  TransactionsDeleteResponse,
   TransactionsItemsUpdateData,
   TransactionsItemsUpdateResponse,
   TransactionsUpdateData,
@@ -99,6 +113,10 @@ export interface WriteSurface {
   budgetCreateLinesBatch(data: BudgetCreateLinesBatchData): Promise<BudgetCreateLinesBatchResponse>;
   /** Create a budget phase (`POST /projects/{projectId}/budget/phases`). */
   budgetCreatePhase(data: BudgetCreatePhaseData): Promise<BudgetCreatePhaseResponse>;
+  /** Soft-delete a budget line (`DELETE /projects/{projectId}/budget/lines/{lineId}`). */
+  budgetDeleteLine(data: BudgetDeleteLineData): Promise<BudgetDeleteLineResponse>;
+  /** Soft-delete a budget phase (`DELETE /projects/{projectId}/budget/phases/{phaseId}`). */
+  budgetDeletePhase(data: BudgetDeletePhaseData): Promise<BudgetDeletePhaseResponse>;
   /** Update a budget line (`PATCH /projects/{projectId}/budget/lines/{lineId}`). */
   budgetUpdateLine(data: BudgetUpdateLineData): Promise<BudgetUpdateLineResponse>;
   /** Update a budget phase (`PATCH /projects/{projectId}/budget/phases/{phaseId}`). */
@@ -115,6 +133,10 @@ export interface WriteSurface {
   libraryAddProjectIncentive(data: LibraryAddProjectIncentiveData): Promise<LibraryAddProjectIncentiveResponse>;
   /** Add a rate pack into the project (`POST /projects/{projectId}/library/rates/{packId}/add`). */
   libraryAddRatePack(data: LibraryAddRatePackData): Promise<LibraryAddRatePackResponse>;
+  /** Enable an incentive pack for the workspace (`POST /library/incentives/{packId}/enable`). */
+  libraryEnableIncentivePack(data: LibraryEnableIncentivePackData): Promise<LibraryEnableIncentivePackResponse>;
+  /** Enable a rate pack for the workspace (`POST /library/rates/{packId}/enable`). */
+  libraryEnableRatePack(data: LibraryEnableRatePackData): Promise<LibraryEnableRatePackResponse>;
   /** Update a workspace currency template (`PATCH /library/currencies/{currencyId}`). */
   libraryUpdateCurrencyTemplate(data: LibraryUpdateCurrencyTemplateData): Promise<LibraryUpdateCurrencyTemplateResponse>;
   /** Update a workspace custom unit (`PATCH /library/units/custom/{unitId}`). */
@@ -145,6 +167,8 @@ export interface WriteSurface {
   masterDataCreateContact(data: MasterDataCreateContactData): Promise<MasterDataCreateContactResponse>;
   /** Create a project (`POST /projects`). */
   masterDataCreateProject(data: MasterDataCreateProjectData): Promise<MasterDataCreateProjectResponse>;
+  /** Delete a contact (`DELETE /contacts/{contactId}`). */
+  masterDataDeleteContact(data: MasterDataDeleteContactData): Promise<MasterDataDeleteContactResponse>;
   /** Update a comment (`PATCH /comments/{commentId}`). */
   masterDataUpdateComment(data: MasterDataUpdateCommentData): Promise<MasterDataUpdateCommentResponse>;
   /** Update a contact (`PATCH /contacts/{contactId}`). */
@@ -157,12 +181,16 @@ export interface WriteSurface {
   purchaseOrdersCreate(data: PurchaseOrdersCreateData): Promise<PurchaseOrdersCreateResponse>;
   /** Add a purchase order item (`POST /purchase-orders/{purchaseOrderId}/items`). */
   purchaseOrdersCreateItem(data: PurchaseOrdersCreateItemData): Promise<PurchaseOrdersCreateItemResponse>;
+  /** Delete a purchase order (`DELETE /purchase-orders/{purchaseOrderId}`). */
+  purchaseOrdersDelete(data: PurchaseOrdersDeleteData): Promise<PurchaseOrdersDeleteResponse>;
   /** Update a purchase order (`PATCH /purchase-orders/{purchaseOrderId}`). */
   purchaseOrdersUpdate(data: PurchaseOrdersUpdateData): Promise<PurchaseOrdersUpdateResponse>;
   /** Update a purchase order item (`PATCH /purchase-orders/{purchaseOrderId}/items/{itemId}`). */
   purchaseOrdersUpdateItem(data: PurchaseOrdersUpdateItemData): Promise<PurchaseOrdersUpdateItemResponse>;
   /** Create a journal transaction (`POST /transactions`). */
   transactionsCreate(data: TransactionsCreateData): Promise<TransactionsCreateResponse>;
+  /** Delete a journal transaction (`DELETE /transactions/{txId}`). */
+  transactionsDelete(data: TransactionsDeleteData): Promise<TransactionsDeleteResponse>;
   /** Update a transaction item (`PATCH /transactions/{txId}/items/{itemId}`). */
   transactionsItemsUpdate(data: TransactionsItemsUpdateData): Promise<TransactionsItemsUpdateResponse>;
   /** Update a transaction (`PATCH /transactions/{txId}`). */

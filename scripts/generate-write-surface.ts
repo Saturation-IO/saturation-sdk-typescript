@@ -46,15 +46,21 @@ const OUT = join(HERE, '../src/mutate/write-surface.gen.ts');
 const OUT_INTERFACE = join(HERE, '../src/mutate/write-surface.interface.gen.ts');
 const OUT_BRIDGE = join(HERE, '../src/mutate/write-surface.bridge.gen.ts');
 
-/** HTTP verbs a data write can use. The DELETE verb is intentionally absent in v1. */
-type WriteMethod = 'post' | 'put' | 'patch';
+/**
+ * HTTP verbs a data write can use. DELETE joined 2026-08-02 (Simon's
+ * #development ruling): the five reviewed row deletes are SOFT deletes behind
+ * their routes' lifecycle rules, a gap in the surface rather than a finance
+ * boundary. Hard deletes stay absent.
+ */
+type WriteMethod = 'post' | 'put' | 'patch' | 'delete';
 
 /**
  * The source v1 write inventory. The final hosted surface below narrows this to
  * retry-safe PATCH/PUT value updates.
  *
  * Curated from the route inventory. Excluded on purpose (NOT a write, or
- * destructive/deferred to the rollback ledger): every `*Delete*`, plus
+ * destructive/deferred to the rollback ledger): every `*Delete*` EXCEPT the
+ * five reviewed soft deletes admitted 2026-08-02, plus
  * `documentsUnassign`, `purchaseOrdersUnlink/Submit`,
  * `library{Disable,Remove}*`, and `webhooksPing` (a side-effecting test action,
  * not a data write — the exact "computed POST" a verb filter would leak).
@@ -68,6 +74,14 @@ const WRITE_OP_ALLOWLIST: ReadonlySet<string> = new Set<string>([
   'budgetUpsertLinePhaseDataBatch',
   'budgetUpdateLine',
   'budgetUpdatePhase',
+  // ── reviewed soft deletes (Simon, 2026-08-02): the row keeps a deletedAt
+  //    tombstone; each route's own lifecycle rules stand (journal-only
+  //    transaction delete, draft-only PO delete) ──
+  'transactionsDelete',
+  'masterDataDeleteContact',
+  'budgetDeleteLine',
+  'budgetDeletePhase',
+  'purchaseOrdersDelete',
   // ── documents: drop (create) + assign (link) + field update ──
   'documentsDrop',
   'documentsAssign',
@@ -148,8 +162,12 @@ const WRITE_OP_ALLOWLIST: ReadonlySet<string> = new Set<string>([
  *   `transactionsBatchCreate`/`transactionsItemsCreate`,
  *   `purchaseOrdersLink` + PO lifecycle
  *   (`purchaseOrdersCancelSubmission`/`Finalize`/`Void` — MCP POs are
- *   draft-only in v1), and the library template/pack creates+enables:
- *   allowlisted for the server seam, not model-exposed in v1 (spec §10).
+ *   draft-only in v1).
+ * - The library template/pack CREATES: approved for exposure (Simon,
+ *   2026-08-02 — the old "spec §10" exclusion was catalog drift, not a
+ *   decision) and their /v1 routes are receipt-backed now; they join in the
+ *   creates pass once their catalog contracts and acceptance tests land. The
+ *   ENABLES are exposed below.
  */
 const AGENT_WRITE_EXPOSED_OPS: readonly string[] = [
   // ── value updates (the pre-existing exposed set) ──
@@ -192,6 +210,20 @@ const AGENT_WRITE_EXPOSED_OPS: readonly string[] = [
   'documentsAssign',
   'libraryAddProjectIncentive',
   'libraryAddRatePack',
+  // ── library pack enables (Simon, 2026-08-02): enabling a pack the workspace
+  //    may access is not authoring it; PUBLIC curated rows stay read-only via
+  //    the routes' own scope rules ──
+  'libraryEnableRatePack',
+  'libraryEnableIncentivePack',
+  // ── reviewed soft deletes (Simon, 2026-08-02). Classified `none`, NOT
+  //    `natural`: a repeat delete hits the tombstoned row and returns 404, so
+  //    "repeat returns the original record" would be a lie the model acts on.
+  //    The public catalog publishes delete-specific retry wording instead. ──
+  'transactionsDelete',
+  'masterDataDeleteContact',
+  'budgetDeleteLine',
+  'budgetDeletePhase',
+  'purchaseOrdersDelete',
 ];
 const AGENT_WRITE_EXPOSED_SET: ReadonlySet<string> = new Set(AGENT_WRITE_EXPOSED_OPS);
 
@@ -221,6 +253,8 @@ const NATURALLY_IDEMPOTENT_OPS: Readonly<Record<string, string>> = {
   documentsAssign: 'same-id FK set; the route has an explicit same-target no-op branch',
   libraryAddProjectIncentive: 'copy-on-use `@@unique([projectId, source])` — repeat add returns the existing link',
   libraryAddRatePack: 'copy-on-use `@@unique([projectId, ratePackId])` — repeat add returns the existing link',
+  libraryEnableRatePack: 'upsert on `@@unique([workspaceId, ratePackId])` with deterministic id `wrp-<ws>-<pack>` — repeat enable returns the existing enablement',
+  libraryEnableIncentivePack: 'upsert on `@@unique([workspaceId, incentivePackId])` with deterministic id `wip-<ws>-<pack>` — repeat enable returns the existing enablement',
 };
 
 interface ParsedOp {
@@ -641,7 +675,7 @@ function main(): void {
   //
   // (1) Every op must resolve to a write verb (post/put/patch) — reject GET and,
   //     defensively, any delete/head/options that slipped past the type.
-  const WRITE_METHODS = new Set<string>(['post', 'put', 'patch']);
+  const WRITE_METHODS = new Set<string>(['post', 'put', 'patch', 'delete']);
   const nonWrite = selected.filter((o) => !WRITE_METHODS.has(o.method));
   if (nonWrite.length > 0) {
     throw new Error(
@@ -661,8 +695,17 @@ function main(): void {
     'purchaseOrdersFinalize',
     'purchaseOrdersVoid',
   ]);
+  // The five SOFT deletes reviewed and admitted 2026-08-02 (Simon's
+  // #development ruling). Every other *Delete* stays behind this gate.
+  const REVIEWED_SOFT_DELETE_OPS = new Set([
+    'transactionsDelete',
+    'masterDataDeleteContact',
+    'budgetDeleteLine',
+    'budgetDeletePhase',
+    'purchaseOrdersDelete',
+  ]);
   const destructive = selected.filter((o) =>
-    DESTRUCTIVE_NAME.test(o.op) && !REVIEWED_LIFECYCLE_OPS.has(o.op));
+    DESTRUCTIVE_NAME.test(o.op) && !REVIEWED_LIFECYCLE_OPS.has(o.op) && !REVIEWED_SOFT_DELETE_OPS.has(o.op));
   if (destructive.length > 0) {
     throw new Error(
       `Allowlisted ops have destructive/lifecycle names (additive-only surface — defer to the rollback ledger): ${destructive
@@ -777,7 +820,7 @@ export interface WriteOpDef {
   /** The operation id — the \`mutate\` op key the model passes. */
   readonly op: string;
   /** HTTP verb the gated /v1 handler is reached through. */
-  readonly method: 'post' | 'put' | 'patch';
+  readonly method: 'post' | 'put' | 'patch' | 'delete';
   /** Templated path (\`{param}\` segments filled from \`path\`). */
   readonly url: string;
   /** Ordered path-parameter names this op requires (e.g. \`projectId\`, \`lineId\`). */
