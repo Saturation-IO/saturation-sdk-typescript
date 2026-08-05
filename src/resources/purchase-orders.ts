@@ -10,6 +10,7 @@ import type {
   PurchaseOrderLink,
   PurchaseOrderSort,
   PurchaseOrderStatus,
+  PurchaseOrderSuggestedMatch,
   PurchaseOrderTimelineEvent,
   Transaction,
 } from '../generated/types.gen.js';
@@ -163,6 +164,14 @@ export class PurchaseOrdersResource {
     return this.t.run(sdk.purchaseOrdersActivity, {
       path: { purchaseOrderId },
     }) as Promise<PurchaseOrderActivity>;
+  }
+
+  /** Records that may belong to the purchase order but are not linked. */
+  async suggestedMatches(purchaseOrderId: string): Promise<PurchaseOrderSuggestedMatch[]> {
+    const result = await this.t.run(sdk.purchaseOrdersSuggestedMatches, {
+      path: { purchaseOrderId },
+    }) as { data: PurchaseOrderSuggestedMatch[] };
+    return result.data;
   }
 
   /** Immutable purchase-order history, newest first. */

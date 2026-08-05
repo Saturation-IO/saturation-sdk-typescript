@@ -71,6 +71,9 @@ describe('PurchaseOrdersResource scope defaults', () => {
     await resource.activity('po_1');
     expect(run.mock.calls[0]?.[0]).toBe(sdk.purchaseOrdersActivity);
 
+    await resource.suggestedMatches('po_1');
+    expect(run.mock.calls[1]?.[0]).toBe(sdk.purchaseOrdersSuggestedMatches);
+
     await resource.timeline('po_1', { limit: 25, cursor: 'cursor_1' }).page();
     expect(runPage.mock.calls[0]?.[0]).toBe(sdk.purchaseOrdersTimeline);
     expect(runPage.mock.calls[0]?.[1]).toEqual({

@@ -2443,6 +2443,24 @@ export type PurchaseOrderSummary = {
 };
 
 /**
+ * A record that may belong to this purchase order but is not linked.
+ */
+export type PurchaseOrderSuggestedMatch = {
+    recordType: 'document';
+    recordId: Id;
+    name: string;
+    amount: Money | null;
+    confidence: 'suggested';
+    reasons: [
+        'purchase_order_number'
+    ];
+};
+
+export type PurchaseOrderSuggestedMatchList = {
+    data: Array<PurchaseOrderSuggestedMatch>;
+};
+
+/**
  * Event types used in purchase-order history.
  */
 export type PurchaseOrderTimelineEventType = 'created' | 'item_added' | 'submitted_for_approval' | 'approved' | 'rejected' | 'approval_request_canceled' | 'voided' | 'transaction_linked' | 'transaction_unlinked' | 'marked_paid' | 'invoice_requested' | 'invoice_uploaded' | 'attachment_uploaded' | 'document_linked' | 'decision_recorded' | 'decision_undone' | 'status_changed' | 'approval_decision' | 'details_updated';
@@ -11457,6 +11475,45 @@ export type PurchaseOrdersActivityResponses = {
 };
 
 export type PurchaseOrdersActivityResponse = PurchaseOrdersActivityResponses[keyof PurchaseOrdersActivityResponses];
+
+export type PurchaseOrdersSuggestedMatchesData = {
+    body?: never;
+    path: {
+        purchaseOrderId: Id;
+    };
+    query?: never;
+    url: '/purchase-orders/{purchaseOrderId}/suggested-matches';
+};
+
+export type PurchaseOrdersSuggestedMatchesErrors = {
+    /**
+     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
+     */
+    401: Error;
+    /**
+     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     */
+    403: Error;
+    /**
+     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     */
+    404: Error;
+    /**
+     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     */
+    429: Error;
+};
+
+export type PurchaseOrdersSuggestedMatchesError = PurchaseOrdersSuggestedMatchesErrors[keyof PurchaseOrdersSuggestedMatchesErrors];
+
+export type PurchaseOrdersSuggestedMatchesResponses = {
+    /**
+     * Suggested matches.
+     */
+    200: PurchaseOrderSuggestedMatchList;
+};
+
+export type PurchaseOrdersSuggestedMatchesResponse = PurchaseOrdersSuggestedMatchesResponses[keyof PurchaseOrdersSuggestedMatchesResponses];
 
 export type PurchaseOrdersTimelineData = {
     body?: never;
