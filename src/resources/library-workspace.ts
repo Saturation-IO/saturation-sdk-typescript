@@ -108,14 +108,14 @@ export class WorkspaceRatesResource {
     });
   }
 
-  /** Enable a rate pack at the workspace (idempotent lifecycle verb). */
+  /** Enable a rate pack for the workspace. Safe to repeat. */
   async enable(packId: string): Promise<RatePackEnableLink> {
     return this.t.run(sdk.libraryEnableRatePack, {
       path: { packId },
     }) as Promise<RatePackEnableLink>;
   }
 
-  /** Disable a rate pack at the workspace (idempotent lifecycle verb). */
+  /** Disable a rate pack for the workspace. Safe to repeat. */
   async disable(packId: string): Promise<void> {
     await this.t.run(sdk.libraryDisableRatePack, {
       path: { packId },

@@ -596,7 +596,7 @@ export type BudgetVariance = {
 export type DocumentTargetKind = 'transaction' | 'purchaseOrder' | 'contact' | 'project';
 
 /**
- * Document processing lifecycle. A freshly dropped document is `PENDING`/`PROCESSING` until extraction finishes; `READY` means content is queryable; `FAILED` means extraction did not complete. Read-only, set by the platform, never by the client.
+ * Document processing status. A new document is `PENDING` or `PROCESSING` until extraction finishes. `READY` means its content can be queried. `FAILED` means extraction did not finish. This field is read-only and set by Saturation.
  */
 export type DocumentStatus = 'pending' | 'processing' | 'ready' | 'failed';
 
@@ -2447,7 +2447,7 @@ export type PurchaseOrderReconciliation = {
 /**
  * Event types used in purchase-order history.
  */
-export type PurchaseOrderTimelineEventType = 'created' | 'item_added' | 'submitted_for_approval' | 'approved' | 'rejected' | 'approval_request_canceled' | 'voided' | 'transaction_linked' | 'transaction_unlinked' | 'marked_paid' | 'invoice_requested' | 'invoice_uploaded' | 'attachment_uploaded' | 'document_linked' | 'decision_recorded' | 'decision_undone' | 'lifecycle_transitioned' | 'approval_decision' | 'details_updated';
+export type PurchaseOrderTimelineEventType = 'created' | 'item_added' | 'submitted_for_approval' | 'approved' | 'rejected' | 'approval_request_canceled' | 'voided' | 'transaction_linked' | 'transaction_unlinked' | 'marked_paid' | 'invoice_requested' | 'invoice_uploaded' | 'attachment_uploaded' | 'document_linked' | 'decision_recorded' | 'decision_undone' | 'status_changed' | 'approval_decision' | 'details_updated';
 
 export type PurchaseOrderTimelineActor = {
     id: Id;
@@ -9541,7 +9541,7 @@ export type MasterDataListProjectsData = {
          */
         withCount?: boolean;
         /**
-         * Filter by lifecycle status. Comma-separate for an IN set (e.g. `active,archived`).
+         * Filter by status. Separate multiple values with commas (for example, `active,archived`).
          */
         status?: string;
         /**
@@ -11970,7 +11970,7 @@ export type TransactionsListData = {
          */
         type?: string;
         /**
-         * Filter by lifecycle status. Comma-separated = IN.
+         * Filter by status. Separate multiple values with commas.
          */
         status?: TransactionStatus;
         /**

@@ -142,7 +142,7 @@ console.log(cell.value.combined, cell.computedAt); // engine truth + freshness
 
 ### Idempotent retries
 
-Lifecycle verbs (`enable` / `disable`, `install` / `uninstall`, `add`) are idempotent and safe to re-run. Unsafe creates accept an `Idempotency-Key` so a network retry never double-writes; replaying the same key with a different body surfaces `idempotency_conflict`.
+Actions such as `enable`, `disable`, `install`, `uninstall`, and `add` are safe to repeat. Creates that could duplicate data accept an `Idempotency-Key`; using the same key with a different body returns `idempotency_conflict`.
 
 ```ts
 const key = crypto.randomUUID();

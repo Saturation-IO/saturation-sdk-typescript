@@ -160,8 +160,8 @@ const WRITE_OP_ALLOWLIST: ReadonlySet<string> = new Set<string>([
  * - `documentsDrop`: document bytes ride the dedicated `upload` tool.
  * - `masterDataCreateComment`/`masterDataCreateSpace`,
  *   `transactionsBatchCreate`/`transactionsItemsCreate`,
- *   `purchaseOrdersLink` + PO lifecycle
- *   (`purchaseOrdersCancelSubmission`/`Finalize`/`Void` — MCP POs are
+ *   `purchaseOrdersLink` + PO status actions
+ *   (`purchaseOrdersCancelSubmission`/`MarkPaid`/`Void` — MCP POs are
  *   draft-only in v1).
  * - Library template and pack creates are exposed below. Their /v1 routes are
  *   receipt-backed and require the generated Idempotency-Key header.

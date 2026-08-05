@@ -911,7 +911,7 @@ export const libraryListCustomUnits = <ThrowOnError extends boolean = false>(opt
 /**
  * Create a workspace custom unit
  *
- * Built-in units are never writable; only custom units have a lifecycle.
+ * Built-in units cannot be changed. Custom units can be created, updated, and deleted.
  */
 export const libraryCreateCustomUnit = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateCustomUnitData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateCustomUnitResponses, LibraryCreateCustomUnitErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
