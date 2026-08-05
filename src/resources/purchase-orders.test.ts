@@ -64,15 +64,12 @@ describe('PurchaseOrdersResource scope defaults', () => {
     });
   });
 
-  it('exposes Activity, Timeline, and Reconciliation through their generated operations', async () => {
+  it('exposes Activity and Timeline through their generated operations', async () => {
     const { t, run, runPage } = transport();
     const resource = new PurchaseOrdersResource(t);
 
     await resource.activity('po_1');
     expect(run.mock.calls[0]?.[0]).toBe(sdk.purchaseOrdersActivity);
-
-    await resource.reconciliation('po_1');
-    expect(run.mock.calls[1]?.[0]).toBe(sdk.purchaseOrdersReconciliation);
 
     await resource.timeline('po_1', { limit: 25, cursor: 'cursor_1' }).page();
     expect(runPage.mock.calls[0]?.[0]).toBe(sdk.purchaseOrdersTimeline);

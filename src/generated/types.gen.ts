@@ -2215,11 +2215,6 @@ export type WorkspaceCollection = {
 export type PurchaseOrderStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'actualizing' | 'paid' | 'void';
 
 /**
- * Confidence that a candidate invoice or transaction matches this PO. `manual_review` means a human must confirm.
- */
-export type PurchaseOrderMatchConfidence = 'exact' | 'suggested' | 'manual_review';
-
-/**
  * A live PO condition using the same names shown in the product Activity column.
  */
 export type PurchaseOrderActivityType = 'invoice_requested' | 'invoice_received' | 'invoice_rejected' | 'payment_requested' | 'payment_approval_pending' | 'payment_approved' | 'payment_processing' | 'payment_sent' | 'payment_failed' | 'payment_returned' | 'actualized_needs_review' | 'split_needs_review' | 'transaction_match_needs_review';
@@ -2229,7 +2224,7 @@ export type PurchaseOrderActivitySeverity = 'neutral' | 'info' | 'warning' | 'da
 /**
  * A single allowed `expand` key for a purchase order (the parameter takes a comma list of these, dotted nesting depth ≤ 2). An unknown key returns `400 expand_invalid`.
  */
-export type PurchaseOrderExpand = 'items' | 'contact' | 'transactions' | 'documents' | 'budgetLine' | 'activity';
+export type PurchaseOrderExpand = 'items' | 'contact' | 'transactions' | 'documents' | 'paymentRequests' | 'payments' | 'budgetLine' | 'activity' | 'summary';
 
 /**
  * Allowed sort fields for the purchase-order collection (appends `,id`).
@@ -2316,6 +2311,18 @@ export type PurchaseOrder = {
      */
     documents?: Array<Document>;
     /**
+     * Present only when `expand=paymentRequests`. Includes linked payment requests you can read.
+     */
+    paymentRequests?: Array<{
+        [key: string]: unknown;
+    }>;
+    /**
+     * Present only when `expand=payments`. Includes linked sent payments you can read.
+     */
+    payments?: Array<{
+        [key: string]: unknown;
+    }>;
+    /**
      * Present only when `expand=budgetLine`. The charged budget line.
      */
     budgetLine?: BudgetLine | null;
@@ -2323,6 +2330,10 @@ export type PurchaseOrder = {
      * Present only when `expand=activity`. Current live conditions using the same vocabulary as the product Activity column.
      */
     activity?: PurchaseOrderActivitySummary | null;
+    /**
+     * Financial summary. Included on a single-PO read and available on lists with `expand=summary`.
+     */
+    summary?: PurchaseOrderSummary | null;
 };
 
 /**
@@ -2415,9 +2426,9 @@ export type PurchaseOrderActivity = {
 };
 
 /**
- * Financial and matching facts used to reconcile a purchase order. Amounts are in the explicit effective currency.
+ * Current purchase-order amounts in the PO currency.
  */
-export type PurchaseOrderReconciliation = {
+export type PurchaseOrderSummary = {
     purchaseOrderId: Id;
     currency: string;
     amounts: {
@@ -2428,19 +2439,6 @@ export type PurchaseOrderReconciliation = {
         actualized: Money;
         remaining: Money;
         variance: Money;
-    };
-    matching: {
-        confidence: PurchaseOrderMatchConfidence;
-        reviewReasons: Array<string>;
-    };
-    sources: {
-        payableSignalIds: Array<string>;
-        invoiceRequestIds: Array<string>;
-        paymentRequestIds: Array<string>;
-        bankingPaymentIds: Array<string>;
-        documentIds: Array<string>;
-        transactionIds: Array<string>;
-        flowRunIds: Array<string>;
     };
 };
 
@@ -11459,45 +11457,6 @@ export type PurchaseOrdersActivityResponses = {
 };
 
 export type PurchaseOrdersActivityResponse = PurchaseOrdersActivityResponses[keyof PurchaseOrdersActivityResponses];
-
-export type PurchaseOrdersReconciliationData = {
-    body?: never;
-    path: {
-        purchaseOrderId: Id;
-    };
-    query?: never;
-    url: '/purchase-orders/{purchaseOrderId}/reconciliation';
-};
-
-export type PurchaseOrdersReconciliationErrors = {
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type PurchaseOrdersReconciliationError = PurchaseOrdersReconciliationErrors[keyof PurchaseOrdersReconciliationErrors];
-
-export type PurchaseOrdersReconciliationResponses = {
-    /**
-     * Purchase-order reconciliation facts.
-     */
-    200: PurchaseOrderReconciliation;
-};
-
-export type PurchaseOrdersReconciliationResponse = PurchaseOrdersReconciliationResponses[keyof PurchaseOrdersReconciliationResponses];
 
 export type PurchaseOrdersTimelineData = {
     body?: never;

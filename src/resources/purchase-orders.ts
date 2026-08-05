@@ -8,7 +8,6 @@ import type {
   PurchaseOrderItemWrite,
   PurchaseOrderActivity,
   PurchaseOrderLink,
-  PurchaseOrderReconciliation,
   PurchaseOrderSort,
   PurchaseOrderStatus,
   PurchaseOrderTimelineEvent,
@@ -22,8 +21,11 @@ const poExpandMap = {
   contact: 'contact',
   transactions: 'transactions',
   documents: 'documents',
+  paymentRequests: 'paymentRequests',
+  payments: 'payments',
   budgetLine: 'budgetLine',
   activity: 'activity',
+  summary: 'summary',
 } satisfies ExpandMap<PurchaseOrderExpand>;
 type PoExpandMap = typeof poExpandMap;
 
@@ -161,13 +163,6 @@ export class PurchaseOrdersResource {
     return this.t.run(sdk.purchaseOrdersActivity, {
       path: { purchaseOrderId },
     }) as Promise<PurchaseOrderActivity>;
-  }
-
-  /** Current amount, payment, matching, and source reconciliation facts. */
-  async reconciliation(purchaseOrderId: string): Promise<PurchaseOrderReconciliation> {
-    return this.t.run(sdk.purchaseOrdersReconciliation, {
-      path: { purchaseOrderId },
-    }) as Promise<PurchaseOrderReconciliation>;
   }
 
   /** Immutable purchase-order history, newest first. */
