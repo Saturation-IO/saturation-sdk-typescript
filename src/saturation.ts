@@ -5,6 +5,7 @@ import { BudgetResource } from './resources/budget.js';
 import { TransactionsResource } from './resources/transactions.js';
 import { DocumentsResource, ProjectDocumentsResource } from './resources/documents.js';
 import { PurchaseOrdersResource } from './resources/purchase-orders.js';
+import { PaymentRequestsResource, PaymentsResource } from './resources/payments.js';
 import {
   ContactsResource,
   ProjectsResource,
@@ -58,6 +59,16 @@ export class ProjectScope {
   /** Purchase orders for this project. */
   get purchaseOrders(): PurchaseOrdersResource {
     return new PurchaseOrdersResource(this.t, this.id);
+  }
+
+  /** Payment requests for this project. */
+  get paymentRequests(): PaymentRequestsResource {
+    return new PaymentRequestsResource(this.t, this.id);
+  }
+
+  /** Payments for this project. */
+  get payments(): PaymentsResource {
+    return new PaymentsResource(this.t, this.id);
   }
 
   /** The project-resident Library (installed packs, added programs). */
@@ -119,6 +130,10 @@ export class Saturation {
   readonly contacts: ContactsResource;
   /** Workspace-scoped purchase orders, including unassigned POs. */
   readonly purchaseOrders: PurchaseOrdersResource;
+  /** Workspace-scoped payment requests, including unassigned requests. */
+  readonly paymentRequests: PaymentRequestsResource;
+  /** Workspace-scoped payments, including unassigned payments. */
+  readonly payments: PaymentsResource;
   /** Workspace spaces (folders that group projects). */
   readonly spaces: SpacesResource;
   /** Workspace comments attached to entities. */
@@ -142,6 +157,8 @@ export class Saturation {
     this.documents = new DocumentsResource(this.t);
     this.contacts = new ContactsResource(this.t);
     this.purchaseOrders = new PurchaseOrdersResource(this.t);
+    this.paymentRequests = new PaymentRequestsResource(this.t);
+    this.payments = new PaymentsResource(this.t);
     this.spaces = new SpacesResource(this.t);
     this.comments = new CommentsResource(this.t);
     this.usage = new UsageResource(this.t);

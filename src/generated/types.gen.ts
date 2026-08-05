@@ -2210,6 +2210,175 @@ export type WorkspaceCollection = {
 };
 
 /**
+ * Where a request stands now.
+ */
+export type PaymentRequestStatus = 'submitted' | 'pending' | 'approved' | 'paid' | 'rejected' | 'canceled';
+
+/**
+ * Where a payment stands now.
+ */
+export type PaymentStatus = 'requested' | 'needs_approval' | 'scheduled' | 'sending' | 'settled' | 'returned' | 'failed' | 'rejected' | 'canceled';
+
+/**
+ * A linked record to include with a payment request.
+ */
+export type PaymentRequestExpand = 'contact' | 'purchaseOrder' | 'document' | 'payment' | 'transactions' | 'budgetLine';
+
+/**
+ * A linked record to include with a payment.
+ */
+export type PaymentExpand = 'request' | 'purchaseOrder' | 'transactions' | 'contact' | 'budgetLine' | 'document';
+
+export type PaymentContactLink = {
+    id: Id;
+    name: string | null;
+    displayTitle: string | null;
+    company: string | null;
+    email: string | null;
+    type: string | null;
+};
+
+export type PaymentPurchaseOrderLink = {
+    id: Id;
+    projectId: string | null;
+    number: string | null;
+    title: string | null;
+    status: string;
+};
+
+export type PaymentDocumentLink = {
+    id: Id;
+    projectId: string | null;
+    name: string;
+    mimeType: string | null;
+    status: string;
+    size: number;
+    classification: string | null;
+};
+
+export type PaymentBudgetLineLink = {
+    id: Id;
+    accountId: string | null;
+    description: string | null;
+    type: string | null;
+};
+
+export type PaymentTransactionLink = {
+    id: Id;
+    projectId: string | null;
+    amount: Money | null;
+    description: string | null;
+    status: string;
+    timestamp: string | null;
+};
+
+/**
+ * A request to pay a person or company. It is separate from the payment that follows.
+ */
+export type PaymentRequestBase = {
+    id: Id;
+    workspaceId: Id;
+    projectId: string | null;
+    purchaseOrderId: string | null;
+    contactId: string | null;
+    budgetLineId: string | null;
+    amount: Money;
+    description: string | null;
+    memo: string | null;
+    dueDate: string | null;
+    method: string | null;
+    status: PaymentRequestStatus;
+    submittedAt: string;
+    approvedAt: string | null;
+    rejectedAt: string | null;
+    completedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+};
+
+/**
+ * One payment from request through settlement.
+ */
+export type PaymentBase = {
+    id: Id;
+    workspaceId: Id;
+    projectId: string | null;
+    paymentRequestId: string | null;
+    purchaseOrderId: string | null;
+    contactId: string | null;
+    budgetLineId: string | null;
+    status: PaymentStatus;
+    amount: Money;
+    destinationAmount: Money | null;
+    rail: string | null;
+    description: string | null;
+    memo: string | null;
+    notes: string | null;
+    scheduledFor: string | null;
+    expectedArrivalAt: string | null;
+    destination: {
+        bankName: string | null;
+        accountType: string | null;
+        accountLast4: string | null;
+        network: string | null;
+    } | null;
+    cancellationRequested: boolean;
+    needsSupport: boolean;
+    failureReason: string | null;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type PaymentRequest = PaymentRequestBase & {
+    contact?: PaymentContactLink | null;
+    purchaseOrder?: PaymentPurchaseOrderLink | null;
+    document?: PaymentDocumentLink | null;
+    payment?: PaymentBase | null;
+    transactions?: Array<PaymentTransactionLink>;
+    budgetLine?: PaymentBudgetLineLink | null;
+};
+
+export type Payment = PaymentBase & {
+    request?: PaymentRequestBase | null;
+    purchaseOrder?: PaymentPurchaseOrderLink | null;
+    transactions?: Array<PaymentTransactionLink>;
+    contact?: PaymentContactLink | null;
+    budgetLine?: PaymentBudgetLineLink | null;
+    document?: PaymentDocumentLink | null;
+};
+
+export type PaymentTimelineEvent = {
+    id: Id;
+    type: string;
+    label: string;
+    occurredAt: string;
+    actor: {
+        id: Id;
+        name: string;
+        avatarUrl: string | null;
+    } | null;
+    related: Array<{
+        type: 'document' | 'payment_request' | 'payment' | 'transaction' | 'purchase_order' | 'approval';
+        id: Id;
+    }>;
+};
+
+export type PaymentTimelinePage = {
+    data: Array<PaymentTimelineEvent>;
+    nextCursor: string | null;
+};
+
+export type PaymentRequestList = {
+    data: Array<PaymentRequest>;
+    nextCursor?: NextCursor;
+};
+
+export type PaymentList = {
+    data: Array<Payment>;
+    nextCursor?: NextCursor;
+};
+
+/**
  * The current purchase-order status. Clients read this field and use the named actions to change it.
  */
 export type PurchaseOrderStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'actualizing' | 'paid' | 'void';
@@ -2313,15 +2482,11 @@ export type PurchaseOrder = {
     /**
      * Present only when `expand=paymentRequests`. Includes linked payment requests you can read.
      */
-    paymentRequests?: Array<{
-        [key: string]: unknown;
-    }>;
+    paymentRequests?: Array<PaymentRequestBase>;
     /**
      * Present only when `expand=payments`. Includes linked sent payments you can read.
      */
-    payments?: Array<{
-        [key: string]: unknown;
-    }>;
+    payments?: Array<PaymentBase>;
     /**
      * Present only when `expand=budgetLine`. The charged budget line.
      */
@@ -10843,6 +11008,251 @@ export type MetaAuthListWorkspacesResponses = {
 };
 
 export type MetaAuthListWorkspacesResponse = MetaAuthListWorkspacesResponses[keyof MetaAuthListWorkspacesResponses];
+
+export type PaymentRequestsListData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Maximum number of items to return on a page. Capped at 100.
+         */
+        limit?: number;
+        /**
+         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         */
+        cursor?: string;
+        status?: PaymentRequestStatus;
+        projectId?: Id;
+        purchaseOrderId?: Id;
+        contactId?: Id;
+        /**
+         * Comma-separated PaymentRequestExpand values.
+         */
+        expand?: string;
+    };
+    url: '/payment-requests';
+};
+
+export type PaymentRequestsListErrors = {
+    /**
+     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     */
+    400: Error;
+    /**
+     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
+     */
+    401: Error;
+    /**
+     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     */
+    403: Error;
+    /**
+     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     */
+    404: Error;
+};
+
+export type PaymentRequestsListError = PaymentRequestsListErrors[keyof PaymentRequestsListErrors];
+
+export type PaymentRequestsListResponses = {
+    /**
+     * Payment requests.
+     */
+    200: PaymentRequestList;
+};
+
+export type PaymentRequestsListResponse = PaymentRequestsListResponses[keyof PaymentRequestsListResponses];
+
+export type PaymentRequestsGetData = {
+    body?: never;
+    path: {
+        paymentRequestId: Id;
+    };
+    query?: {
+        /**
+         * Comma-separated PaymentRequestExpand values.
+         */
+        expand?: string;
+    };
+    url: '/payment-requests/{paymentRequestId}';
+};
+
+export type PaymentRequestsGetErrors = {
+    /**
+     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     */
+    400: Error;
+    /**
+     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
+     */
+    401: Error;
+    /**
+     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     */
+    403: Error;
+    /**
+     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     */
+    404: Error;
+};
+
+export type PaymentRequestsGetError = PaymentRequestsGetErrors[keyof PaymentRequestsGetErrors];
+
+export type PaymentRequestsGetResponses = {
+    /**
+     * The payment request.
+     */
+    200: PaymentRequest;
+};
+
+export type PaymentRequestsGetResponse = PaymentRequestsGetResponses[keyof PaymentRequestsGetResponses];
+
+export type PaymentsListData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Maximum number of items to return on a page. Capped at 100.
+         */
+        limit?: number;
+        /**
+         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         */
+        cursor?: string;
+        status?: PaymentStatus;
+        projectId?: Id;
+        purchaseOrderId?: Id;
+        paymentRequestId?: Id;
+        contactId?: Id;
+        /**
+         * Comma-separated PaymentExpand values.
+         */
+        expand?: string;
+    };
+    url: '/payments';
+};
+
+export type PaymentsListErrors = {
+    /**
+     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     */
+    400: Error;
+    /**
+     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
+     */
+    401: Error;
+    /**
+     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     */
+    403: Error;
+    /**
+     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     */
+    404: Error;
+};
+
+export type PaymentsListError = PaymentsListErrors[keyof PaymentsListErrors];
+
+export type PaymentsListResponses = {
+    /**
+     * Payments.
+     */
+    200: PaymentList;
+};
+
+export type PaymentsListResponse = PaymentsListResponses[keyof PaymentsListResponses];
+
+export type PaymentsGetData = {
+    body?: never;
+    path: {
+        paymentId: Id;
+    };
+    query?: {
+        /**
+         * Comma-separated PaymentExpand values.
+         */
+        expand?: string;
+    };
+    url: '/payments/{paymentId}';
+};
+
+export type PaymentsGetErrors = {
+    /**
+     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     */
+    400: Error;
+    /**
+     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
+     */
+    401: Error;
+    /**
+     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     */
+    403: Error;
+    /**
+     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     */
+    404: Error;
+};
+
+export type PaymentsGetError = PaymentsGetErrors[keyof PaymentsGetErrors];
+
+export type PaymentsGetResponses = {
+    /**
+     * The payment.
+     */
+    200: Payment;
+};
+
+export type PaymentsGetResponse = PaymentsGetResponses[keyof PaymentsGetResponses];
+
+export type PaymentsTimelineData = {
+    body?: never;
+    path: {
+        paymentId: Id;
+    };
+    query?: {
+        /**
+         * Maximum number of items to return on a page. Capped at 100.
+         */
+        limit?: number;
+        /**
+         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         */
+        cursor?: string;
+    };
+    url: '/payments/{paymentId}/timeline';
+};
+
+export type PaymentsTimelineErrors = {
+    /**
+     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     */
+    400: Error;
+    /**
+     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
+     */
+    401: Error;
+    /**
+     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     */
+    403: Error;
+    /**
+     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     */
+    404: Error;
+};
+
+export type PaymentsTimelineError = PaymentsTimelineErrors[keyof PaymentsTimelineErrors];
+
+export type PaymentsTimelineResponses = {
+    /**
+     * Payment history.
+     */
+    200: PaymentTimelinePage;
+};
+
+export type PaymentsTimelineResponse = PaymentsTimelineResponses[keyof PaymentsTimelineResponses];
 
 export type PurchaseOrdersListData = {
     body?: never;
