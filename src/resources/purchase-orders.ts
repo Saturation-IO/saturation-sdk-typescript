@@ -6,9 +6,12 @@ import type {
   PurchaseOrderExpand,
   PurchaseOrderItem,
   PurchaseOrderItemWrite,
-  PurchaseOrderLifecycle,
+  PurchaseOrderActivity,
+  PurchaseOrderLink,
+  PurchaseOrderReconciliation,
   PurchaseOrderSort,
   PurchaseOrderStatus,
+  PurchaseOrderTimelineEvent,
   Transaction,
 } from '../generated/types.gen.js';
 import { Transport, List } from '../http.js';
@@ -19,7 +22,8 @@ const poExpandMap = {
   contact: 'contact',
   transactions: 'transactions',
   documents: 'documents',
-  lifecycle: 'lifecycle',
+  budgetLine: 'budgetLine',
+  activity: 'activity',
 } satisfies ExpandMap<PurchaseOrderExpand>;
 type PoExpandMap = typeof poExpandMap;
 
@@ -41,8 +45,8 @@ export interface PurchaseOrderListParams<E extends PurchaseOrderExpand = never> 
 
 /**
  * Purchase orders with flow-derived, read-only `status`. The only user-driven
- * action verbs are `submit` / `cancelSubmission` / `void`; `approved` / `committed`
- * / `paid` are reached by the lifecycle engine, never by an `/approve` or `/pay` verb.
+ * action verbs include submission, cancellation, voiding, finalization, and
+ * transaction linking. Approval states remain flow-derived and read-only.
  */
 export class PurchaseOrdersResource {
   constructor(
@@ -129,11 +133,53 @@ export class PurchaseOrdersResource {
     }) as Promise<PurchaseOrder>;
   }
 
-  /** The read-only lifecycle state of a purchase order. */
-  async lifecycle(purchaseOrderId: string): Promise<PurchaseOrderLifecycle> {
-    return this.t.run(sdk.purchaseOrdersLifecycle, {
+  /** Mark an eligible purchase order paid. */
+  async markPaid(purchaseOrderId: string): Promise<PurchaseOrder> {
+    return this.t.run(sdk.purchaseOrdersMarkPaid, {
       path: { purchaseOrderId },
-    }) as Promise<PurchaseOrderLifecycle>;
+    }) as Promise<PurchaseOrder>;
+  }
+
+  /** Link a transaction to a purchase order. */
+  async link(purchaseOrderId: string, body: PurchaseOrderLink): Promise<PurchaseOrder> {
+    return this.t.run(sdk.purchaseOrdersLink, {
+      path: { purchaseOrderId },
+      body,
+    }) as Promise<PurchaseOrder>;
+  }
+
+  /** Unlink a transaction from a purchase order. */
+  async unlink(purchaseOrderId: string, body: PurchaseOrderLink): Promise<PurchaseOrder> {
+    return this.t.run(sdk.purchaseOrdersUnlink, {
+      path: { purchaseOrderId },
+      body,
+    }) as Promise<PurchaseOrder>;
+  }
+
+  /** Current live conditions using the product's Activity vocabulary. */
+  async activity(purchaseOrderId: string): Promise<PurchaseOrderActivity> {
+    return this.t.run(sdk.purchaseOrdersActivity, {
+      path: { purchaseOrderId },
+    }) as Promise<PurchaseOrderActivity>;
+  }
+
+  /** Current amount, payment, matching, and source reconciliation facts. */
+  async reconciliation(purchaseOrderId: string): Promise<PurchaseOrderReconciliation> {
+    return this.t.run(sdk.purchaseOrdersReconciliation, {
+      path: { purchaseOrderId },
+    }) as Promise<PurchaseOrderReconciliation>;
+  }
+
+  /** Immutable purchase-order history, newest first. */
+  timeline(
+    purchaseOrderId: string,
+    params: { limit?: number; cursor?: string } = {},
+  ): List<PurchaseOrderTimelineEvent> {
+    const options = { path: { purchaseOrderId }, query: params };
+    return new List<PurchaseOrderTimelineEvent>(
+      () => this.t.paginate<typeof options, PurchaseOrderTimelineEvent>(sdk.purchaseOrdersTimeline, options),
+      () => this.t.runPage<typeof options, PurchaseOrderTimelineEvent>(sdk.purchaseOrdersTimeline, options),
+    );
   }
 
   /** Transactions linked to a purchase order. */

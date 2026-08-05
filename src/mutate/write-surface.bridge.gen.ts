@@ -7,7 +7,7 @@
 // lives in each method's signature; the runtime is the generic gated bridge.
 // Regenerate with:  pnpm --filter @saturation/sdk generate:mutate
 //
-// 44 write operations.
+// 52 write operations.
 
 import type {
   BudgetCreateLineData,
@@ -36,6 +36,22 @@ import type {
   LibraryAddProjectIncentiveResponse,
   LibraryAddRatePackData,
   LibraryAddRatePackResponse,
+  LibraryCreateCurrencyTemplateData,
+  LibraryCreateCurrencyTemplateResponse,
+  LibraryCreateCustomUnitData,
+  LibraryCreateCustomUnitResponse,
+  LibraryCreateFringeTagTemplateData,
+  LibraryCreateFringeTagTemplateResponse,
+  LibraryCreateFringeTemplateData,
+  LibraryCreateFringeTemplateResponse,
+  LibraryCreateGlobalTemplateData,
+  LibraryCreateGlobalTemplateResponse,
+  LibraryCreateRatePackData,
+  LibraryCreateRatePackItemData,
+  LibraryCreateRatePackItemResponse,
+  LibraryCreateRatePackResponse,
+  LibraryCreateTagData,
+  LibraryCreateTagResponse,
   LibraryEnableIncentivePackData,
   LibraryEnableIncentivePackResponse,
   LibraryEnableRatePackData,
@@ -192,6 +208,30 @@ export function createBridgeWriteSurface(bridge: WriteBridge): WriteSurface {
     },
     libraryAddRatePack(data: LibraryAddRatePackData): Promise<LibraryAddRatePackResponse> {
       return forward('libraryAddRatePack', data) as Promise<LibraryAddRatePackResponse>;
+    },
+    libraryCreateCurrencyTemplate(data: LibraryCreateCurrencyTemplateData): Promise<LibraryCreateCurrencyTemplateResponse> {
+      return forward('libraryCreateCurrencyTemplate', data) as Promise<LibraryCreateCurrencyTemplateResponse>;
+    },
+    libraryCreateCustomUnit(data: LibraryCreateCustomUnitData): Promise<LibraryCreateCustomUnitResponse> {
+      return forward('libraryCreateCustomUnit', data) as Promise<LibraryCreateCustomUnitResponse>;
+    },
+    libraryCreateFringeTagTemplate(data: LibraryCreateFringeTagTemplateData): Promise<LibraryCreateFringeTagTemplateResponse> {
+      return forward('libraryCreateFringeTagTemplate', data) as Promise<LibraryCreateFringeTagTemplateResponse>;
+    },
+    libraryCreateFringeTemplate(data: LibraryCreateFringeTemplateData): Promise<LibraryCreateFringeTemplateResponse> {
+      return forward('libraryCreateFringeTemplate', data) as Promise<LibraryCreateFringeTemplateResponse>;
+    },
+    libraryCreateGlobalTemplate(data: LibraryCreateGlobalTemplateData): Promise<LibraryCreateGlobalTemplateResponse> {
+      return forward('libraryCreateGlobalTemplate', data) as Promise<LibraryCreateGlobalTemplateResponse>;
+    },
+    libraryCreateRatePack(data: LibraryCreateRatePackData): Promise<LibraryCreateRatePackResponse> {
+      return forward('libraryCreateRatePack', data) as Promise<LibraryCreateRatePackResponse>;
+    },
+    libraryCreateRatePackItem(data: LibraryCreateRatePackItemData): Promise<LibraryCreateRatePackItemResponse> {
+      return forward('libraryCreateRatePackItem', data) as Promise<LibraryCreateRatePackItemResponse>;
+    },
+    libraryCreateTag(data: LibraryCreateTagData): Promise<LibraryCreateTagResponse> {
+      return forward('libraryCreateTag', data) as Promise<LibraryCreateTagResponse>;
     },
     libraryEnableIncentivePack(data: LibraryEnableIncentivePackData): Promise<LibraryEnableIncentivePackResponse> {
       return forward('libraryEnableIncentivePack', data) as Promise<LibraryEnableIncentivePackResponse>;

@@ -3,7 +3,7 @@ import type { Client } from './generated/client/index.js';
 import { toSaturationError } from './errors.js';
 
 /** Default production base URL. Overridable via the constructor for local/staging. */
-export const DEFAULT_BASE_URL = 'https://api.saturation.io/v1';
+export const DEFAULT_BASE_URL = 'https://next-api.saturation.io/v1';
 
 /**
  * The transport's request executor — the exact `(Request) => Promise<Response>`

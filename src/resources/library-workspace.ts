@@ -88,9 +88,9 @@ export class WorkspaceRatesResource {
     }) as Promise<RatePack>;
   }
 
-  async create(body: RatePackCreate, opts: { idempotencyKey?: string } = {}): Promise<RatePack> {
+  async create(body: RatePackCreate, opts: { idempotencyKey: string }): Promise<RatePack> {
     return this.t.run(sdk.libraryCreateRatePack, {
-      headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<RatePack>;
   }
@@ -145,9 +145,10 @@ export class WorkspaceRatePackItemsResource {
     );
   }
 
-  async create(body: RatePackItemCreate): Promise<RatePackItem> {
+  async create(body: RatePackItemCreate, opts: { idempotencyKey: string }): Promise<RatePackItem> {
     return this.t.run(sdk.libraryCreateRatePackItem, {
       path: { packId: this.packId },
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<RatePackItem>;
   }
@@ -221,8 +222,9 @@ export class WorkspaceFringesResource {
       path: { fringeId },
     }) as Promise<FringeTemplate>;
   }
-  async create(body: FringeTemplateWrite): Promise<FringeTemplate> {
+  async create(body: FringeTemplateWrite, opts: { idempotencyKey: string }): Promise<FringeTemplate> {
     return this.t.run(sdk.libraryCreateFringeTemplate, {
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<FringeTemplate>;
   }
@@ -254,8 +256,9 @@ export class WorkspaceGlobalsResource {
       path: { globalId },
     }) as Promise<GlobalTemplate>;
   }
-  async create(body: GlobalTemplateWrite): Promise<GlobalTemplate> {
+  async create(body: GlobalTemplateWrite, opts: { idempotencyKey: string }): Promise<GlobalTemplate> {
     return this.t.run(sdk.libraryCreateGlobalTemplate, {
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<GlobalTemplate>;
   }
@@ -287,8 +290,9 @@ export class WorkspaceCurrenciesResource {
       path: { currencyId },
     }) as Promise<CurrencyTemplate>;
   }
-  async create(body: CurrencyTemplateWrite): Promise<CurrencyTemplate> {
+  async create(body: CurrencyTemplateWrite, opts: { idempotencyKey: string }): Promise<CurrencyTemplate> {
     return this.t.run(sdk.libraryCreateCurrencyTemplate, {
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<CurrencyTemplate>;
   }
@@ -320,8 +324,9 @@ export class WorkspaceFringeTagsResource {
       path: { fringeTagId },
     }) as Promise<FringeTagTemplate>;
   }
-  async create(body: FringeTagTemplateWrite): Promise<FringeTagTemplate> {
+  async create(body: FringeTagTemplateWrite, opts: { idempotencyKey: string }): Promise<FringeTagTemplate> {
     return this.t.run(sdk.libraryCreateFringeTagTemplate, {
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<FringeTagTemplate>;
   }
@@ -353,8 +358,9 @@ export class WorkspaceTagsResource {
       path: { tagId },
     }) as Promise<Tag>;
   }
-  async create(body: TagCreate): Promise<Tag> {
+  async create(body: TagCreate, opts: { idempotencyKey: string }): Promise<Tag> {
     return this.t.run(sdk.libraryCreateTag, {
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<Tag>;
   }
@@ -399,8 +405,9 @@ export class WorkspaceCustomUnitsResource {
       () => this.t.runPage<typeof options, CustomUnit>(sdk.libraryListCustomUnits, options),
     );
   }
-  async create(body: CustomUnitCreate): Promise<CustomUnit> {
+  async create(body: CustomUnitCreate, opts: { idempotencyKey: string }): Promise<CustomUnit> {
     return this.t.run(sdk.libraryCreateCustomUnit, {
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<CustomUnit>;
   }

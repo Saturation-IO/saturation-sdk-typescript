@@ -189,7 +189,7 @@ new Saturation({
 
 | Option | Default |
 | --- | --- |
-| `baseURL` | `https://api.saturation.io/v1` |
+| `baseURL` | `https://next-api.saturation.io/v1` |
 
 ## Conventions
 

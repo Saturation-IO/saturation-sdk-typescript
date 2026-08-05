@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import type { Transport, Page } from '../http.js';
+import * as sdk from '../generated/sdk.gen.js';
 import { PurchaseOrdersResource } from './purchase-orders.js';
 import type { PurchaseOrder, PurchaseOrderCreate } from '../generated/types.gen.js';
 
@@ -61,5 +62,38 @@ describe('PurchaseOrdersResource scope defaults', () => {
     expect((run.mock.calls[1]?.[1] as Options).body).toEqual({
       title: 'Camera package',
     });
+  });
+
+  it('exposes Activity, Timeline, and Reconciliation through their generated operations', async () => {
+    const { t, run, runPage } = transport();
+    const resource = new PurchaseOrdersResource(t);
+
+    await resource.activity('po_1');
+    expect(run.mock.calls[0]?.[0]).toBe(sdk.purchaseOrdersActivity);
+
+    await resource.reconciliation('po_1');
+    expect(run.mock.calls[1]?.[0]).toBe(sdk.purchaseOrdersReconciliation);
+
+    await resource.timeline('po_1', { limit: 25, cursor: 'cursor_1' }).page();
+    expect(runPage.mock.calls[0]?.[0]).toBe(sdk.purchaseOrdersTimeline);
+    expect(runPage.mock.calls[0]?.[1]).toEqual({
+      path: { purchaseOrderId: 'po_1' },
+      query: { limit: 25, cursor: 'cursor_1' },
+    });
+  });
+
+  it('exposes Mark paid, link, and unlink through their generated operations', async () => {
+    const { t, run } = transport();
+    const resource = new PurchaseOrdersResource(t);
+
+    await resource.markPaid('po_1');
+    expect(run.mock.calls[0]?.[0]).toBe(sdk.purchaseOrdersMarkPaid);
+
+    await resource.link('po_1', { transactionId: 'txn_1' });
+    expect(run.mock.calls[1]?.[0]).toBe(sdk.purchaseOrdersLink);
+
+    await resource.unlink('po_1', { transactionId: 'txn_1' });
+    expect(run.mock.calls[2]?.[0]).toBe(sdk.purchaseOrdersUnlink);
+
   });
 });

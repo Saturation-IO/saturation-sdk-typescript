@@ -8,7 +8,7 @@
 // the generated `types.gen.ts` request/response types) changes, every
 // `satisfies WriteSurface` implementation must update to match or fail `tsc`.
 //
-// 44 write operations.
+// 52 write operations.
 
 import type {
   BudgetCreateLineData,
@@ -37,6 +37,22 @@ import type {
   LibraryAddProjectIncentiveResponse,
   LibraryAddRatePackData,
   LibraryAddRatePackResponse,
+  LibraryCreateCurrencyTemplateData,
+  LibraryCreateCurrencyTemplateResponse,
+  LibraryCreateCustomUnitData,
+  LibraryCreateCustomUnitResponse,
+  LibraryCreateFringeTagTemplateData,
+  LibraryCreateFringeTagTemplateResponse,
+  LibraryCreateFringeTemplateData,
+  LibraryCreateFringeTemplateResponse,
+  LibraryCreateGlobalTemplateData,
+  LibraryCreateGlobalTemplateResponse,
+  LibraryCreateRatePackData,
+  LibraryCreateRatePackItemData,
+  LibraryCreateRatePackItemResponse,
+  LibraryCreateRatePackResponse,
+  LibraryCreateTagData,
+  LibraryCreateTagResponse,
   LibraryEnableIncentivePackData,
   LibraryEnableIncentivePackResponse,
   LibraryEnableRatePackData,
@@ -133,6 +149,22 @@ export interface WriteSurface {
   libraryAddProjectIncentive(data: LibraryAddProjectIncentiveData): Promise<LibraryAddProjectIncentiveResponse>;
   /** Add a rate pack into the project (`POST /projects/{projectId}/library/rates/{packId}/add`). */
   libraryAddRatePack(data: LibraryAddRatePackData): Promise<LibraryAddRatePackResponse>;
+  /** Create a workspace currency template (`POST /library/currencies`). */
+  libraryCreateCurrencyTemplate(data: LibraryCreateCurrencyTemplateData): Promise<LibraryCreateCurrencyTemplateResponse>;
+  /** Create a workspace custom unit (`POST /library/units/custom`). */
+  libraryCreateCustomUnit(data: LibraryCreateCustomUnitData): Promise<LibraryCreateCustomUnitResponse>;
+  /** Create a workspace fringe-tag template (`POST /library/fringe-tags`). */
+  libraryCreateFringeTagTemplate(data: LibraryCreateFringeTagTemplateData): Promise<LibraryCreateFringeTagTemplateResponse>;
+  /** Create a workspace fringe template (`POST /library/fringes`). */
+  libraryCreateFringeTemplate(data: LibraryCreateFringeTemplateData): Promise<LibraryCreateFringeTemplateResponse>;
+  /** Create a workspace global template (`POST /library/globals`). */
+  libraryCreateGlobalTemplate(data: LibraryCreateGlobalTemplateData): Promise<LibraryCreateGlobalTemplateResponse>;
+  /** Author a PRIVATE workspace-owned rate pack (`POST /library/rates`). */
+  libraryCreateRatePack(data: LibraryCreateRatePackData): Promise<LibraryCreateRatePackResponse>;
+  /** Add an item to an owned pack (`POST /library/rates/{packId}/items`). */
+  libraryCreateRatePackItem(data: LibraryCreateRatePackItemData): Promise<LibraryCreateRatePackItemResponse>;
+  /** Create a workspace tag (`POST /library/tags`). */
+  libraryCreateTag(data: LibraryCreateTagData): Promise<LibraryCreateTagResponse>;
   /** Enable an incentive pack for the workspace (`POST /library/incentives/{packId}/enable`). */
   libraryEnableIncentivePack(data: LibraryEnableIncentivePackData): Promise<LibraryEnableIncentivePackResponse>;
   /** Enable a rate pack for the workspace (`POST /library/rates/{packId}/enable`). */

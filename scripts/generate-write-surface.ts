@@ -130,7 +130,7 @@ const WRITE_OP_ALLOWLIST: ReadonlySet<string> = new Set<string>([
   'purchaseOrdersCreate',
   'purchaseOrdersCreateItem',
   'purchaseOrdersCancelSubmission',
-  'purchaseOrdersFinalize',
+  'purchaseOrdersMarkPaid',
   'purchaseOrdersLink',
   'purchaseOrdersUpdate',
   'purchaseOrdersUpdateItem',
@@ -163,11 +163,8 @@ const WRITE_OP_ALLOWLIST: ReadonlySet<string> = new Set<string>([
  *   `purchaseOrdersLink` + PO lifecycle
  *   (`purchaseOrdersCancelSubmission`/`Finalize`/`Void` — MCP POs are
  *   draft-only in v1).
- * - The library template/pack CREATES: approved for exposure (Simon,
- *   2026-08-02 — the old "spec §10" exclusion was catalog drift, not a
- *   decision) and their /v1 routes are receipt-backed now; they join in the
- *   creates pass once their catalog contracts and acceptance tests land. The
- *   ENABLES are exposed below.
+ * - Library template and pack creates are exposed below. Their /v1 routes are
+ *   receipt-backed and require the generated Idempotency-Key header.
  */
 const AGENT_WRITE_EXPOSED_OPS: readonly string[] = [
   // ── value updates (the pre-existing exposed set) ──
@@ -201,6 +198,14 @@ const AGENT_WRITE_EXPOSED_OPS: readonly string[] = [
   'budgetCreateLinesBatch',
   'budgetCreatePhase',
   'budgetUpsertLinePhaseDataBatch',
+  'libraryCreateCurrencyTemplate',
+  'libraryCreateCustomUnit',
+  'libraryCreateFringeTagTemplate',
+  'libraryCreateFringeTemplate',
+  'libraryCreateGlobalTemplate',
+  'libraryCreateRatePack',
+  'libraryCreateRatePackItem',
+  'libraryCreateTag',
   'masterDataCreateContact',
   'masterDataCreateProject',
   'purchaseOrdersCreate',
@@ -238,6 +243,14 @@ const KEYED_CREATE_OPS: ReadonlySet<string> = new Set([
   'budgetCreateLinesBatch',
   'budgetCreatePhase',
   'budgetUpsertLinePhaseDataBatch',
+  'libraryCreateCurrencyTemplate',
+  'libraryCreateCustomUnit',
+  'libraryCreateFringeTagTemplate',
+  'libraryCreateFringeTemplate',
+  'libraryCreateGlobalTemplate',
+  'libraryCreateRatePack',
+  'libraryCreateRatePackItem',
+  'libraryCreateTag',
   'masterDataCreateContact',
   'masterDataCreateProject',
   'purchaseOrdersCreate',
@@ -689,10 +702,10 @@ function main(): void {
   //     This is the authoritative source for the catalog guard mirrored in
   //     mutate.integration.test.ts (kept in sync).
   const DESTRUCTIVE_NAME =
-    /Delete|Disable|Deactivate|Remove|Unassign|Unlink|Void|Ping|Submit|Finalize|Cancel|Archive/;
+    /Delete|Disable|Deactivate|Remove|Unassign|Unlink|Void|Ping|Submit|Finalize|MarkPaid|Cancel|Archive/;
   const REVIEWED_LIFECYCLE_OPS = new Set([
     'purchaseOrdersCancelSubmission',
-    'purchaseOrdersFinalize',
+    'purchaseOrdersMarkPaid',
     'purchaseOrdersVoid',
   ]);
   // The five SOFT deletes reviewed and admitted 2026-08-02 (Simon's

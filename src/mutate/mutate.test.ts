@@ -38,6 +38,14 @@ describe('validateMutateArgs', () => {
       'budgetCreateLinesBatch',
       'budgetCreatePhase',
       'budgetUpsertLinePhaseDataBatch',
+      'libraryCreateCurrencyTemplate',
+      'libraryCreateCustomUnit',
+      'libraryCreateFringeTagTemplate',
+      'libraryCreateFringeTemplate',
+      'libraryCreateGlobalTemplate',
+      'libraryCreateRatePack',
+      'libraryCreateRatePackItem',
+      'libraryCreateTag',
       'masterDataCreateContact',
       'masterDataCreateProject',
       'purchaseOrdersCreate',
@@ -45,7 +53,13 @@ describe('validateMutateArgs', () => {
       'transactionsCreate',
     ]);
     const natural = posts.filter((op) => op.idempotency === 'natural').map((op) => op.op).sort();
-    expect(natural).toEqual(['documentsAssign', 'libraryAddProjectIncentive', 'libraryAddRatePack']);
+    expect(natural).toEqual([
+      'documentsAssign',
+      'libraryAddProjectIncentive',
+      'libraryAddRatePack',
+      'libraryEnableIncentivePack',
+      'libraryEnableRatePack',
+    ]);
 
     // Still out: upload rides its own tool; webhooks are standing config.
     expect(WRITE_OPS).not.toHaveProperty('documentsDrop');
