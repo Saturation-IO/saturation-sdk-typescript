@@ -61,9 +61,11 @@ type WriteMethod = 'post' | 'put' | 'patch' | 'delete';
  * Curated from the route inventory. Excluded on purpose (NOT a write, or
  * destructive/deferred to the rollback ledger): every `*Delete*` EXCEPT the
  * five reviewed soft deletes admitted 2026-08-02, plus
- * `documentsUnassign`, `purchaseOrdersUnlink/Submit`,
- * `library{Disable,Remove}*`, and `webhooksPing` (a side-effecting test action,
- * not a data write — the exact "computed POST" a verb filter would leak).
+ * `documentsUnassign`, `library{Disable,Remove}*`, and `webhooksPing` (a
+ * side-effecting test action, not a data write — the exact "computed POST" a
+ * verb filter would leak). The PO lifecycle (`Unlink` included; `Submit`
+ * still reserved — the /v1 stub always 409s) was admitted 2026-08-07 (Simon's write-surface ruling for the write-audit
+ * program): transitions are guarded by the routes' own status preconditions.
  */
 const WRITE_OP_ALLOWLIST: ReadonlySet<string> = new Set<string>([
   // ── budget: create lines/phases, set/upsert phase-data (value edits) ──
@@ -132,6 +134,7 @@ const WRITE_OP_ALLOWLIST: ReadonlySet<string> = new Set<string>([
   'purchaseOrdersCancelSubmission',
   'purchaseOrdersMarkPaid',
   'purchaseOrdersLink',
+  'purchaseOrdersUnlink',
   'purchaseOrdersUpdate',
   'purchaseOrdersUpdateItem',
   'purchaseOrdersVoid',
@@ -158,13 +161,15 @@ const WRITE_OP_ALLOWLIST: ReadonlySet<string> = new Set<string>([
  * - `webhooksCreate`/`webhooksUpdate`: standing config, not data writes — the
  *   public write scope intentionally omits `*:Webhook`.
  * - `documentsDrop`: document bytes ride the dedicated `upload` tool.
- * - `masterDataCreateComment`/`masterDataCreateSpace`,
- *   `transactionsBatchCreate`/`transactionsItemsCreate`,
- *   `purchaseOrdersLink` + PO status actions
- *   (`purchaseOrdersCancelSubmission`/`MarkPaid`/`Void` — MCP POs are
- *   draft-only in v1).
  * - Library template and pack creates are exposed below. Their /v1 routes are
  *   receipt-backed and require the generated Idempotency-Key header.
+ *
+ * Opened 2026-08-07 (Simon's write-surface ruling; previously omitted):
+ * comment/space creates, transaction items + batch creates (all four now
+ * keyed, receipt-backed), and the full PO lifecycle
+ * (`CancelSubmission`/`MarkPaid`/`Void`/`Link`/`Unlink`; `Submit` deferred
+ * until the /v1 stub is wired to the approval-run service) as
+ * `transition` ops guarded by the routes' status preconditions.
  */
 const AGENT_WRITE_EXPOSED_OPS: readonly string[] = [
   // ── value updates (the pre-existing exposed set) ──
@@ -206,11 +211,23 @@ const AGENT_WRITE_EXPOSED_OPS: readonly string[] = [
   'libraryCreateRatePack',
   'libraryCreateRatePackItem',
   'libraryCreateTag',
+  'masterDataCreateComment',
   'masterDataCreateContact',
   'masterDataCreateProject',
+  'masterDataCreateSpace',
   'purchaseOrdersCreate',
   'purchaseOrdersCreateItem',
+  'transactionsBatchCreate',
   'transactionsCreate',
+  'transactionsItemsCreate',
+  // ── PO lifecycle transitions (Simon, 2026-08-07): status moves guarded by
+  //    the routes' own lifecycle preconditions — a repeated call is rejected
+  //    with a typed 4xx (or is a same-state no-op), never a duplicate ──
+  'purchaseOrdersCancelSubmission',
+  'purchaseOrdersMarkPaid',
+  'purchaseOrdersVoid',
+  'purchaseOrdersLink',
+  'purchaseOrdersUnlink',
   // ── naturally idempotent creates (no key; repeat call returns the original) ──
   'documentsAssign',
   'libraryAddProjectIncentive',
@@ -251,11 +268,15 @@ const KEYED_CREATE_OPS: ReadonlySet<string> = new Set([
   'libraryCreateRatePack',
   'libraryCreateRatePackItem',
   'libraryCreateTag',
+  'masterDataCreateComment',
   'masterDataCreateContact',
   'masterDataCreateProject',
+  'masterDataCreateSpace',
   'purchaseOrdersCreate',
   'purchaseOrdersCreateItem',
+  'transactionsBatchCreate',
   'transactionsCreate',
+  'transactionsItemsCreate',
 ]);
 
 /**
@@ -269,6 +290,20 @@ const NATURALLY_IDEMPOTENT_OPS: Readonly<Record<string, string>> = {
   libraryEnableRatePack: 'upsert on `@@unique([workspaceId, ratePackId])` with deterministic id `wrp-<ws>-<pack>` — repeat enable returns the existing enablement',
   libraryEnableIncentivePack: 'upsert on `@@unique([workspaceId, incentivePackId])` with deterministic id `wip-<ws>-<pack>` — repeat enable returns the existing enablement',
 };
+
+/**
+ * PO lifecycle transitions (Simon, 2026-08-07): POSTs that move a purchase
+ * order between states (or link/unlink its paid leg). Retry identity comes
+ * from the route's status preconditions, not a key — a repeated transition is
+ * rejected with a typed 4xx (or is a same-state no-op), never a duplicate.
+ */
+const TRANSITION_OPS: ReadonlySet<string> = new Set([
+  'purchaseOrdersCancelSubmission',
+  'purchaseOrdersMarkPaid',
+  'purchaseOrdersVoid',
+  'purchaseOrdersLink',
+  'purchaseOrdersUnlink',
+]);
 
 interface ParsedOp {
   op: string;
@@ -704,9 +739,13 @@ function main(): void {
   const DESTRUCTIVE_NAME =
     /Delete|Disable|Deactivate|Remove|Unassign|Unlink|Void|Ping|Submit|Finalize|MarkPaid|Cancel|Archive/;
   const REVIEWED_LIFECYCLE_OPS = new Set([
+    // PO lifecycle admitted 2026-08-07 (Simon's write-surface ruling).
+    // `purchaseOrdersSubmit` stays out: the /v1 endpoint is a reserved stub
+    // (always 409) until wired to the workspace approval-run service.
     'purchaseOrdersCancelSubmission',
     'purchaseOrdersMarkPaid',
     'purchaseOrdersVoid',
+    'purchaseOrdersUnlink',
   ]);
   // The five SOFT deletes reviewed and admitted 2026-08-02 (Simon's
   // #development ruling). Every other *Delete* stays behind this gate.
@@ -785,6 +824,13 @@ function main(): void {
             `either reclassify it as a keyed create or fix the OpenAPI declaration.`,
         );
       }
+    } else if (TRANSITION_OPS.has(o.op)) {
+      if (declared === 'required') {
+        throw new Error(
+          `Transition op ${o.op} declares a REQUIRED Idempotency-Key — transitions ` +
+            `take retry identity from the route's status preconditions, not a key.`,
+        );
+      }
     } else {
       throw new Error(
         `Exposed POST ${o.op} has no idempotency classification: add it to ` +
@@ -803,7 +849,9 @@ function main(): void {
         ? 'required'
         : o.op in NATURALLY_IDEMPOTENT_OPS
           ? 'natural'
-          : 'none';
+          : TRANSITION_OPS.has(o.op)
+            ? 'transition'
+            : 'none';
       return `  ${o.op}: {
     op: '${o.op}',
     method: '${o.method}',
@@ -857,11 +905,13 @@ export interface WriteOpDef {
   /**
    * Retry identity: \`required\` = the /v1 route requires an \`Idempotency-Key\`
    * header (receipt-backed replay); \`natural\` = replay-equivalent without a
-   * key (repeat call returns the original record); \`none\` = a value update
-   * (inherently retry-safe). Derived at generation time and gate-checked
-   * against the generated header declarations.
+   * key (repeat call returns the original record); \`transition\` = a lifecycle
+   * move guarded by the route's status preconditions (a repeat is rejected
+   * with a typed 4xx or is a same-state no-op, never a duplicate); \`none\` =
+   * a value update (inherently retry-safe). Derived at generation time and
+   * gate-checked against the generated header declarations.
    */
-  readonly idempotency: 'required' | 'natural' | 'none';
+  readonly idempotency: 'required' | 'natural' | 'transition' | 'none';
   /** One-line human summary from the OpenAPI operation. */
   readonly summary: string;
 }

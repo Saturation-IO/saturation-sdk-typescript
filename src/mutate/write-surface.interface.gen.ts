@@ -8,7 +8,7 @@
 // the generated `types.gen.ts` request/response types) changes, every
 // `satisfies WriteSurface` implementation must update to match or fail `tsc`.
 //
-// 52 write operations.
+// 61 write operations.
 
 import type {
   BudgetCreateLineData,
@@ -83,10 +83,14 @@ import type {
   LibraryUpdateRatePackResponse,
   LibraryUpdateTagData,
   LibraryUpdateTagResponse,
+  MasterDataCreateCommentData,
+  MasterDataCreateCommentResponse,
   MasterDataCreateContactData,
   MasterDataCreateContactResponse,
   MasterDataCreateProjectData,
   MasterDataCreateProjectResponse,
+  MasterDataCreateSpaceData,
+  MasterDataCreateSpaceResponse,
   MasterDataDeleteContactData,
   MasterDataDeleteContactResponse,
   MasterDataUpdateCommentData,
@@ -97,20 +101,34 @@ import type {
   MasterDataUpdateProjectResponse,
   MasterDataUpdateSpaceData,
   MasterDataUpdateSpaceResponse,
+  PurchaseOrdersCancelSubmissionData,
+  PurchaseOrdersCancelSubmissionResponse,
   PurchaseOrdersCreateData,
   PurchaseOrdersCreateItemData,
   PurchaseOrdersCreateItemResponse,
   PurchaseOrdersCreateResponse,
   PurchaseOrdersDeleteData,
   PurchaseOrdersDeleteResponse,
+  PurchaseOrdersLinkData,
+  PurchaseOrdersLinkResponse,
+  PurchaseOrdersMarkPaidData,
+  PurchaseOrdersMarkPaidResponse,
+  PurchaseOrdersUnlinkData,
+  PurchaseOrdersUnlinkResponse,
   PurchaseOrdersUpdateData,
   PurchaseOrdersUpdateItemData,
   PurchaseOrdersUpdateItemResponse,
   PurchaseOrdersUpdateResponse,
+  PurchaseOrdersVoidData,
+  PurchaseOrdersVoidResponse,
+  TransactionsBatchCreateData,
+  TransactionsBatchCreateResponse,
   TransactionsCreateData,
   TransactionsCreateResponse,
   TransactionsDeleteData,
   TransactionsDeleteResponse,
+  TransactionsItemsCreateData,
+  TransactionsItemsCreateResponse,
   TransactionsItemsUpdateData,
   TransactionsItemsUpdateResponse,
   TransactionsUpdateData,
@@ -195,10 +213,14 @@ export interface WriteSurface {
   libraryUpdateRatePackItem(data: LibraryUpdateRatePackItemData): Promise<LibraryUpdateRatePackItemResponse>;
   /** Update a workspace tag (`PATCH /library/tags/{tagId}`). */
   libraryUpdateTag(data: LibraryUpdateTagData): Promise<LibraryUpdateTagResponse>;
+  /** Create a comment (`POST /comments`). */
+  masterDataCreateComment(data: MasterDataCreateCommentData): Promise<MasterDataCreateCommentResponse>;
   /** Create a contact (`POST /contacts`). */
   masterDataCreateContact(data: MasterDataCreateContactData): Promise<MasterDataCreateContactResponse>;
   /** Create a project (`POST /projects`). */
   masterDataCreateProject(data: MasterDataCreateProjectData): Promise<MasterDataCreateProjectResponse>;
+  /** Create a space (`POST /spaces`). */
+  masterDataCreateSpace(data: MasterDataCreateSpaceData): Promise<MasterDataCreateSpaceResponse>;
   /** Delete a contact (`DELETE /contacts/{contactId}`). */
   masterDataDeleteContact(data: MasterDataDeleteContactData): Promise<MasterDataDeleteContactResponse>;
   /** Update a comment (`PATCH /comments/{commentId}`). */
@@ -209,20 +231,34 @@ export interface WriteSurface {
   masterDataUpdateProject(data: MasterDataUpdateProjectData): Promise<MasterDataUpdateProjectResponse>;
   /** Update a space (`PATCH /spaces/{spaceId}`). */
   masterDataUpdateSpace(data: MasterDataUpdateSpaceData): Promise<MasterDataUpdateSpaceResponse>;
+  /** Cancel a pending submission (`POST /purchase-orders/{purchaseOrderId}/cancel-submission`). */
+  purchaseOrdersCancelSubmission(data: PurchaseOrdersCancelSubmissionData): Promise<PurchaseOrdersCancelSubmissionResponse>;
   /** Create a purchase order (`POST /purchase-orders`). */
   purchaseOrdersCreate(data: PurchaseOrdersCreateData): Promise<PurchaseOrdersCreateResponse>;
   /** Add a purchase order item (`POST /purchase-orders/{purchaseOrderId}/items`). */
   purchaseOrdersCreateItem(data: PurchaseOrdersCreateItemData): Promise<PurchaseOrdersCreateItemResponse>;
   /** Delete a purchase order (`DELETE /purchase-orders/{purchaseOrderId}`). */
   purchaseOrdersDelete(data: PurchaseOrdersDeleteData): Promise<PurchaseOrdersDeleteResponse>;
+  /** Link a transaction to a purchase order (`POST /purchase-orders/{purchaseOrderId}/link`). */
+  purchaseOrdersLink(data: PurchaseOrdersLinkData): Promise<PurchaseOrdersLinkResponse>;
+  /** Mark a purchase order as paid (`POST /purchase-orders/{purchaseOrderId}/mark-paid`). */
+  purchaseOrdersMarkPaid(data: PurchaseOrdersMarkPaidData): Promise<PurchaseOrdersMarkPaidResponse>;
+  /** Unlink a transaction from a purchase order (`POST /purchase-orders/{purchaseOrderId}/unlink`). */
+  purchaseOrdersUnlink(data: PurchaseOrdersUnlinkData): Promise<PurchaseOrdersUnlinkResponse>;
   /** Update a purchase order (`PATCH /purchase-orders/{purchaseOrderId}`). */
   purchaseOrdersUpdate(data: PurchaseOrdersUpdateData): Promise<PurchaseOrdersUpdateResponse>;
   /** Update a purchase order item (`PATCH /purchase-orders/{purchaseOrderId}/items/{itemId}`). */
   purchaseOrdersUpdateItem(data: PurchaseOrdersUpdateItemData): Promise<PurchaseOrdersUpdateItemResponse>;
+  /** Void a purchase order (`POST /purchase-orders/{purchaseOrderId}/void`). */
+  purchaseOrdersVoid(data: PurchaseOrdersVoidData): Promise<PurchaseOrdersVoidResponse>;
+  /** Bulk journal import (`POST /transactions/batch`). */
+  transactionsBatchCreate(data: TransactionsBatchCreateData): Promise<TransactionsBatchCreateResponse>;
   /** Create a journal transaction (`POST /transactions`). */
   transactionsCreate(data: TransactionsCreateData): Promise<TransactionsCreateResponse>;
   /** Delete a journal transaction (`DELETE /transactions/{txId}`). */
   transactionsDelete(data: TransactionsDeleteData): Promise<TransactionsDeleteResponse>;
+  /** Add a transaction item (`POST /transactions/{txId}/items`). */
+  transactionsItemsCreate(data: TransactionsItemsCreateData): Promise<TransactionsItemsCreateResponse>;
   /** Update a transaction item (`PATCH /transactions/{txId}/items/{itemId}`). */
   transactionsItemsUpdate(data: TransactionsItemsUpdateData): Promise<TransactionsItemsUpdateResponse>;
   /** Update a transaction (`PATCH /transactions/{txId}`). */

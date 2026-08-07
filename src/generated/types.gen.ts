@@ -10037,11 +10037,11 @@ export type MasterDataListSpacesResponse = MasterDataListSpacesResponses[keyof M
 
 export type MasterDataCreateSpaceData = {
     body: SpaceCreate;
-    headers?: {
+    headers: {
         /**
-         * Optional client-generated key for safe retries of this create. Replaying the same key with a different body returns `409 idempotency_conflict`.
+         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
          */
-        'Idempotency-Key'?: string;
+        'Idempotency-Key': string;
     };
     path?: never;
     query?: never;
@@ -10559,11 +10559,11 @@ export type MasterDataListCommentsResponse = MasterDataListCommentsResponses[key
 
 export type MasterDataCreateCommentData = {
     body: CommentCreate;
-    headers?: {
+    headers: {
         /**
-         * Optional client-generated key for safe retries of this create. Replaying the same key with a different body returns `409 idempotency_conflict`.
+         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
          */
-        'Idempotency-Key'?: string;
+        'Idempotency-Key': string;
     };
     path?: never;
     query?: never;
@@ -12935,11 +12935,11 @@ export type TransactionsItemsListResponse = TransactionsItemsListResponses[keyof
 
 export type TransactionsItemsCreateData = {
     body: TransactionItemCreate;
-    headers?: {
+    headers: {
         /**
-         * Optional client-generated key for safe retries of this billable create. Replaying the same key with a different body returns `409 idempotency_conflict`.
+         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
          */
-        'Idempotency-Key'?: string;
+        'Idempotency-Key': string;
     };
     path: {
         /**

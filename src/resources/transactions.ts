@@ -190,9 +190,15 @@ export class TransactionItemsResource {
     );
   }
 
-  async create(txId: string, body: TransactionItemCreate): Promise<TransactionItem> {
+  /** Add a transaction item. Pass `idempotencyKey` for a safe retry of the billable create. */
+  async create(
+    txId: string,
+    body: TransactionItemCreate,
+    opts: { idempotencyKey: string },
+  ): Promise<TransactionItem> {
     return this.t.run(sdk.transactionsItemsCreate, {
       path: { txId },
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<TransactionItem>;
   }

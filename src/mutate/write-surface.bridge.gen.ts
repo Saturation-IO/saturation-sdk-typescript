@@ -7,7 +7,7 @@
 // lives in each method's signature; the runtime is the generic gated bridge.
 // Regenerate with:  pnpm --filter @saturation/sdk generate:mutate
 //
-// 52 write operations.
+// 61 write operations.
 
 import type {
   BudgetCreateLineData,
@@ -82,10 +82,14 @@ import type {
   LibraryUpdateRatePackResponse,
   LibraryUpdateTagData,
   LibraryUpdateTagResponse,
+  MasterDataCreateCommentData,
+  MasterDataCreateCommentResponse,
   MasterDataCreateContactData,
   MasterDataCreateContactResponse,
   MasterDataCreateProjectData,
   MasterDataCreateProjectResponse,
+  MasterDataCreateSpaceData,
+  MasterDataCreateSpaceResponse,
   MasterDataDeleteContactData,
   MasterDataDeleteContactResponse,
   MasterDataUpdateCommentData,
@@ -96,20 +100,34 @@ import type {
   MasterDataUpdateProjectResponse,
   MasterDataUpdateSpaceData,
   MasterDataUpdateSpaceResponse,
+  PurchaseOrdersCancelSubmissionData,
+  PurchaseOrdersCancelSubmissionResponse,
   PurchaseOrdersCreateData,
   PurchaseOrdersCreateItemData,
   PurchaseOrdersCreateItemResponse,
   PurchaseOrdersCreateResponse,
   PurchaseOrdersDeleteData,
   PurchaseOrdersDeleteResponse,
+  PurchaseOrdersLinkData,
+  PurchaseOrdersLinkResponse,
+  PurchaseOrdersMarkPaidData,
+  PurchaseOrdersMarkPaidResponse,
+  PurchaseOrdersUnlinkData,
+  PurchaseOrdersUnlinkResponse,
   PurchaseOrdersUpdateData,
   PurchaseOrdersUpdateItemData,
   PurchaseOrdersUpdateItemResponse,
   PurchaseOrdersUpdateResponse,
+  PurchaseOrdersVoidData,
+  PurchaseOrdersVoidResponse,
+  TransactionsBatchCreateData,
+  TransactionsBatchCreateResponse,
   TransactionsCreateData,
   TransactionsCreateResponse,
   TransactionsDeleteData,
   TransactionsDeleteResponse,
+  TransactionsItemsCreateData,
+  TransactionsItemsCreateResponse,
   TransactionsItemsUpdateData,
   TransactionsItemsUpdateResponse,
   TransactionsUpdateData,
@@ -278,11 +296,17 @@ export function createBridgeWriteSurface(bridge: WriteBridge): WriteSurface {
     libraryUpdateTag(data: LibraryUpdateTagData): Promise<LibraryUpdateTagResponse> {
       return forward('libraryUpdateTag', data) as Promise<LibraryUpdateTagResponse>;
     },
+    masterDataCreateComment(data: MasterDataCreateCommentData): Promise<MasterDataCreateCommentResponse> {
+      return forward('masterDataCreateComment', data) as Promise<MasterDataCreateCommentResponse>;
+    },
     masterDataCreateContact(data: MasterDataCreateContactData): Promise<MasterDataCreateContactResponse> {
       return forward('masterDataCreateContact', data) as Promise<MasterDataCreateContactResponse>;
     },
     masterDataCreateProject(data: MasterDataCreateProjectData): Promise<MasterDataCreateProjectResponse> {
       return forward('masterDataCreateProject', data) as Promise<MasterDataCreateProjectResponse>;
+    },
+    masterDataCreateSpace(data: MasterDataCreateSpaceData): Promise<MasterDataCreateSpaceResponse> {
+      return forward('masterDataCreateSpace', data) as Promise<MasterDataCreateSpaceResponse>;
     },
     masterDataDeleteContact(data: MasterDataDeleteContactData): Promise<MasterDataDeleteContactResponse> {
       return forward('masterDataDeleteContact', data) as Promise<MasterDataDeleteContactResponse>;
@@ -299,6 +323,9 @@ export function createBridgeWriteSurface(bridge: WriteBridge): WriteSurface {
     masterDataUpdateSpace(data: MasterDataUpdateSpaceData): Promise<MasterDataUpdateSpaceResponse> {
       return forward('masterDataUpdateSpace', data) as Promise<MasterDataUpdateSpaceResponse>;
     },
+    purchaseOrdersCancelSubmission(data: PurchaseOrdersCancelSubmissionData): Promise<PurchaseOrdersCancelSubmissionResponse> {
+      return forward('purchaseOrdersCancelSubmission', data) as Promise<PurchaseOrdersCancelSubmissionResponse>;
+    },
     purchaseOrdersCreate(data: PurchaseOrdersCreateData): Promise<PurchaseOrdersCreateResponse> {
       return forward('purchaseOrdersCreate', data) as Promise<PurchaseOrdersCreateResponse>;
     },
@@ -308,17 +335,35 @@ export function createBridgeWriteSurface(bridge: WriteBridge): WriteSurface {
     purchaseOrdersDelete(data: PurchaseOrdersDeleteData): Promise<PurchaseOrdersDeleteResponse> {
       return forward('purchaseOrdersDelete', data) as Promise<PurchaseOrdersDeleteResponse>;
     },
+    purchaseOrdersLink(data: PurchaseOrdersLinkData): Promise<PurchaseOrdersLinkResponse> {
+      return forward('purchaseOrdersLink', data) as Promise<PurchaseOrdersLinkResponse>;
+    },
+    purchaseOrdersMarkPaid(data: PurchaseOrdersMarkPaidData): Promise<PurchaseOrdersMarkPaidResponse> {
+      return forward('purchaseOrdersMarkPaid', data) as Promise<PurchaseOrdersMarkPaidResponse>;
+    },
+    purchaseOrdersUnlink(data: PurchaseOrdersUnlinkData): Promise<PurchaseOrdersUnlinkResponse> {
+      return forward('purchaseOrdersUnlink', data) as Promise<PurchaseOrdersUnlinkResponse>;
+    },
     purchaseOrdersUpdate(data: PurchaseOrdersUpdateData): Promise<PurchaseOrdersUpdateResponse> {
       return forward('purchaseOrdersUpdate', data) as Promise<PurchaseOrdersUpdateResponse>;
     },
     purchaseOrdersUpdateItem(data: PurchaseOrdersUpdateItemData): Promise<PurchaseOrdersUpdateItemResponse> {
       return forward('purchaseOrdersUpdateItem', data) as Promise<PurchaseOrdersUpdateItemResponse>;
     },
+    purchaseOrdersVoid(data: PurchaseOrdersVoidData): Promise<PurchaseOrdersVoidResponse> {
+      return forward('purchaseOrdersVoid', data) as Promise<PurchaseOrdersVoidResponse>;
+    },
+    transactionsBatchCreate(data: TransactionsBatchCreateData): Promise<TransactionsBatchCreateResponse> {
+      return forward('transactionsBatchCreate', data) as Promise<TransactionsBatchCreateResponse>;
+    },
     transactionsCreate(data: TransactionsCreateData): Promise<TransactionsCreateResponse> {
       return forward('transactionsCreate', data) as Promise<TransactionsCreateResponse>;
     },
     transactionsDelete(data: TransactionsDeleteData): Promise<TransactionsDeleteResponse> {
       return forward('transactionsDelete', data) as Promise<TransactionsDeleteResponse>;
+    },
+    transactionsItemsCreate(data: TransactionsItemsCreateData): Promise<TransactionsItemsCreateResponse> {
+      return forward('transactionsItemsCreate', data) as Promise<TransactionsItemsCreateResponse>;
     },
     transactionsItemsUpdate(data: TransactionsItemsUpdateData): Promise<TransactionsItemsUpdateResponse> {
       return forward('transactionsItemsUpdate', data) as Promise<TransactionsItemsUpdateResponse>;

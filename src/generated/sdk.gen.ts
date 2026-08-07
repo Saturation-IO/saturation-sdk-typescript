@@ -2024,7 +2024,7 @@ export const transactionsItemsList = <ThrowOnError extends boolean = false>(opti
 /**
  * Add a transaction item
  *
- * Create an item. The server assigns `lineNumber`. The first item flips the parent `isItemized=true` and coding moves from `transaction.budgetLineId` to the items. Row-derived permission `update` on the parent. Fires `transaction.updated`. This is a billable create, accepts an optional `Idempotency-Key` header; replaying a key with a different body -> `409 idempotency_conflict`.
+ * Create an item. The server assigns `lineNumber`. The first item flips the parent `isItemized=true` and coding moves from `transaction.budgetLineId` to the items. Row-derived permission `update` on the parent. Fires `transaction.updated`. This billable create requires an `Idempotency-Key` header; replaying a key with a different body -> `409 idempotency_conflict`.
  */
 export const transactionsItemsCreate = <ThrowOnError extends boolean = false>(options: Options<TransactionsItemsCreateData, ThrowOnError>) => (options.client ?? client).post<TransactionsItemsCreateResponses, TransactionsItemsCreateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],

@@ -44,8 +44,10 @@ export class CommentsResource {
       () => this.t.runPage<typeof options, Comment>(sdk.masterDataListComments, options),
     );
   }
-  async create(body: CommentCreate): Promise<Comment> {
+  /** Create a comment. Pass `idempotencyKey` for a safe retry of the create. */
+  async create(body: CommentCreate, opts: { idempotencyKey: string }): Promise<Comment> {
     return this.t.run(sdk.masterDataCreateComment, {
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<Comment>;
   }

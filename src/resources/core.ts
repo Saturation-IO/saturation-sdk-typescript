@@ -166,8 +166,10 @@ export class SpacesResource {
       () => this.t.runPage<typeof options, Space>(sdk.masterDataListSpaces, options),
     );
   }
-  async create(body: SpaceCreate): Promise<Space> {
+  /** Create a space. Pass `idempotencyKey` for a safe retry of the create. */
+  async create(body: SpaceCreate, opts: { idempotencyKey: string }): Promise<Space> {
     return this.t.run(sdk.masterDataCreateSpace, {
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<Space>;
   }

@@ -4,7 +4,7 @@
 // (CREATE + value-UPDATE, additive only). Regenerate with:
 //   pnpm --filter @saturation/sdk generate:mutate
 //
-// 52 write operations selected from 156 total operations.
+// 61 write operations selected from 156 total operations.
 
 /** A single write operation's static metadata, derived from the OpenAPI spec. */
 export interface WriteOpDef {
@@ -35,11 +35,13 @@ export interface WriteOpDef {
   /**
    * Retry identity: `required` = the /v1 route requires an `Idempotency-Key`
    * header (receipt-backed replay); `natural` = replay-equivalent without a
-   * key (repeat call returns the original record); `none` = a value update
-   * (inherently retry-safe). Derived at generation time and gate-checked
-   * against the generated header declarations.
+   * key (repeat call returns the original record); `transition` = a lifecycle
+   * move guarded by the route's status preconditions (a repeat is rejected
+   * with a typed 4xx or is a same-state no-op, never a duplicate); `none` =
+   * a value update (inherently retry-safe). Derived at generation time and
+   * gate-checked against the generated header declarations.
    */
-  readonly idempotency: 'required' | 'natural' | 'none';
+  readonly idempotency: 'required' | 'natural' | 'transition' | 'none';
   /** One-line human summary from the OpenAPI operation. */
   readonly summary: string;
 }
@@ -514,6 +516,19 @@ export const WRITE_OPS = {
     idempotency: 'none',
     summary: 'Update a workspace tag',
   },
+  masterDataCreateComment: {
+    op: 'masterDataCreateComment',
+    method: 'post',
+    url: '/comments',
+    pathParams: [],
+    dataType: 'MasterDataCreateCommentData',
+    bodyType: "{ content: string; target: CommentTarget; threadId?: Id | null; }",
+    bodyRequired: true,
+    allowedBodyFields: ["content","target","threadId"],
+    requiredBodyFields: ["content","target"],
+    idempotency: 'required',
+    summary: 'Create a comment',
+  },
   masterDataCreateContact: {
     op: 'masterDataCreateContact',
     method: 'post',
@@ -539,6 +554,19 @@ export const WRITE_OPS = {
     requiredBodyFields: ["name"],
     idempotency: 'required',
     summary: 'Create a project',
+  },
+  masterDataCreateSpace: {
+    op: 'masterDataCreateSpace',
+    method: 'post',
+    url: '/spaces',
+    pathParams: [],
+    dataType: 'MasterDataCreateSpaceData',
+    bodyType: "{ name: string; slug?: string; image?: string | null; parentId?: Id | null; }",
+    bodyRequired: true,
+    allowedBodyFields: ["name","slug","image","parentId"],
+    requiredBodyFields: ["name"],
+    idempotency: 'required',
+    summary: 'Create a space',
   },
   masterDataDeleteContact: {
     op: 'masterDataDeleteContact',
@@ -605,6 +633,19 @@ export const WRITE_OPS = {
     idempotency: 'none',
     summary: 'Update a space',
   },
+  purchaseOrdersCancelSubmission: {
+    op: 'purchaseOrdersCancelSubmission',
+    method: 'post',
+    url: '/purchase-orders/{purchaseOrderId}/cancel-submission',
+    pathParams: ['purchaseOrderId'],
+    dataType: 'PurchaseOrdersCancelSubmissionData',
+    bodyType: "never",
+    bodyRequired: false,
+    allowedBodyFields: [],
+    requiredBodyFields: [],
+    idempotency: 'transition',
+    summary: 'Cancel a pending submission',
+  },
   purchaseOrdersCreate: {
     op: 'purchaseOrdersCreate',
     method: 'post',
@@ -644,6 +685,45 @@ export const WRITE_OPS = {
     idempotency: 'none',
     summary: 'Delete a purchase order',
   },
+  purchaseOrdersLink: {
+    op: 'purchaseOrdersLink',
+    method: 'post',
+    url: '/purchase-orders/{purchaseOrderId}/link',
+    pathParams: ['purchaseOrderId'],
+    dataType: 'PurchaseOrdersLinkData',
+    bodyType: "{ transactionId: Id; }",
+    bodyRequired: true,
+    allowedBodyFields: ["transactionId"],
+    requiredBodyFields: ["transactionId"],
+    idempotency: 'transition',
+    summary: 'Link a transaction to a purchase order',
+  },
+  purchaseOrdersMarkPaid: {
+    op: 'purchaseOrdersMarkPaid',
+    method: 'post',
+    url: '/purchase-orders/{purchaseOrderId}/mark-paid',
+    pathParams: ['purchaseOrderId'],
+    dataType: 'PurchaseOrdersMarkPaidData',
+    bodyType: "never",
+    bodyRequired: false,
+    allowedBodyFields: [],
+    requiredBodyFields: [],
+    idempotency: 'transition',
+    summary: 'Mark a purchase order as paid',
+  },
+  purchaseOrdersUnlink: {
+    op: 'purchaseOrdersUnlink',
+    method: 'post',
+    url: '/purchase-orders/{purchaseOrderId}/unlink',
+    pathParams: ['purchaseOrderId'],
+    dataType: 'PurchaseOrdersUnlinkData',
+    bodyType: "{ transactionId: Id; }",
+    bodyRequired: true,
+    allowedBodyFields: ["transactionId"],
+    requiredBodyFields: ["transactionId"],
+    idempotency: 'transition',
+    summary: 'Unlink a transaction from a purchase order',
+  },
   purchaseOrdersUpdate: {
     op: 'purchaseOrdersUpdate',
     method: 'patch',
@@ -670,6 +750,32 @@ export const WRITE_OPS = {
     idempotency: 'none',
     summary: 'Update a purchase order item',
   },
+  purchaseOrdersVoid: {
+    op: 'purchaseOrdersVoid',
+    method: 'post',
+    url: '/purchase-orders/{purchaseOrderId}/void',
+    pathParams: ['purchaseOrderId'],
+    dataType: 'PurchaseOrdersVoidData',
+    bodyType: "never",
+    bodyRequired: false,
+    allowedBodyFields: [],
+    requiredBodyFields: [],
+    idempotency: 'transition',
+    summary: 'Void a purchase order',
+  },
+  transactionsBatchCreate: {
+    op: 'transactionsBatchCreate',
+    method: 'post',
+    url: '/transactions/batch',
+    pathParams: [],
+    dataType: 'TransactionsBatchCreateData',
+    bodyType: "{ transactions: Array<TransactionJournalCreate>; }",
+    bodyRequired: true,
+    allowedBodyFields: ["transactions"],
+    requiredBodyFields: ["transactions"],
+    idempotency: 'required',
+    summary: 'Bulk journal import',
+  },
   transactionsCreate: {
     op: 'transactionsCreate',
     method: 'post',
@@ -695,6 +801,19 @@ export const WRITE_OPS = {
     requiredBodyFields: [],
     idempotency: 'none',
     summary: 'Delete a journal transaction',
+  },
+  transactionsItemsCreate: {
+    op: 'transactionsItemsCreate',
+    method: 'post',
+    url: '/transactions/{txId}/items',
+    pathParams: ['txId'],
+    dataType: 'TransactionsItemsCreateData',
+    bodyType: "{ description?: string; budgetLineId?: Id; fringeId?: Id; qty?: number; unit?: string; rate?: Money; amount: Money; overtime?: boolean; taxable?: boolean; nonTaxable?: boolean; }",
+    bodyRequired: true,
+    allowedBodyFields: ["description","budgetLineId","fringeId","qty","unit","rate","amount","overtime","taxable","nonTaxable"],
+    requiredBodyFields: ["amount"],
+    idempotency: 'required',
+    summary: 'Add a transaction item',
   },
   transactionsItemsUpdate: {
     op: 'transactionsItemsUpdate',
