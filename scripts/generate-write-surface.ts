@@ -144,9 +144,37 @@ const WRITE_OP_ALLOWLIST: ReadonlySet<string> = new Set<string>([
   'transactionsItemsCreate',
   'transactionsUpdate',
   'transactionsItemsUpdate',
-  // ── webhooks: create + field update ──
+  // ── webhooks: full config surface ──
   'webhooksCreate',
   'webhooksUpdate',
+  // ── full-surface ruling additions (2026-08-07): remaining deletes,
+  //    disable/remove/unassign, webhook delete + ping ──
+  'documentsDelete',
+  'documentsUnassign',
+  'libraryDeleteCurrencyTemplate',
+  'libraryDeleteCustomUnit',
+  'libraryDeleteFringeTagTemplate',
+  'libraryDeleteFringeTemplate',
+  'libraryDeleteGlobalTemplate',
+  'libraryDeleteProjectCurrency',
+  'libraryDeleteProjectFringe',
+  'libraryDeleteProjectFringeTag',
+  'libraryDeleteProjectGlobal',
+  'libraryDeleteProjectIncentive',
+  'libraryDeleteRatePack',
+  'libraryDeleteRatePackItem',
+  'libraryDeleteTag',
+  'libraryDisableIncentivePack',
+  'libraryDisableRatePack',
+  'libraryRemoveProjectTag',
+  'libraryRemoveRatePack',
+  'masterDataDeleteComment',
+  'masterDataDeleteProject',
+  'masterDataDeleteSpace',
+  'purchaseOrdersDeleteItem',
+  'transactionsItemsDelete',
+  'webhooksDelete',
+  'webhooksPing',
 ]);
 
 /**
@@ -157,19 +185,10 @@ const WRITE_OP_ALLOWLIST: ReadonlySet<string> = new Set<string>([
  * `Idempotency-Key` header in the generated types (so an outcome-ambiguous
  * timeout replays instead of duplicating).
  *
- * Out by omission (rationale, not a second list):
- * - `webhooksCreate`/`webhooksUpdate`: standing config, not data writes — the
- *   public write scope intentionally omits `*:Webhook`.
- * - `documentsDrop`: document bytes ride the dedicated `upload` tool.
- * - Library template and pack creates are exposed below. Their /v1 routes are
- *   receipt-backed and require the generated Idempotency-Key header.
- *
- * Opened 2026-08-07 (Simon's write-surface ruling; previously omitted):
- * comment/space creates, transaction items + batch creates (all four now
- * keyed, receipt-backed), and the full PO lifecycle
- * (`CancelSubmission`/`MarkPaid`/`Void`/`Link`/`Unlink`; `Submit` deferred
- * until the /v1 stub is wired to the approval-run service) as
- * `transition` ops guarded by the routes' status preconditions.
+ * FULL SURFACE (Simon, 2026-08-07): the exposed set IS the allowlist — every
+ * op above ships in the model-facing catalog. The only /v1 writes absent are
+ * the two structural carve-outs documented on the allowlist
+ * (`purchaseOrdersSubmit` reserved stub, `documentsDrop` upload-tool bytes).
  */
 const AGENT_WRITE_EXPOSED_OPS: readonly string[] = [
   // ── value updates (the pre-existing exposed set) ──
@@ -237,15 +256,49 @@ const AGENT_WRITE_EXPOSED_OPS: readonly string[] = [
   //    the routes' own scope rules ──
   'libraryEnableRatePack',
   'libraryEnableIncentivePack',
-  // ── reviewed soft deletes (Simon, 2026-08-02). Classified `none`, NOT
-  //    `natural`: a repeat delete hits the tombstoned row and returns 404, so
-  //    "repeat returns the original record" would be a lie the model acts on.
-  //    The public catalog publishes delete-specific retry wording instead. ──
+  // ── soft deletes. Classified `none`, NOT `natural`: a repeat delete hits
+  //    the tombstoned row and returns 404 (webhooksDelete alone 204s twice),
+  //    so "repeat returns the original record" would be a lie the model acts
+  //    on. The public catalog publishes delete-specific retry wording. ──
   'transactionsDelete',
   'masterDataDeleteContact',
   'budgetDeleteLine',
   'budgetDeletePhase',
   'purchaseOrdersDelete',
+  // ── full-surface ruling (2026-08-07): the rest of the write inventory ──
+  'documentsDelete',
+  'documentsUnassign',
+  'libraryAddProjectCurrency',
+  'libraryAddProjectFringe',
+  'libraryAddProjectFringeTag',
+  'libraryAddProjectGlobal',
+  'libraryAddProjectTag',
+  'libraryDeleteCurrencyTemplate',
+  'libraryDeleteCustomUnit',
+  'libraryDeleteFringeTagTemplate',
+  'libraryDeleteFringeTemplate',
+  'libraryDeleteGlobalTemplate',
+  'libraryDeleteProjectCurrency',
+  'libraryDeleteProjectFringe',
+  'libraryDeleteProjectFringeTag',
+  'libraryDeleteProjectGlobal',
+  'libraryDeleteProjectIncentive',
+  'libraryDeleteRatePack',
+  'libraryDeleteRatePackItem',
+  'libraryDeleteTag',
+  'libraryDisableIncentivePack',
+  'libraryDisableRatePack',
+  'libraryRemoveProjectTag',
+  'libraryRemoveRatePack',
+  'masterDataDeleteComment',
+  'masterDataDeleteProject',
+  'masterDataDeleteSpace',
+  'purchaseOrdersDeleteItem',
+  'transactionsItemsDelete',
+  'webhooksCreate',
+  'webhooksDelete',
+  'webhooksPing',
+  'webhooksUpdate',
 ];
 const AGENT_WRITE_EXPOSED_SET: ReadonlySet<string> = new Set(AGENT_WRITE_EXPOSED_OPS);
 
@@ -289,6 +342,11 @@ const NATURALLY_IDEMPOTENT_OPS: Readonly<Record<string, string>> = {
   libraryAddRatePack: 'copy-on-use `@@unique([projectId, ratePackId])` — repeat add returns the existing link',
   libraryEnableRatePack: 'upsert on `@@unique([workspaceId, ratePackId])` with deterministic id `wrp-<ws>-<pack>` — repeat enable returns the existing enablement',
   libraryEnableIncentivePack: 'upsert on `@@unique([workspaceId, incentivePackId])` with deterministic id `wip-<ws>-<pack>` — repeat enable returns the existing enablement',
+  libraryAddProjectCurrency: 'copy-on-use add, idempotent on `@@unique([projectId, sourceId])` — repeat add returns the existing project copy',
+  libraryAddProjectFringe: 'copy-on-use add, idempotent on `@@unique([projectId, sourceId])` — repeat add returns the existing project copy',
+  libraryAddProjectFringeTag: 'copy-on-use add, idempotent on `@@unique([projectId, sourceId])` — repeat add returns the existing project copy',
+  libraryAddProjectGlobal: 'copy-on-use add, idempotent on `@@unique([projectId, sourceId])` — repeat add returns the existing project copy',
+  libraryAddProjectTag: 'attach, idempotent on the project-tag link — repeat add returns the existing attachment',
 };
 
 /**
@@ -303,6 +361,12 @@ const TRANSITION_OPS: ReadonlySet<string> = new Set([
   'purchaseOrdersVoid',
   'purchaseOrdersLink',
   'purchaseOrdersUnlink',
+  // Guarded actions (full-surface ruling 2026-08-07): a repeat cannot
+  // duplicate data — unassign of an unassigned doc is a typed miss; webhook
+  // create 409s on a duplicate URL; ping re-sends a test event (no data row).
+  'documentsUnassign',
+  'webhooksCreate',
+  'webhooksPing',
 ]);
 
 interface ParsedOp {
@@ -739,22 +803,50 @@ function main(): void {
   const DESTRUCTIVE_NAME =
     /Delete|Disable|Deactivate|Remove|Unassign|Unlink|Void|Ping|Submit|Finalize|MarkPaid|Cancel|Archive/;
   const REVIEWED_LIFECYCLE_OPS = new Set([
-    // PO lifecycle admitted 2026-08-07 (Simon's write-surface ruling).
-    // `purchaseOrdersSubmit` stays out: the /v1 endpoint is a reserved stub
-    // (always 409) until wired to the workspace approval-run service.
+    // PO lifecycle + guarded actions admitted 2026-08-07 (Simon's
+    // full-surface ruling). `purchaseOrdersSubmit` stays out: the /v1
+    // endpoint is a reserved stub (always 409) until approval-run wiring.
     'purchaseOrdersCancelSubmission',
     'purchaseOrdersMarkPaid',
     'purchaseOrdersVoid',
     'purchaseOrdersUnlink',
+    'documentsUnassign',
+    'webhooksPing',
   ]);
-  // The five SOFT deletes reviewed and admitted 2026-08-02 (Simon's
-  // #development ruling). Every other *Delete* stays behind this gate.
+  // SOFT deletes: the five reviewed 2026-08-02 plus the remainder of the
+  // delete inventory admitted by the 2026-08-07 full-surface ruling. Every
+  // delete is soft behind its route's own lifecycle rules; a FUTURE delete
+  // op still fails here until it is explicitly enumerated.
   const REVIEWED_SOFT_DELETE_OPS = new Set([
     'transactionsDelete',
     'masterDataDeleteContact',
     'budgetDeleteLine',
     'budgetDeletePhase',
     'purchaseOrdersDelete',
+    'documentsDelete',
+    'libraryDeleteCurrencyTemplate',
+    'libraryDeleteCustomUnit',
+    'libraryDeleteFringeTagTemplate',
+    'libraryDeleteFringeTemplate',
+    'libraryDeleteGlobalTemplate',
+    'libraryDeleteProjectCurrency',
+    'libraryDeleteProjectFringe',
+    'libraryDeleteProjectFringeTag',
+    'libraryDeleteProjectGlobal',
+    'libraryDeleteProjectIncentive',
+    'libraryDeleteRatePack',
+    'libraryDeleteRatePackItem',
+    'libraryDeleteTag',
+    'libraryDisableIncentivePack',
+    'libraryDisableRatePack',
+    'libraryRemoveProjectTag',
+    'libraryRemoveRatePack',
+    'masterDataDeleteComment',
+    'masterDataDeleteProject',
+    'masterDataDeleteSpace',
+    'purchaseOrdersDeleteItem',
+    'transactionsItemsDelete',
+    'webhooksDelete',
   ]);
   const destructive = selected.filter((o) =>
     DESTRUCTIVE_NAME.test(o.op) && !REVIEWED_LIFECYCLE_OPS.has(o.op) && !REVIEWED_SOFT_DELETE_OPS.has(o.op));

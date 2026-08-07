@@ -8,7 +8,7 @@
 // the generated `types.gen.ts` request/response types) changes, every
 // `satisfies WriteSurface` implementation must update to match or fail `tsc`.
 //
-// 61 write operations.
+// 94 write operations.
 
 import type {
   BudgetCreateLineData,
@@ -31,10 +31,24 @@ import type {
   BudgetUpsertLinePhaseDataResponse,
   DocumentsAssignData,
   DocumentsAssignResponse,
+  DocumentsDeleteData,
+  DocumentsDeleteResponse,
+  DocumentsUnassignData,
+  DocumentsUnassignResponse,
   DocumentsUpdateData,
   DocumentsUpdateResponse,
+  LibraryAddProjectCurrencyData,
+  LibraryAddProjectCurrencyResponse,
+  LibraryAddProjectFringeData,
+  LibraryAddProjectFringeResponse,
+  LibraryAddProjectFringeTagData,
+  LibraryAddProjectFringeTagResponse,
+  LibraryAddProjectGlobalData,
+  LibraryAddProjectGlobalResponse,
   LibraryAddProjectIncentiveData,
   LibraryAddProjectIncentiveResponse,
+  LibraryAddProjectTagData,
+  LibraryAddProjectTagResponse,
   LibraryAddRatePackData,
   LibraryAddRatePackResponse,
   LibraryCreateCurrencyTemplateData,
@@ -53,10 +67,44 @@ import type {
   LibraryCreateRatePackResponse,
   LibraryCreateTagData,
   LibraryCreateTagResponse,
+  LibraryDeleteCurrencyTemplateData,
+  LibraryDeleteCurrencyTemplateResponse,
+  LibraryDeleteCustomUnitData,
+  LibraryDeleteCustomUnitResponse,
+  LibraryDeleteFringeTagTemplateData,
+  LibraryDeleteFringeTagTemplateResponse,
+  LibraryDeleteFringeTemplateData,
+  LibraryDeleteFringeTemplateResponse,
+  LibraryDeleteGlobalTemplateData,
+  LibraryDeleteGlobalTemplateResponse,
+  LibraryDeleteProjectCurrencyData,
+  LibraryDeleteProjectCurrencyResponse,
+  LibraryDeleteProjectFringeData,
+  LibraryDeleteProjectFringeResponse,
+  LibraryDeleteProjectFringeTagData,
+  LibraryDeleteProjectFringeTagResponse,
+  LibraryDeleteProjectGlobalData,
+  LibraryDeleteProjectGlobalResponse,
+  LibraryDeleteProjectIncentiveData,
+  LibraryDeleteProjectIncentiveResponse,
+  LibraryDeleteRatePackData,
+  LibraryDeleteRatePackItemData,
+  LibraryDeleteRatePackItemResponse,
+  LibraryDeleteRatePackResponse,
+  LibraryDeleteTagData,
+  LibraryDeleteTagResponse,
+  LibraryDisableIncentivePackData,
+  LibraryDisableIncentivePackResponse,
+  LibraryDisableRatePackData,
+  LibraryDisableRatePackResponse,
   LibraryEnableIncentivePackData,
   LibraryEnableIncentivePackResponse,
   LibraryEnableRatePackData,
   LibraryEnableRatePackResponse,
+  LibraryRemoveProjectTagData,
+  LibraryRemoveProjectTagResponse,
+  LibraryRemoveRatePackData,
+  LibraryRemoveRatePackResponse,
   LibraryUpdateCurrencyTemplateData,
   LibraryUpdateCurrencyTemplateResponse,
   LibraryUpdateCustomUnitData,
@@ -91,8 +139,14 @@ import type {
   MasterDataCreateProjectResponse,
   MasterDataCreateSpaceData,
   MasterDataCreateSpaceResponse,
+  MasterDataDeleteCommentData,
+  MasterDataDeleteCommentResponse,
   MasterDataDeleteContactData,
   MasterDataDeleteContactResponse,
+  MasterDataDeleteProjectData,
+  MasterDataDeleteProjectResponse,
+  MasterDataDeleteSpaceData,
+  MasterDataDeleteSpaceResponse,
   MasterDataUpdateCommentData,
   MasterDataUpdateCommentResponse,
   MasterDataUpdateContactData,
@@ -108,6 +162,8 @@ import type {
   PurchaseOrdersCreateItemResponse,
   PurchaseOrdersCreateResponse,
   PurchaseOrdersDeleteData,
+  PurchaseOrdersDeleteItemData,
+  PurchaseOrdersDeleteItemResponse,
   PurchaseOrdersDeleteResponse,
   PurchaseOrdersLinkData,
   PurchaseOrdersLinkResponse,
@@ -129,10 +185,20 @@ import type {
   TransactionsDeleteResponse,
   TransactionsItemsCreateData,
   TransactionsItemsCreateResponse,
+  TransactionsItemsDeleteData,
+  TransactionsItemsDeleteResponse,
   TransactionsItemsUpdateData,
   TransactionsItemsUpdateResponse,
   TransactionsUpdateData,
   TransactionsUpdateResponse,
+  WebhooksCreateData,
+  WebhooksCreateResponse,
+  WebhooksDeleteData,
+  WebhooksDeleteResponse,
+  WebhooksPingData,
+  WebhooksPingResponse,
+  WebhooksUpdateData,
+  WebhooksUpdateResponse,
 } from '../generated/types.gen.js';
 
 /**
@@ -161,10 +227,24 @@ export interface WriteSurface {
   budgetUpsertLinePhaseDataBatch(data: BudgetUpsertLinePhaseDataBatchData): Promise<BudgetUpsertLinePhaseDataBatchResponse>;
   /** Assign a document to a typed target (`POST /documents/{documentId}/assign`). */
   documentsAssign(data: DocumentsAssignData): Promise<DocumentsAssignResponse>;
+  /** Delete a document (`DELETE /documents/{documentId}`). */
+  documentsDelete(data: DocumentsDeleteData): Promise<DocumentsDeleteResponse>;
+  /** Unassign a document from a typed target (`POST /documents/{documentId}/unassign`). */
+  documentsUnassign(data: DocumentsUnassignData): Promise<DocumentsUnassignResponse>;
   /** Rename / move / re-describe a document (`PATCH /documents/{documentId}`). */
   documentsUpdate(data: DocumentsUpdateData): Promise<DocumentsUpdateResponse>;
+  /** Copy a workspace currency into the project (`POST /projects/{projectId}/library/currencies/add`). */
+  libraryAddProjectCurrency(data: LibraryAddProjectCurrencyData): Promise<LibraryAddProjectCurrencyResponse>;
+  /** Copy a workspace fringe into the project (`POST /projects/{projectId}/library/fringes/add`). */
+  libraryAddProjectFringe(data: LibraryAddProjectFringeData): Promise<LibraryAddProjectFringeResponse>;
+  /** Copy a workspace fringe-tag into the project (`POST /projects/{projectId}/library/fringe-tags/add`). */
+  libraryAddProjectFringeTag(data: LibraryAddProjectFringeTagData): Promise<LibraryAddProjectFringeTagResponse>;
+  /** Copy a workspace global into the project (`POST /projects/{projectId}/library/globals/add`). */
+  libraryAddProjectGlobal(data: LibraryAddProjectGlobalData): Promise<LibraryAddProjectGlobalResponse>;
   /** Add an incentive program into the project (`POST /projects/{projectId}/library/incentives/add`). */
   libraryAddProjectIncentive(data: LibraryAddProjectIncentiveData): Promise<LibraryAddProjectIncentiveResponse>;
+  /** Add a workspace tag to the project (`POST /projects/{projectId}/library/tags/{tagId}/add`). */
+  libraryAddProjectTag(data: LibraryAddProjectTagData): Promise<LibraryAddProjectTagResponse>;
   /** Add a rate pack into the project (`POST /projects/{projectId}/library/rates/{packId}/add`). */
   libraryAddRatePack(data: LibraryAddRatePackData): Promise<LibraryAddRatePackResponse>;
   /** Create a workspace currency template (`POST /library/currencies`). */
@@ -183,10 +263,44 @@ export interface WriteSurface {
   libraryCreateRatePackItem(data: LibraryCreateRatePackItemData): Promise<LibraryCreateRatePackItemResponse>;
   /** Create a workspace tag (`POST /library/tags`). */
   libraryCreateTag(data: LibraryCreateTagData): Promise<LibraryCreateTagResponse>;
+  /** Soft-delete a workspace currency template (`DELETE /library/currencies/{currencyId}`). */
+  libraryDeleteCurrencyTemplate(data: LibraryDeleteCurrencyTemplateData): Promise<LibraryDeleteCurrencyTemplateResponse>;
+  /** Soft-delete a workspace custom unit (`DELETE /library/units/custom/{unitId}`). */
+  libraryDeleteCustomUnit(data: LibraryDeleteCustomUnitData): Promise<LibraryDeleteCustomUnitResponse>;
+  /** Soft-delete a workspace fringe-tag template (`DELETE /library/fringe-tags/{fringeTagId}`). */
+  libraryDeleteFringeTagTemplate(data: LibraryDeleteFringeTagTemplateData): Promise<LibraryDeleteFringeTagTemplateResponse>;
+  /** Soft-delete a workspace fringe template (`DELETE /library/fringes/{fringeId}`). */
+  libraryDeleteFringeTemplate(data: LibraryDeleteFringeTemplateData): Promise<LibraryDeleteFringeTemplateResponse>;
+  /** Soft-delete a workspace global template (`DELETE /library/globals/{globalId}`). */
+  libraryDeleteGlobalTemplate(data: LibraryDeleteGlobalTemplateData): Promise<LibraryDeleteGlobalTemplateResponse>;
+  /** Remove a project currency copy (`DELETE /projects/{projectId}/library/currencies/{currencyId}`). */
+  libraryDeleteProjectCurrency(data: LibraryDeleteProjectCurrencyData): Promise<LibraryDeleteProjectCurrencyResponse>;
+  /** Remove a project fringe copy (`DELETE /projects/{projectId}/library/fringes/{fringeId}`). */
+  libraryDeleteProjectFringe(data: LibraryDeleteProjectFringeData): Promise<LibraryDeleteProjectFringeResponse>;
+  /** Remove a project fringe-tag copy (`DELETE /projects/{projectId}/library/fringe-tags/{fringeTagId}`). */
+  libraryDeleteProjectFringeTag(data: LibraryDeleteProjectFringeTagData): Promise<LibraryDeleteProjectFringeTagResponse>;
+  /** Remove a project global copy (`DELETE /projects/{projectId}/library/globals/{globalId}`). */
+  libraryDeleteProjectGlobal(data: LibraryDeleteProjectGlobalData): Promise<LibraryDeleteProjectGlobalResponse>;
+  /** Remove a project incentive (`DELETE /projects/{projectId}/library/incentives/{incentiveId}`). */
+  libraryDeleteProjectIncentive(data: LibraryDeleteProjectIncentiveData): Promise<LibraryDeleteProjectIncentiveResponse>;
+  /** Soft-delete an owned rate pack (`DELETE /library/rates/{packId}`). */
+  libraryDeleteRatePack(data: LibraryDeleteRatePackData): Promise<LibraryDeleteRatePackResponse>;
+  /** Soft-delete a pack item (`DELETE /library/rates/{packId}/items/{itemId}`). */
+  libraryDeleteRatePackItem(data: LibraryDeleteRatePackItemData): Promise<LibraryDeleteRatePackItemResponse>;
+  /** Soft-delete a workspace tag (`DELETE /library/tags/{tagId}`). */
+  libraryDeleteTag(data: LibraryDeleteTagData): Promise<LibraryDeleteTagResponse>;
+  /** Disable an incentive pack for the workspace (`DELETE /library/incentives/{packId}/enable`). */
+  libraryDisableIncentivePack(data: LibraryDisableIncentivePackData): Promise<LibraryDisableIncentivePackResponse>;
+  /** Disable a rate pack for the workspace (`DELETE /library/rates/{packId}/enable`). */
+  libraryDisableRatePack(data: LibraryDisableRatePackData): Promise<LibraryDisableRatePackResponse>;
   /** Enable an incentive pack for the workspace (`POST /library/incentives/{packId}/enable`). */
   libraryEnableIncentivePack(data: LibraryEnableIncentivePackData): Promise<LibraryEnableIncentivePackResponse>;
   /** Enable a rate pack for the workspace (`POST /library/rates/{packId}/enable`). */
   libraryEnableRatePack(data: LibraryEnableRatePackData): Promise<LibraryEnableRatePackResponse>;
+  /** Remove a tag from the project (`DELETE /projects/{projectId}/library/tags/{tagId}/add`). */
+  libraryRemoveProjectTag(data: LibraryRemoveProjectTagData): Promise<LibraryRemoveProjectTagResponse>;
+  /** Remove a rate pack from the project (`DELETE /projects/{projectId}/library/rates/{packId}/add`). */
+  libraryRemoveRatePack(data: LibraryRemoveRatePackData): Promise<LibraryRemoveRatePackResponse>;
   /** Update a workspace currency template (`PATCH /library/currencies/{currencyId}`). */
   libraryUpdateCurrencyTemplate(data: LibraryUpdateCurrencyTemplateData): Promise<LibraryUpdateCurrencyTemplateResponse>;
   /** Update a workspace custom unit (`PATCH /library/units/custom/{unitId}`). */
@@ -221,8 +335,14 @@ export interface WriteSurface {
   masterDataCreateProject(data: MasterDataCreateProjectData): Promise<MasterDataCreateProjectResponse>;
   /** Create a space (`POST /spaces`). */
   masterDataCreateSpace(data: MasterDataCreateSpaceData): Promise<MasterDataCreateSpaceResponse>;
+  /** Delete a comment (`DELETE /comments/{commentId}`). */
+  masterDataDeleteComment(data: MasterDataDeleteCommentData): Promise<MasterDataDeleteCommentResponse>;
   /** Delete a contact (`DELETE /contacts/{contactId}`). */
   masterDataDeleteContact(data: MasterDataDeleteContactData): Promise<MasterDataDeleteContactResponse>;
+  /** Delete a project (`DELETE /projects/{slugOrId}`). */
+  masterDataDeleteProject(data: MasterDataDeleteProjectData): Promise<MasterDataDeleteProjectResponse>;
+  /** Delete a space (`DELETE /spaces/{spaceId}`). */
+  masterDataDeleteSpace(data: MasterDataDeleteSpaceData): Promise<MasterDataDeleteSpaceResponse>;
   /** Update a comment (`PATCH /comments/{commentId}`). */
   masterDataUpdateComment(data: MasterDataUpdateCommentData): Promise<MasterDataUpdateCommentResponse>;
   /** Update a contact (`PATCH /contacts/{contactId}`). */
@@ -239,6 +359,8 @@ export interface WriteSurface {
   purchaseOrdersCreateItem(data: PurchaseOrdersCreateItemData): Promise<PurchaseOrdersCreateItemResponse>;
   /** Delete a purchase order (`DELETE /purchase-orders/{purchaseOrderId}`). */
   purchaseOrdersDelete(data: PurchaseOrdersDeleteData): Promise<PurchaseOrdersDeleteResponse>;
+  /** Delete a purchase order item (`DELETE /purchase-orders/{purchaseOrderId}/items/{itemId}`). */
+  purchaseOrdersDeleteItem(data: PurchaseOrdersDeleteItemData): Promise<PurchaseOrdersDeleteItemResponse>;
   /** Link a transaction to a purchase order (`POST /purchase-orders/{purchaseOrderId}/link`). */
   purchaseOrdersLink(data: PurchaseOrdersLinkData): Promise<PurchaseOrdersLinkResponse>;
   /** Mark a purchase order as paid (`POST /purchase-orders/{purchaseOrderId}/mark-paid`). */
@@ -259,8 +381,18 @@ export interface WriteSurface {
   transactionsDelete(data: TransactionsDeleteData): Promise<TransactionsDeleteResponse>;
   /** Add a transaction item (`POST /transactions/{txId}/items`). */
   transactionsItemsCreate(data: TransactionsItemsCreateData): Promise<TransactionsItemsCreateResponse>;
+  /** Delete a transaction item (`DELETE /transactions/{txId}/items/{itemId}`). */
+  transactionsItemsDelete(data: TransactionsItemsDeleteData): Promise<TransactionsItemsDeleteResponse>;
   /** Update a transaction item (`PATCH /transactions/{txId}/items/{itemId}`). */
   transactionsItemsUpdate(data: TransactionsItemsUpdateData): Promise<TransactionsItemsUpdateResponse>;
   /** Update a transaction (`PATCH /transactions/{txId}`). */
   transactionsUpdate(data: TransactionsUpdateData): Promise<TransactionsUpdateResponse>;
+  /** Create a webhook subscription (`POST /webhooks`). */
+  webhooksCreate(data: WebhooksCreateData): Promise<WebhooksCreateResponse>;
+  /** Delete a webhook subscription (`DELETE /webhooks/{webhookId}`). */
+  webhooksDelete(data: WebhooksDeleteData): Promise<WebhooksDeleteResponse>;
+  /** Send a test delivery (`POST /webhooks/{webhookId}/ping`). */
+  webhooksPing(data: WebhooksPingData): Promise<WebhooksPingResponse>;
+  /** Update a webhook subscription (`PATCH /webhooks/{webhookId}`). */
+  webhooksUpdate(data: WebhooksUpdateData): Promise<WebhooksUpdateResponse>;
 }

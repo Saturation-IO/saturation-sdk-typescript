@@ -66,7 +66,12 @@ describe('validateMutateArgs', () => {
     const natural = posts.filter((op) => op.idempotency === 'natural').map((op) => op.op).sort();
     expect(natural).toEqual([
       'documentsAssign',
+      'libraryAddProjectCurrency',
+      'libraryAddProjectFringe',
+      'libraryAddProjectFringeTag',
+      'libraryAddProjectGlobal',
       'libraryAddProjectIncentive',
+      'libraryAddProjectTag',
       'libraryAddRatePack',
       'libraryEnableIncentivePack',
       'libraryEnableRatePack',
@@ -75,18 +80,24 @@ describe('validateMutateArgs', () => {
     // status preconditions — a repeat is a typed 4xx / same-state no-op.
     const transitions = posts.filter((op) => op.idempotency === 'transition').map((op) => op.op).sort();
     expect(transitions).toEqual([
+      'documentsUnassign',
       'purchaseOrdersCancelSubmission',
       'purchaseOrdersLink',
       'purchaseOrdersMarkPaid',
       'purchaseOrdersUnlink',
       'purchaseOrdersVoid',
+      'webhooksCreate',
+      'webhooksPing',
     ]);
 
-    // Still out: upload rides its own tool; webhooks are standing config;
-    // purchaseOrdersSubmit is a reserved /v1 stub until approval wiring lands.
+    // Full-surface ruling (2026-08-07): only the two STRUCTURAL carve-outs
+    // remain out — the reserved /v1 submit stub (always 409 until approval
+    // wiring) and documentsDrop (multipart bytes ride the upload tool).
     expect(WRITE_OPS).not.toHaveProperty('purchaseOrdersSubmit');
     expect(WRITE_OPS).not.toHaveProperty('documentsDrop');
-    expect(WRITE_OPS).not.toHaveProperty('webhooksCreate');
-    expect(WRITE_OPS).not.toHaveProperty('webhooksUpdate');
+    expect(WRITE_OPS).toHaveProperty('webhooksCreate');
+    expect(WRITE_OPS).toHaveProperty('webhooksUpdate');
+    expect(WRITE_OPS).toHaveProperty('masterDataDeleteProject');
+    expect(WRITE_OPS).toHaveProperty('libraryDisableRatePack');
   });
 });

@@ -7,7 +7,7 @@
 // lives in each method's signature; the runtime is the generic gated bridge.
 // Regenerate with:  pnpm --filter @saturation/sdk generate:mutate
 //
-// 61 write operations.
+// 94 write operations.
 
 import type {
   BudgetCreateLineData,
@@ -30,10 +30,24 @@ import type {
   BudgetUpsertLinePhaseDataResponse,
   DocumentsAssignData,
   DocumentsAssignResponse,
+  DocumentsDeleteData,
+  DocumentsDeleteResponse,
+  DocumentsUnassignData,
+  DocumentsUnassignResponse,
   DocumentsUpdateData,
   DocumentsUpdateResponse,
+  LibraryAddProjectCurrencyData,
+  LibraryAddProjectCurrencyResponse,
+  LibraryAddProjectFringeData,
+  LibraryAddProjectFringeResponse,
+  LibraryAddProjectFringeTagData,
+  LibraryAddProjectFringeTagResponse,
+  LibraryAddProjectGlobalData,
+  LibraryAddProjectGlobalResponse,
   LibraryAddProjectIncentiveData,
   LibraryAddProjectIncentiveResponse,
+  LibraryAddProjectTagData,
+  LibraryAddProjectTagResponse,
   LibraryAddRatePackData,
   LibraryAddRatePackResponse,
   LibraryCreateCurrencyTemplateData,
@@ -52,10 +66,44 @@ import type {
   LibraryCreateRatePackResponse,
   LibraryCreateTagData,
   LibraryCreateTagResponse,
+  LibraryDeleteCurrencyTemplateData,
+  LibraryDeleteCurrencyTemplateResponse,
+  LibraryDeleteCustomUnitData,
+  LibraryDeleteCustomUnitResponse,
+  LibraryDeleteFringeTagTemplateData,
+  LibraryDeleteFringeTagTemplateResponse,
+  LibraryDeleteFringeTemplateData,
+  LibraryDeleteFringeTemplateResponse,
+  LibraryDeleteGlobalTemplateData,
+  LibraryDeleteGlobalTemplateResponse,
+  LibraryDeleteProjectCurrencyData,
+  LibraryDeleteProjectCurrencyResponse,
+  LibraryDeleteProjectFringeData,
+  LibraryDeleteProjectFringeResponse,
+  LibraryDeleteProjectFringeTagData,
+  LibraryDeleteProjectFringeTagResponse,
+  LibraryDeleteProjectGlobalData,
+  LibraryDeleteProjectGlobalResponse,
+  LibraryDeleteProjectIncentiveData,
+  LibraryDeleteProjectIncentiveResponse,
+  LibraryDeleteRatePackData,
+  LibraryDeleteRatePackItemData,
+  LibraryDeleteRatePackItemResponse,
+  LibraryDeleteRatePackResponse,
+  LibraryDeleteTagData,
+  LibraryDeleteTagResponse,
+  LibraryDisableIncentivePackData,
+  LibraryDisableIncentivePackResponse,
+  LibraryDisableRatePackData,
+  LibraryDisableRatePackResponse,
   LibraryEnableIncentivePackData,
   LibraryEnableIncentivePackResponse,
   LibraryEnableRatePackData,
   LibraryEnableRatePackResponse,
+  LibraryRemoveProjectTagData,
+  LibraryRemoveProjectTagResponse,
+  LibraryRemoveRatePackData,
+  LibraryRemoveRatePackResponse,
   LibraryUpdateCurrencyTemplateData,
   LibraryUpdateCurrencyTemplateResponse,
   LibraryUpdateCustomUnitData,
@@ -90,8 +138,14 @@ import type {
   MasterDataCreateProjectResponse,
   MasterDataCreateSpaceData,
   MasterDataCreateSpaceResponse,
+  MasterDataDeleteCommentData,
+  MasterDataDeleteCommentResponse,
   MasterDataDeleteContactData,
   MasterDataDeleteContactResponse,
+  MasterDataDeleteProjectData,
+  MasterDataDeleteProjectResponse,
+  MasterDataDeleteSpaceData,
+  MasterDataDeleteSpaceResponse,
   MasterDataUpdateCommentData,
   MasterDataUpdateCommentResponse,
   MasterDataUpdateContactData,
@@ -107,6 +161,8 @@ import type {
   PurchaseOrdersCreateItemResponse,
   PurchaseOrdersCreateResponse,
   PurchaseOrdersDeleteData,
+  PurchaseOrdersDeleteItemData,
+  PurchaseOrdersDeleteItemResponse,
   PurchaseOrdersDeleteResponse,
   PurchaseOrdersLinkData,
   PurchaseOrdersLinkResponse,
@@ -128,10 +184,20 @@ import type {
   TransactionsDeleteResponse,
   TransactionsItemsCreateData,
   TransactionsItemsCreateResponse,
+  TransactionsItemsDeleteData,
+  TransactionsItemsDeleteResponse,
   TransactionsItemsUpdateData,
   TransactionsItemsUpdateResponse,
   TransactionsUpdateData,
   TransactionsUpdateResponse,
+  WebhooksCreateData,
+  WebhooksCreateResponse,
+  WebhooksDeleteData,
+  WebhooksDeleteResponse,
+  WebhooksPingData,
+  WebhooksPingResponse,
+  WebhooksUpdateData,
+  WebhooksUpdateResponse,
 } from '../generated/types.gen.js';
 import type { WriteSurface } from './write-surface.interface.gen.js';
 
@@ -218,11 +284,32 @@ export function createBridgeWriteSurface(bridge: WriteBridge): WriteSurface {
     documentsAssign(data: DocumentsAssignData): Promise<DocumentsAssignResponse> {
       return forward('documentsAssign', data) as Promise<DocumentsAssignResponse>;
     },
+    documentsDelete(data: DocumentsDeleteData): Promise<DocumentsDeleteResponse> {
+      return forward('documentsDelete', data) as Promise<DocumentsDeleteResponse>;
+    },
+    documentsUnassign(data: DocumentsUnassignData): Promise<DocumentsUnassignResponse> {
+      return forward('documentsUnassign', data) as Promise<DocumentsUnassignResponse>;
+    },
     documentsUpdate(data: DocumentsUpdateData): Promise<DocumentsUpdateResponse> {
       return forward('documentsUpdate', data) as Promise<DocumentsUpdateResponse>;
     },
+    libraryAddProjectCurrency(data: LibraryAddProjectCurrencyData): Promise<LibraryAddProjectCurrencyResponse> {
+      return forward('libraryAddProjectCurrency', data) as Promise<LibraryAddProjectCurrencyResponse>;
+    },
+    libraryAddProjectFringe(data: LibraryAddProjectFringeData): Promise<LibraryAddProjectFringeResponse> {
+      return forward('libraryAddProjectFringe', data) as Promise<LibraryAddProjectFringeResponse>;
+    },
+    libraryAddProjectFringeTag(data: LibraryAddProjectFringeTagData): Promise<LibraryAddProjectFringeTagResponse> {
+      return forward('libraryAddProjectFringeTag', data) as Promise<LibraryAddProjectFringeTagResponse>;
+    },
+    libraryAddProjectGlobal(data: LibraryAddProjectGlobalData): Promise<LibraryAddProjectGlobalResponse> {
+      return forward('libraryAddProjectGlobal', data) as Promise<LibraryAddProjectGlobalResponse>;
+    },
     libraryAddProjectIncentive(data: LibraryAddProjectIncentiveData): Promise<LibraryAddProjectIncentiveResponse> {
       return forward('libraryAddProjectIncentive', data) as Promise<LibraryAddProjectIncentiveResponse>;
+    },
+    libraryAddProjectTag(data: LibraryAddProjectTagData): Promise<LibraryAddProjectTagResponse> {
+      return forward('libraryAddProjectTag', data) as Promise<LibraryAddProjectTagResponse>;
     },
     libraryAddRatePack(data: LibraryAddRatePackData): Promise<LibraryAddRatePackResponse> {
       return forward('libraryAddRatePack', data) as Promise<LibraryAddRatePackResponse>;
@@ -251,11 +338,62 @@ export function createBridgeWriteSurface(bridge: WriteBridge): WriteSurface {
     libraryCreateTag(data: LibraryCreateTagData): Promise<LibraryCreateTagResponse> {
       return forward('libraryCreateTag', data) as Promise<LibraryCreateTagResponse>;
     },
+    libraryDeleteCurrencyTemplate(data: LibraryDeleteCurrencyTemplateData): Promise<LibraryDeleteCurrencyTemplateResponse> {
+      return forward('libraryDeleteCurrencyTemplate', data) as Promise<LibraryDeleteCurrencyTemplateResponse>;
+    },
+    libraryDeleteCustomUnit(data: LibraryDeleteCustomUnitData): Promise<LibraryDeleteCustomUnitResponse> {
+      return forward('libraryDeleteCustomUnit', data) as Promise<LibraryDeleteCustomUnitResponse>;
+    },
+    libraryDeleteFringeTagTemplate(data: LibraryDeleteFringeTagTemplateData): Promise<LibraryDeleteFringeTagTemplateResponse> {
+      return forward('libraryDeleteFringeTagTemplate', data) as Promise<LibraryDeleteFringeTagTemplateResponse>;
+    },
+    libraryDeleteFringeTemplate(data: LibraryDeleteFringeTemplateData): Promise<LibraryDeleteFringeTemplateResponse> {
+      return forward('libraryDeleteFringeTemplate', data) as Promise<LibraryDeleteFringeTemplateResponse>;
+    },
+    libraryDeleteGlobalTemplate(data: LibraryDeleteGlobalTemplateData): Promise<LibraryDeleteGlobalTemplateResponse> {
+      return forward('libraryDeleteGlobalTemplate', data) as Promise<LibraryDeleteGlobalTemplateResponse>;
+    },
+    libraryDeleteProjectCurrency(data: LibraryDeleteProjectCurrencyData): Promise<LibraryDeleteProjectCurrencyResponse> {
+      return forward('libraryDeleteProjectCurrency', data) as Promise<LibraryDeleteProjectCurrencyResponse>;
+    },
+    libraryDeleteProjectFringe(data: LibraryDeleteProjectFringeData): Promise<LibraryDeleteProjectFringeResponse> {
+      return forward('libraryDeleteProjectFringe', data) as Promise<LibraryDeleteProjectFringeResponse>;
+    },
+    libraryDeleteProjectFringeTag(data: LibraryDeleteProjectFringeTagData): Promise<LibraryDeleteProjectFringeTagResponse> {
+      return forward('libraryDeleteProjectFringeTag', data) as Promise<LibraryDeleteProjectFringeTagResponse>;
+    },
+    libraryDeleteProjectGlobal(data: LibraryDeleteProjectGlobalData): Promise<LibraryDeleteProjectGlobalResponse> {
+      return forward('libraryDeleteProjectGlobal', data) as Promise<LibraryDeleteProjectGlobalResponse>;
+    },
+    libraryDeleteProjectIncentive(data: LibraryDeleteProjectIncentiveData): Promise<LibraryDeleteProjectIncentiveResponse> {
+      return forward('libraryDeleteProjectIncentive', data) as Promise<LibraryDeleteProjectIncentiveResponse>;
+    },
+    libraryDeleteRatePack(data: LibraryDeleteRatePackData): Promise<LibraryDeleteRatePackResponse> {
+      return forward('libraryDeleteRatePack', data) as Promise<LibraryDeleteRatePackResponse>;
+    },
+    libraryDeleteRatePackItem(data: LibraryDeleteRatePackItemData): Promise<LibraryDeleteRatePackItemResponse> {
+      return forward('libraryDeleteRatePackItem', data) as Promise<LibraryDeleteRatePackItemResponse>;
+    },
+    libraryDeleteTag(data: LibraryDeleteTagData): Promise<LibraryDeleteTagResponse> {
+      return forward('libraryDeleteTag', data) as Promise<LibraryDeleteTagResponse>;
+    },
+    libraryDisableIncentivePack(data: LibraryDisableIncentivePackData): Promise<LibraryDisableIncentivePackResponse> {
+      return forward('libraryDisableIncentivePack', data) as Promise<LibraryDisableIncentivePackResponse>;
+    },
+    libraryDisableRatePack(data: LibraryDisableRatePackData): Promise<LibraryDisableRatePackResponse> {
+      return forward('libraryDisableRatePack', data) as Promise<LibraryDisableRatePackResponse>;
+    },
     libraryEnableIncentivePack(data: LibraryEnableIncentivePackData): Promise<LibraryEnableIncentivePackResponse> {
       return forward('libraryEnableIncentivePack', data) as Promise<LibraryEnableIncentivePackResponse>;
     },
     libraryEnableRatePack(data: LibraryEnableRatePackData): Promise<LibraryEnableRatePackResponse> {
       return forward('libraryEnableRatePack', data) as Promise<LibraryEnableRatePackResponse>;
+    },
+    libraryRemoveProjectTag(data: LibraryRemoveProjectTagData): Promise<LibraryRemoveProjectTagResponse> {
+      return forward('libraryRemoveProjectTag', data) as Promise<LibraryRemoveProjectTagResponse>;
+    },
+    libraryRemoveRatePack(data: LibraryRemoveRatePackData): Promise<LibraryRemoveRatePackResponse> {
+      return forward('libraryRemoveRatePack', data) as Promise<LibraryRemoveRatePackResponse>;
     },
     libraryUpdateCurrencyTemplate(data: LibraryUpdateCurrencyTemplateData): Promise<LibraryUpdateCurrencyTemplateResponse> {
       return forward('libraryUpdateCurrencyTemplate', data) as Promise<LibraryUpdateCurrencyTemplateResponse>;
@@ -308,8 +446,17 @@ export function createBridgeWriteSurface(bridge: WriteBridge): WriteSurface {
     masterDataCreateSpace(data: MasterDataCreateSpaceData): Promise<MasterDataCreateSpaceResponse> {
       return forward('masterDataCreateSpace', data) as Promise<MasterDataCreateSpaceResponse>;
     },
+    masterDataDeleteComment(data: MasterDataDeleteCommentData): Promise<MasterDataDeleteCommentResponse> {
+      return forward('masterDataDeleteComment', data) as Promise<MasterDataDeleteCommentResponse>;
+    },
     masterDataDeleteContact(data: MasterDataDeleteContactData): Promise<MasterDataDeleteContactResponse> {
       return forward('masterDataDeleteContact', data) as Promise<MasterDataDeleteContactResponse>;
+    },
+    masterDataDeleteProject(data: MasterDataDeleteProjectData): Promise<MasterDataDeleteProjectResponse> {
+      return forward('masterDataDeleteProject', data) as Promise<MasterDataDeleteProjectResponse>;
+    },
+    masterDataDeleteSpace(data: MasterDataDeleteSpaceData): Promise<MasterDataDeleteSpaceResponse> {
+      return forward('masterDataDeleteSpace', data) as Promise<MasterDataDeleteSpaceResponse>;
     },
     masterDataUpdateComment(data: MasterDataUpdateCommentData): Promise<MasterDataUpdateCommentResponse> {
       return forward('masterDataUpdateComment', data) as Promise<MasterDataUpdateCommentResponse>;
@@ -334,6 +481,9 @@ export function createBridgeWriteSurface(bridge: WriteBridge): WriteSurface {
     },
     purchaseOrdersDelete(data: PurchaseOrdersDeleteData): Promise<PurchaseOrdersDeleteResponse> {
       return forward('purchaseOrdersDelete', data) as Promise<PurchaseOrdersDeleteResponse>;
+    },
+    purchaseOrdersDeleteItem(data: PurchaseOrdersDeleteItemData): Promise<PurchaseOrdersDeleteItemResponse> {
+      return forward('purchaseOrdersDeleteItem', data) as Promise<PurchaseOrdersDeleteItemResponse>;
     },
     purchaseOrdersLink(data: PurchaseOrdersLinkData): Promise<PurchaseOrdersLinkResponse> {
       return forward('purchaseOrdersLink', data) as Promise<PurchaseOrdersLinkResponse>;
@@ -365,11 +515,26 @@ export function createBridgeWriteSurface(bridge: WriteBridge): WriteSurface {
     transactionsItemsCreate(data: TransactionsItemsCreateData): Promise<TransactionsItemsCreateResponse> {
       return forward('transactionsItemsCreate', data) as Promise<TransactionsItemsCreateResponse>;
     },
+    transactionsItemsDelete(data: TransactionsItemsDeleteData): Promise<TransactionsItemsDeleteResponse> {
+      return forward('transactionsItemsDelete', data) as Promise<TransactionsItemsDeleteResponse>;
+    },
     transactionsItemsUpdate(data: TransactionsItemsUpdateData): Promise<TransactionsItemsUpdateResponse> {
       return forward('transactionsItemsUpdate', data) as Promise<TransactionsItemsUpdateResponse>;
     },
     transactionsUpdate(data: TransactionsUpdateData): Promise<TransactionsUpdateResponse> {
       return forward('transactionsUpdate', data) as Promise<TransactionsUpdateResponse>;
+    },
+    webhooksCreate(data: WebhooksCreateData): Promise<WebhooksCreateResponse> {
+      return forward('webhooksCreate', data) as Promise<WebhooksCreateResponse>;
+    },
+    webhooksDelete(data: WebhooksDeleteData): Promise<WebhooksDeleteResponse> {
+      return forward('webhooksDelete', data) as Promise<WebhooksDeleteResponse>;
+    },
+    webhooksPing(data: WebhooksPingData): Promise<WebhooksPingResponse> {
+      return forward('webhooksPing', data) as Promise<WebhooksPingResponse>;
+    },
+    webhooksUpdate(data: WebhooksUpdateData): Promise<WebhooksUpdateResponse> {
+      return forward('webhooksUpdate', data) as Promise<WebhooksUpdateResponse>;
     },
   } satisfies WriteSurface;
 }
