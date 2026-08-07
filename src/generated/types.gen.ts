@@ -2210,9 +2210,9 @@ export type WorkspaceCollection = {
 };
 
 /**
- * Where a request stands now.
+ * Where a request stands now. `unknown` means the server could not classify the stored status and will not guess: it is not a lifecycle state and no request transitions into it. Treat it as "ask the workspace", never as a decision. Clients switching exhaustively must handle it.
  */
-export type PaymentRequestStatus = 'submitted' | 'pending' | 'approved' | 'paid' | 'rejected' | 'canceled';
+export type PaymentRequestStatus = 'submitted' | 'pending' | 'approved' | 'paid' | 'rejected' | 'canceled' | 'unknown';
 
 /**
  * Where a payment stands now.
