@@ -498,6 +498,64 @@ function objectBlockFor(types: string, name: string, maxHops = 4): string | null
  * name, the typed `WriteSurface` contract (not this string) is the compile-time
  * guarantee.
  */
+/**
+ * The Money teaching string inlined wherever a body references the `Money`
+ * alias (W-2, B0 finding: `{amount: 4750}` was accepted as $47.50 while the
+ * model believed it wrote $4,750 — the minor-units JSDoc lives on the alias,
+ * and compaction strips comments, so the catalog never taught it).
+ */
+const MONEY_INLINE =
+  "{ amount: number (MINOR units - integer count of the smallest currency unit, e.g. cents: $4,750.00 USD = 475000, never major-unit dollars); currency: string (ISO-4217) }";
+
+/** Union expansions stay readable: cap members and total width. */
+const UNION_EXPAND_MAX_MEMBERS = 20;
+const UNION_EXPAND_MAX_CHARS = 400;
+
+/**
+ * Expand TEACHABLE aliases inline in a compacted body string (W-1, B0
+ * finding: `type: TransactionJournalType; amount: Money` teaches neither the
+ * enum members nor the Money shape, so models guess and the create never
+ * lands). Two expansions, applied recursively over fresh names:
+ *   - a string-literal union alias becomes its member list
+ *     (`type: 'Invoice' | 'Cash' | …`);
+ *   - `Money` becomes {@link MONEY_INLINE} with its minor-units semantics.
+ * Named OBJECT aliases (e.g. nested item creates) are left as names — one
+ * level of teaching, not a full schema dump.
+ */
+function expandTeachableAliases(types: string, text: string): string {
+  const seen = new Set<string>();
+  let out = text;
+  // Bounded passes: an expansion can reference nothing expandable, so 3 is plenty.
+  for (let pass = 0; pass < 3; pass++) {
+    const names = [...new Set(out.match(/\b[A-Z][A-Za-z0-9]{2,}\b/g) ?? [])].filter(
+      (n) => !seen.has(n),
+    );
+    let changed = false;
+    for (const name of names) {
+      seen.add(name);
+      if (name === 'Money') {
+        out = out.replace(/\bMoney\b/g, MONEY_INLINE);
+        changed = true;
+        continue;
+      }
+      const union = new RegExp(
+        `^export type ${name} = ('[^;]+');$`,
+        'm',
+      ).exec(types);
+      if (!union) continue;
+      const members = union[1]!;
+      // Only pure string-literal unions, and only readable ones.
+      if (!/^'[^']*'(?:\s*\|\s*'[^']*')*$/.test(members)) continue;
+      if (members.length > UNION_EXPAND_MAX_CHARS) continue;
+      if (members.split('|').length > UNION_EXPAND_MAX_MEMBERS) continue;
+      out = out.replace(new RegExp(`\\b${name}\\b`, 'g'), members.replace(/\s+/g, ' '));
+      changed = true;
+    }
+    if (!changed) break;
+  }
+  return out;
+}
+
 function bodyTypeText(types: string, dataType: string): string {
   const dataBlock = readTypeBlock(types, dataType);
   if (!dataBlock) return 'unknown';
@@ -523,7 +581,7 @@ function bodyTypeText(types: string, dataType: string): string {
       }
     }
     if (end === -1) return 'unknown';
-    return compactTypeBlock(rest.slice(0, end));
+    return expandTeachableAliases(types, compactTypeBlock(rest.slice(0, end)));
   }
   // A named alias / union / primitive ends at its member `;`.
   const semi = rest.indexOf(';');
@@ -531,9 +589,9 @@ function bodyTypeText(types: string, dataType: string): string {
   // Resolve a single named object alias (chasing alias hops); otherwise keep expr.
   if (/^[A-Z]\w*$/.test(expr)) {
     const named = objectBlockFor(types, expr);
-    if (named) return compactTypeBlock(named);
+    if (named) return expandTeachableAliases(types, compactTypeBlock(named));
   }
-  return expr;
+  return expandTeachableAliases(types, expr);
 }
 
 interface BodyContract {

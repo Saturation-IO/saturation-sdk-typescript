@@ -1,6 +1,28 @@
 import { describe, expect, it } from 'vitest';
 import { validateMutateArgs, WRITE_OPS } from './mutate.js';
 
+describe('catalog teaches enums and Money minor units (B0 findings W-1/W-2)', () => {
+  it('expands string-literal union aliases inline in bodyType', () => {
+    const body = WRITE_OPS.transactionsCreate.bodyType;
+    expect(body).toContain("'Invoice' | 'Projection' | 'Cash'");
+    expect(body).not.toContain('TransactionJournalType');
+  });
+
+  it('expands Money inline with unambiguous minor-units semantics', () => {
+    for (const op of ['transactionsCreate', 'masterDataUpdateContact'] as const) {
+      const body = WRITE_OPS[op].bodyType;
+      expect(body).toContain('MINOR units');
+      expect(body).toContain('475000');
+      expect(body).not.toMatch(/\bMoney\b/);
+    }
+  });
+
+  it('expansion never disturbs the top-level field contract', () => {
+    expect(WRITE_OPS.transactionsCreate.requiredBodyFields).toEqual(['type', 'amount', 'timestamp']);
+    expect(WRITE_OPS.masterDataUpdateContact.allowedBodyFields).toContain('defaultRate');
+  });
+});
+
 describe('validateMutateArgs', () => {
   it('accepts a generated request envelope without dispatching it', () => {
     expect(() => validateMutateArgs('masterDataUpdateContact', {
