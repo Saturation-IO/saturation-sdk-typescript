@@ -508,14 +508,15 @@ const MONEY_INLINE =
   "{ amount: number (MINOR units - integer count of the smallest currency unit, e.g. cents: $4,750.00 USD = 475000, never major-unit dollars); currency: string (ISO-4217) }";
 
 /**
- * Per-FIELD inline teachings for bare-number fields whose unit semantics the
- * compaction strips (the reverse of the Money class: `appliedCreditCap` is
- * MAJOR units, and a model trained on the Money teaching would write minor
- * units - a 100x error in the other direction).
+ * Per-FIELD inline teachings for bare-number money fields the compaction
+ * strips of unit semantics. The wire convention is ONE rule contract-wide
+ * (Peter's 5846 review): integer MINOR units; routes own any storage-side
+ * conversion. Teach it where the field is a bare number without the Money
+ * envelope.
  */
 const FIELD_INLINE_TEACHINGS: Readonly<Record<string, string>> = {
   appliedCreditCap:
-    'appliedCreditCap?: number (MAJOR currency units - $1,500,000 = 1500000, NOT minor units/cents) | null (clears the cap)',
+    'appliedCreditCap?: number (integer MINOR units like all contract money - $1,500,000 = 150000000; whole-currency amounts only) | null (clears the cap)',
 };
 
 /** Union expansions stay readable: cap members and total width. */

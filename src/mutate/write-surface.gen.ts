@@ -782,7 +782,7 @@ export const WRITE_OPS = {
     url: '/projects/{projectId}/library/incentives/{incentiveId}',
     pathParams: ['projectId', 'incentiveId'],
     dataType: 'LibraryUpdateProjectIncentiveData',
-    bodyType: "{ name?: string; isApplied?: boolean; accountNumber?: string; incentiveType?: 'tax_credit' | 'rebate' | 'grant'; jurisdiction?: string; rate?: number; appliedCreditCap?: number (MAJOR currency units - $1,500,000 = 1500000, NOT minor units/cents) | null (clears the cap); discountPercent?: number; tierOverrideKey?: string | null; }",
+    bodyType: "{ name?: string; isApplied?: boolean; accountNumber?: string; incentiveType?: 'tax_credit' | 'rebate' | 'grant'; jurisdiction?: string; rate?: number; appliedCreditCap?: number (integer MINOR units like all contract money - $1,500,000 = 150000000; whole-currency amounts only) | null (clears the cap); discountPercent?: number; tierOverrideKey?: string | null; }",
     bodyRequired: true,
     allowedBodyFields: ["name","isApplied","accountNumber","incentiveType","jurisdiction","rate","appliedCreditCap","discountPercent","tierOverrideKey"],
     requiredBodyFields: [],

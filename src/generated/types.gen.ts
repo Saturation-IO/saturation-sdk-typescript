@@ -1144,7 +1144,7 @@ export type ProjectIncentive = {
      */
     rate?: number | null;
     /**
-     * Overall ceiling on the total credit, in MAJOR currency units (a $1,500,000 cap reads 1500000). Null = no cap.
+     * Overall ceiling on the total credit, in integer MINOR units like every money value on this contract (a $1,500,000 cap reads 150000000; whole-currency amounts only). Null = no cap.
      */
     appliedCreditCap?: number | null;
     /**
@@ -1194,7 +1194,7 @@ export type ProjectIncentiveAdd = {
 };
 
 /**
- * Patch a project incentive at UI parity: apply / un-apply plus the parameter fields the product edits (rate, cap, discount, jurisdiction, type, account number, tier pin). Source tracking is read-only. `appliedCreditCap` is MAJOR currency units (a $1,500,000 cap is 1500000); null clears it. `rate` and `discountPercent` are percentages (30 = 30%).
+ * Patch a project incentive at UI parity: apply / un-apply plus the parameter fields the product edits (rate, cap, discount, jurisdiction, type, account number, tier pin). Source tracking is read-only. `appliedCreditCap` is integer MINOR units like all contract money (a $1,500,000 cap is 150000000; whole-currency amounts only - multiples of 100); null clears it. `rate` and `discountPercent` are percentages (30 = 30%).
  */
 export type ProjectIncentiveUpdate = {
     name?: string;
