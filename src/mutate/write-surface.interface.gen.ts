@@ -215,7 +215,7 @@ export interface WriteSurface {
   budgetCreatePhase(data: BudgetCreatePhaseData): Promise<BudgetCreatePhaseResponse>;
   /** Soft-delete a budget line (`DELETE /projects/{projectId}/budget/lines/{lineId}`). */
   budgetDeleteLine(data: BudgetDeleteLineData): Promise<BudgetDeleteLineResponse>;
-  /** Soft-delete a budget phase (`DELETE /projects/{projectId}/budget/phases/{phaseId}`). */
+  /** Soft-delete a budget phase (CAUTION: deleting an actual- or rollup-type phase removes the Actuals / totals COLUMN - reorganizing estimate columns never requires it) (`DELETE /projects/{projectId}/budget/phases/{phaseId}`). */
   budgetDeletePhase(data: BudgetDeletePhaseData): Promise<BudgetDeletePhaseResponse>;
   /** Update a budget line (`PATCH /projects/{projectId}/budget/lines/{lineId}`). */
   budgetUpdateLine(data: BudgetUpdateLineData): Promise<BudgetUpdateLineResponse>;

@@ -4792,6 +4792,10 @@ export type BudgetCreatePhaseData = {
          * Copy the base phase's values into the new phase. Only meaningful with `derivedFromPhaseId`; defaults to `true`. Pass `false` for an empty derived phase that still records its lineage.
          */
         copyValues?: boolean;
+        /**
+         * Rollup formula (only legal with `type: rollup`): phase references as `@{<phaseId>}` combined with + and -, e.g. `@{phaseA} - @{phaseB}`. Without a formula a rollup column totals 0.
+         */
+        rollupFormula?: string;
     };
     headers: {
         /**
@@ -4945,6 +4949,10 @@ export type BudgetUpdatePhaseData = {
         alias?: string;
         color?: string | null;
         isHidden?: boolean;
+        /**
+         * Rollup formula (only legal on a `type: rollup` phase): `@{<phaseId>}` references combined with + and -. Null clears it. Setting it on a non-rollup phase returns `400 validation`.
+         */
+        rollupFormula?: string | null;
     };
     path: {
         /**
