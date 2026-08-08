@@ -1284,6 +1284,9 @@ export type CurrencyTemplate = {
 export type CurrencyTemplateWrite = {
     code?: string;
     name?: string | null;
+    /**
+     * USD per ONE unit of this currency (rate_to_usd): EUR ~1.17, JPY ~0.0064. A rate quoted as units-per-USD ("23.1 CZK to the dollar") must be INVERTED before writing (23.1 CZK/USD -> 0.0433).
+     */
     rate?: number | null;
     sort?: number;
 };
