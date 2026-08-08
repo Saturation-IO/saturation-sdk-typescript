@@ -507,6 +507,17 @@ function objectBlockFor(types: string, name: string, maxHops = 4): string | null
 const MONEY_INLINE =
   "{ amount: number (MINOR units - integer count of the smallest currency unit, e.g. cents: $4,750.00 USD = 475000, never major-unit dollars); currency: string (ISO-4217) }";
 
+/**
+ * Per-FIELD inline teachings for bare-number fields whose unit semantics the
+ * compaction strips (the reverse of the Money class: `appliedCreditCap` is
+ * MAJOR units, and a model trained on the Money teaching would write minor
+ * units - a 100x error in the other direction).
+ */
+const FIELD_INLINE_TEACHINGS: Readonly<Record<string, string>> = {
+  appliedCreditCap:
+    'appliedCreditCap?: number (MAJOR currency units - $1,500,000 = 1500000, NOT minor units/cents) | null (clears the cap)',
+};
+
 /** Union expansions stay readable: cap members and total width. */
 const UNION_EXPAND_MAX_MEMBERS = 20;
 const UNION_EXPAND_MAX_CHARS = 400;
@@ -525,6 +536,12 @@ const UNION_EXPAND_MAX_CHARS = 400;
 function expandTeachableAliases(types: string, text: string): string {
   const seen = new Set<string>();
   let out = text;
+  for (const [field, teaching] of Object.entries(FIELD_INLINE_TEACHINGS)) {
+    out = out.replace(
+      new RegExp(`\\b${field}\\?: number \\| null`, 'g'),
+      teaching,
+    );
+  }
   // Bounded passes: an expansion can reference nothing expandable, so 3 is plenty.
   for (let pass = 0; pass < 3; pass++) {
     const names = [...new Set(out.match(/\b[A-Z][A-Za-z0-9]{2,}\b/g) ?? [])].filter(

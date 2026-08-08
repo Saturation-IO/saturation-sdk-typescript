@@ -1136,6 +1136,26 @@ export type ProjectIncentive = {
      */
     isApplied: boolean;
     /**
+     * Account number used for topsheet tracking.
+     */
+    accountNumber?: string | null;
+    /**
+     * Credit rate percentage (30 = 30%).
+     */
+    rate?: number | null;
+    /**
+     * Overall ceiling on the total credit, in MAJOR currency units (a $1,500,000 cap reads 1500000). Null = no cap.
+     */
+    appliedCreditCap?: number | null;
+    /**
+     * Broker fee percentage deducted from the capped credit.
+     */
+    discountPercent?: number | null;
+    /**
+     * Manual tier pin (null = auto-select the band from qualified spend).
+     */
+    tierOverrideKey?: string | null;
+    /**
      * The computed incentive amount, when applied.
      */
     amount?: Money | null;
@@ -1174,12 +1194,18 @@ export type ProjectIncentiveAdd = {
 };
 
 /**
- * Patch a project incentive (e.g. apply / un-apply, adjust). Source tracking is read-only.
+ * Patch a project incentive at UI parity: apply / un-apply plus the parameter fields the product edits (rate, cap, discount, jurisdiction, type, account number, tier pin). Source tracking is read-only. `appliedCreditCap` is MAJOR currency units (a $1,500,000 cap is 1500000); null clears it. `rate` and `discountPercent` are percentages (30 = 30%).
  */
 export type ProjectIncentiveUpdate = {
     name?: string;
-    description?: string | null;
     isApplied?: boolean;
+    accountNumber?: string;
+    incentiveType?: 'tax_credit' | 'rebate' | 'grant';
+    jurisdiction?: string;
+    rate?: number;
+    appliedCreditCap?: number | null;
+    discountPercent?: number;
+    tierOverrideKey?: string | null;
 };
 
 /**
