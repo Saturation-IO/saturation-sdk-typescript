@@ -17,6 +17,21 @@ describe('catalog teaches enums and Money minor units (B0 findings W-1/W-2)', ()
     }
   });
 
+  it('expands money-bearing object aliases + PO item money fields inline (R6-F1)', () => {
+    // The PO create's items array rendered as `Array<PurchaseOrderItemWrite>`
+    // and taught nothing about units: a $16,850 PO committed as $168.50.
+    const body = WRITE_OPS.purchaseOrdersCreate.bodyType;
+    expect(body).not.toContain('PurchaseOrderItemWrite');
+    expect(body).toContain('amount?: number (integer MINOR units - $12,400.00 = 1240000');
+    expect(body).toContain('rate?: number (MINOR units per unit');
+    for (const op of ['purchaseOrdersCreateItem', 'purchaseOrdersUpdateItem'] as const) {
+      expect(WRITE_OPS[op].bodyType).toContain('integer MINOR units');
+      expect(WRITE_OPS[op].bodyType).toContain('MINOR units per unit');
+    }
+    // Ratio rates stay untaught - a currency rate is not money.
+    expect(WRITE_OPS.libraryUpdateCurrencyTemplate.bodyType).not.toContain('MINOR units per unit');
+  });
+
   it('expansion never disturbs the top-level field contract', () => {
     expect(WRITE_OPS.transactionsCreate.requiredBodyFields).toEqual(['type', 'amount', 'timestamp']);
     expect(WRITE_OPS.masterDataUpdateContact.allowedBodyFields).toContain('defaultRate');
@@ -43,6 +58,12 @@ describe('validateMutateArgs', () => {
       path: { contactId: 'con_1' },
       body: { invented: true },
     })).toThrow(/unknown body field.*invented/);
+    // The rejection teaches the contract: it names the op's allowed fields so
+    // one failed call self-corrects instead of a guess-loop (R7 iteration 1:
+    // two 400s then a give-up on a dictated write).
+    expect(() => validateMutateArgs('transactionsCreate', {
+      body: { type: 'CreditCard', amount: { amount: 100, currency: 'USD' }, timestamp: '2026-01-01T00:00:00Z', merchant: 'X' },
+    })).toThrow(/unknown body field\(s\): merchant. Allowed body fields: type, amount/);
   });
 
   it('every POST on the surface carries a retry identity (receipt key or natural idempotency)', () => {

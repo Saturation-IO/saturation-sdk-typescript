@@ -119,7 +119,7 @@ export function validateMutateArgs(op: string, args: MutateArgs = {}): void {
       throw new SaturationError({
         status: 400,
         code: 'validation',
-        message: `mutate('${op}') has unknown body field(s): ${unknown.join(', ')}.`,
+        message: `mutate('${op}') has unknown body field(s): ${unknown.join(', ')}. Allowed body fields: ${def.allowedBodyFields.join(', ')}.`,
         requestId: 'mutate-preview',
       });
     }
