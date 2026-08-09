@@ -522,6 +522,8 @@ const FIELD_INLINE_TEACHINGS: Readonly<Record<string, string>> = {
 /** Union expansions stay readable: cap members and total width. */
 const UNION_EXPAND_MAX_MEMBERS = 20;
 const UNION_EXPAND_MAX_CHARS = 400;
+/** Money-bearing object aliases expand inline (R6-F1); cap the width. */
+const MONEY_OBJECT_EXPAND_MAX_CHARS = 700;
 
 /**
  * Expand TEACHABLE aliases inline in a compacted body string (W-1, B0
@@ -560,7 +562,31 @@ function expandTeachableAliases(types: string, text: string): string {
         `^export type ${name} = ('[^;]+');$`,
         'm',
       ).exec(types);
-      if (!union) continue;
+      if (!union) {
+        // Money-bearing OBJECT aliases expand inline too (R6-F1: the PO
+        // create's `items?: Array<PurchaseOrderItemWrite>` taught nothing, so
+        // the model wrote major-unit dollars into `amount` and a $16,850 PO
+        // committed as $168.50 - the same W-1 class, one hop further in).
+        // Non-money object aliases stay as names: one level of teaching, not
+        // a full schema dump.
+        const objectBlock = objectBlockFor(types, name);
+        if (!objectBlock || !/\bamount\??:/.test(objectBlock)) continue;
+        let inline = compactTypeBlock(objectBlock);
+        if (inline.length > MONEY_OBJECT_EXPAND_MAX_CHARS) continue;
+        inline = inline.replace(
+          /\bamount\?: number \| null/g,
+          'amount?: number (integer MINOR units - $12,400.00 = 1240000, never major-unit dollars) | null',
+        );
+        if (name.startsWith('PurchaseOrderItem')) {
+          inline = inline.replace(
+            /\brate\?: number \| null/g,
+            'rate?: number (MINOR units per unit; when amount is omitted the server computes qty x rate) | null',
+          );
+        }
+        out = out.replace(new RegExp(`\\b${name}\\b`, 'g'), inline);
+        changed = true;
+        continue;
+      }
       const members = union[1]!;
       // Only pure string-literal unions, and only readable ones.
       if (!/^'[^']*'(?:\s*\|\s*'[^']*')*$/.test(members)) continue;
@@ -1011,7 +1037,24 @@ function main(): void {
     .map((o) => {
       const params = pathParams(o.url);
       const summary = o.summary.replace(/'/g, "\\'");
-      const bodyType = JSON.stringify(bodyTypeText(types, o.dataType));
+      let bodyTypeStr = bodyTypeText(types, o.dataType);
+      // PO item ops take the item shape as their whole body, so no alias name
+      // survives for the money-alias expansion to teach (R6-F1). Teach the
+      // fields op-scoped: amount is minor units everywhere on the contract,
+      // but `rate` is only money on PO items (currency/fringe rates are
+      // ratios), so this stays out of FIELD_INLINE_TEACHINGS.
+      if (o.op === 'purchaseOrdersCreateItem' || o.op === 'purchaseOrdersUpdateItem') {
+        bodyTypeStr = bodyTypeStr
+          .replace(
+            /\bamount\?: number \| null/g,
+            'amount?: number (integer MINOR units - $12,400.00 = 1240000, never major-unit dollars) | null',
+          )
+          .replace(
+            /\brate\?: number \| null/g,
+            'rate?: number (MINOR units per unit; when amount is omitted the server computes qty x rate) | null',
+          );
+      }
+      const bodyType = JSON.stringify(bodyTypeStr);
       const contract = bodyContract(types, o.dataType);
       const idempotency = KEYED_CREATE_OPS.has(o.op)
         ? 'required'
