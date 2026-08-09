@@ -2859,18 +2859,17 @@ export type SearchResponse = {
 export type TransactionSource = 'journal' | 'plaid' | 'saturation_pay' | 'saturation_credit';
 
 /**
- * What kind of money movement. The underlying column is open, so a new rail never forces a re-migration; the API publishes it as an **extensible enum**, the ~20 values below are documented, autocompletable and client-validatable, but an unknown value is still accepted on write and echoed on read (never coerced or rejected). Two families, each with its OWN casing (NOT casing variants of one set, do not normalize across them):
- * - **Rail flows**, lowercase, dot-namespaced: `bank.deposit`, `bank.withdrawal`, `bank.ach`, `bank.wire`, `card.spend`, `card.payment`, `card.refund`, `card.dispute`, `card.cashback`. - **Journal types**, PascalCase: `Invoice`, `Projection`, `Cash`, `Check`, `Wire`, `ACH`, `CreditCard`, `TimeCard`, `ETransfer`.
+ * What kind of money movement. The underlying column is open, so a new rail never forces a re-migration; the API publishes it as an **extensible enum**, the canonical PascalCase values below are documented, autocompletable and client-validatable, but an unknown value is still accepted on write and echoed on read (never coerced or rejected). Every writer (Plaid, Sat Pay/Credit banking, Stripe Treasury/Issuing, manual journals) emits this one canonical vocabulary. A `?type=` filter matches a row's stored value verbatim.
  */
-export type TransactionType = 'bank.deposit' | 'bank.withdrawal' | 'bank.ach' | 'bank.wire' | 'card.spend' | 'card.payment' | 'card.refund' | 'card.dispute' | 'card.cashback' | 'Invoice' | 'Projection' | 'Cash' | 'Check' | 'Wire' | 'ACH' | 'CreditCard' | 'TimeCard' | 'ETransfer';
+export type TransactionType = 'SaturationPCard' | 'ACH' | 'Cash' | 'Check' | 'CreditCard' | 'Deposit' | 'ETransfer' | 'Invoice' | 'Projection' | 'TimeCard' | 'Wire' | 'Withdrawal';
 
 /**
- * The subset of `type` values that may be set on a `journal` create/patch (the human/journal family). Sourced rail types (`bank.*`, `card.*`) arrive via their rail and cannot be journaled. Casing is preserved exactly (PascalCase). Unknown values are rejected on the journal-create body only (input validation), never on stored/returned values elsewhere.
+ * The subset of `type` values that may be set on a `journal` create/patch (the human/journal family). Rail-only types (`SaturationPCard`, `Deposit`, `Withdrawal`) arrive via their rail and cannot be journaled. Casing is preserved exactly (PascalCase). Unknown values are rejected on the journal-create body only (input validation), never on stored/returned values elsewhere.
  */
 export type TransactionJournalType = 'Invoice' | 'Projection' | 'Cash' | 'Check' | 'Wire' | 'ACH' | 'CreditCard' | 'TimeCard' | 'ETransfer';
 
 /**
- * Where the record is in life, a CLOSED 7-value public enum. `posted` means money moved (unifies bank "settled" and expense "paid"). Refunds and disputes are surfaced as a `type` movement (`card.refund` / `card.dispute`) plus `isReversal=true`, never as a status. Not every status is reachable for every `source`, see `statusReachability` on the collection and the `status_unreachable_for_source` (409) error.
+ * Where the record is in life, a CLOSED 7-value public enum. `posted` means money moved (unifies bank "settled" and expense "paid"). Refunds and disputes are surfaced via the derived `isReversal=true` flag, never as a status. Not every status is reachable for every `source`, see `statusReachability` on the collection and the `status_unreachable_for_source` (409) error.
  */
 export type TransactionStatus = 'unpaid' | 'pending' | 'posted' | 'void' | 'needs_review' | 'projected' | 'rejected';
 
@@ -3004,7 +3003,7 @@ export type Transaction = {
     type?: TransactionType | null;
     status: TransactionStatus;
     /**
-     * DERIVED (no stored column): `true` when `type` is in the reversal set (`card.refund`, `card.dispute`, plaid reversals). Lets a consumer ask for "money-back events" after refund/dispute left the `status` vocabulary.
+     * DERIVED (no stored column): `true` when the row's internal state is a refund or dispute. Lets a consumer ask for "money-back events" after refund/dispute left the `status` vocabulary.
      */
     isReversal: boolean;
     amount: Money;
@@ -12437,7 +12436,7 @@ export type TransactionsListData = {
          */
         status?: TransactionStatus;
         /**
-         * Closed boolean over the derived reversal-type set (`card.refund`, `card.dispute`, plaid reversals). `true` = money-back events only.
+         * Closed boolean over the derived reversal set (refund and dispute states, plaid reversals). `true` = money-back events only.
          */
         isReversal?: boolean;
         /**
