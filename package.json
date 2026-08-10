@@ -18,7 +18,7 @@
     "type": "git",
     "url": "git+https://github.com/Saturation-IO/saturation-sdk-typescript.git"
   },
-  "license": "Proprietary",
+  "license": "MIT",
   "author": "Saturation",
   "packageManager": "pnpm@10.26.2",
   "type": "module",
