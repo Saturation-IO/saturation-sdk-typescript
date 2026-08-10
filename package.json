@@ -1,6 +1,6 @@
 {
-  "name": "@saturation/sdk",
-  "version": "1.0.0",
+  "name": "@saturationio/sdk",
+  "version": "0.1.0-alpha.0",
   "description": "Official TypeScript SDK for the Saturation API (/v1)",
   "keywords": [
     "saturation",
@@ -12,15 +12,15 @@
   ],
   "homepage": "https://docs.saturation.io",
   "bugs": {
-    "url": "https://github.com/Saturation-IO/saturation/issues"
+    "url": "https://github.com/Saturation-IO/saturation-sdk-typescript/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Saturation-IO/saturation.git",
-    "directory": "modules/saturation-next-sdk"
+    "url": "git+https://github.com/Saturation-IO/saturation-sdk-typescript.git"
   },
   "license": "Proprietary",
   "author": "Saturation",
+  "packageManager": "pnpm@10.26.2",
   "type": "module",
   "exports": {
     ".": {
@@ -41,7 +41,7 @@
   ],
   "scripts": {
     "build": "pnpm clean && pnpm build:types && pnpm build:esm && pnpm build:cjs",
-    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json && node scripts/write-cjs-package.mjs",
     "build:esm": "tsc -p tsconfig.esm.json",
     "build:types": "tsc -p tsconfig.types.json",
     "clean": "rm -rf dist",
@@ -61,7 +61,12 @@
     "node": ">=18.0.0"
   },
   "publishConfig": {
-    "access": "restricted",
+    "access": "public",
     "registry": "https://registry.npmjs.org/"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }

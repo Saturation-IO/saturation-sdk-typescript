@@ -1,4 +1,4 @@
-# @saturation/sdk
+# @saturationio/sdk
 
 The official TypeScript SDK for the [Saturation](https://saturation.io) Public API (`/v1`) — the metered, token-authenticated surface for production-finance data: budgets, transactions, purchase orders, documents, the Library (rates, incentives, fringes, globals, currencies, tags, units), search and outbound webhooks.
 
@@ -11,8 +11,8 @@ The SDK is a thin, fully typed layer over the API's OpenAPI contract. All types 
 ## Install
 
 ```bash
-pnpm add @saturation/sdk
-# or: npm install @saturation/sdk
+pnpm add @saturationio/sdk
+# or: npm install @saturationio/sdk
 ```
 
 ## Authentication
@@ -24,7 +24,7 @@ Mint a token in the Saturation app under **Settings → Developers**. Treat it l
 ## Quickstart
 
 ```ts
-import { Saturation, SaturationError } from '@saturation/sdk';
+import { Saturation, SaturationError } from '@saturationio/sdk';
 
 // Inject the token once. The token determines the workspace.
 const sat = new Saturation({
