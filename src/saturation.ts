@@ -23,14 +23,13 @@ import type { Me } from './generated/types.gen.js';
 
 /** Constructor options. The bearer token determines the workspace. */
 export interface SaturationOptions {
-  /** A `Authorization: Bearer <token>` credential, minted in next-web Settings → Developers. */
+  /** An `Authorization: Bearer <token>` credential created in Settings > Developers > API. */
   token: string;
   /** Override the API base URL (defaults to production). Use for local/staging. */
   baseURL?: string;
   /**
-   * Override the request executor. Defaults to `globalThis.fetch`. Pass a Hono
-   * `app.fetch` to run the SDK **in-process** against the live `/v1` handlers
-   * (no socket) — the seam the agent `mutate` bridge plugs into.
+   * Override the request executor. Defaults to `globalThis.fetch`. This is useful
+   * for tests, custom runtimes, and applications that provide their own fetch.
    */
   fetch?: FetchLike;
 }

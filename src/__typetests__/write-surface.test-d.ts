@@ -27,7 +27,7 @@ declare const bridge: WriteBridge;
 const full: WriteSurface = createBridgeWriteSurface(bridge);
 
 // 2. Composing the bridge with a correctly-typed native override satisfies the
-//    contract — the exact idiom next-api uses for the in-memory budget op.
+//    contract, including a native override for one operation.
 const composed = {
   ...createBridgeWriteSurface(bridge),
   budgetUpsertLinePhaseData: (

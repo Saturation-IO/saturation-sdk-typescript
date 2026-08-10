@@ -9,7 +9,7 @@
 export { Saturation, ProjectScope } from './saturation.js';
 export type { SaturationOptions, ProjectsAccessor } from './saturation.js';
 
-// Error model (§5d): typed, status-keyed.
+// Typed, status-keyed error model.
 export { SaturationError } from './errors.js';
 export type { ErrorCode } from './errors.js';
 

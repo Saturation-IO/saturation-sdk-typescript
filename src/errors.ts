@@ -3,7 +3,7 @@ import type { ErrorCode } from './generated/types.gen.js';
 export type { ErrorCode } from './generated/types.gen.js';
 
 /**
- * The §5d error envelope, thrown on any non-2xx response.
+ * The documented error envelope, thrown on any non-2xx response.
  *
  * Success is keyed off the HTTP status, never a `success` field — a 2xx returns
  * the bare resource (or `{ data, nextCursor }` collection); anything else throws
@@ -63,7 +63,7 @@ export class SaturationError extends Error {
   }
 }
 
-/** Raw shape of the §5d error body, as documented in the OpenAPI `Error` schema. */
+/** Raw shape of the body documented by the OpenAPI `Error` schema. */
 interface RawErrorBody {
   success?: false;
   code?: ErrorCode;
