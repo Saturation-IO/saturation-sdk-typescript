@@ -1,0 +1,5 @@
+* @simonctam-saturation @jens-saturation
+
+/openapi/ @simonctam-saturation @jens-saturation
+/src/generated/ @simonctam-saturation @jens-saturation
+/src/mutate/*.gen.ts @simonctam-saturation @jens-saturation

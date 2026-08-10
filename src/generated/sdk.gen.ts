@@ -208,9 +208,9 @@ export const budgetCreatePhase = <ThrowOnError extends boolean = false>(options:
 });
 
 /**
- * Soft-delete a budget phase (CAUTION: deleting an actual- or rollup-type phase removes the Actuals / totals COLUMN - reorganizing estimate columns never requires it)
+ * Soft-delete a budget phase (CAUTION: deleting an actual- or rollup-type phase removes the actuals / totals COLUMN - reorganizing estimate columns never requires it)
  *
- * Soft-deletes the phase column (`soft-delete timestamp = now`). CAUTION: deleting an actual- or rollup-type phase removes that COLUMN (Actuals / a totals rollup) from the budget - reorganizing or renaming ESTIMATE columns never requires deleting actual/rollup phases. Emits a durable audit event.
+ * Soft-deletes the phase column (`soft-delete timestamp = now`). CAUTION: deleting an actual- or rollup-type phase removes that COLUMN (actuals / a totals rollup) from the budget - reorganizing or renaming ESTIMATE columns never requires deleting actual/rollup phases. Emits a durable audit event.
  */
 export const budgetDeletePhase = <ThrowOnError extends boolean = false>(options: Options<BudgetDeletePhaseData, ThrowOnError>) => (options.client ?? client).delete<BudgetDeletePhaseResponses, BudgetDeletePhaseErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],

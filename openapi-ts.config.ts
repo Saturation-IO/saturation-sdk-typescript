@@ -15,8 +15,9 @@ import { defineConfig } from '@hey-api/openapi-ts';
  * and `src/saturation.ts` is the hand-written layer on top.
  */
 export default defineConfig({
-  input:
-    '../../docs/next/next-api-build/openapi/openapi.yaml',
+  // Keep generation self-contained. Update this committed snapshot from
+  // https://docs.saturation.io/openapi.yaml before regenerating the client.
+  input: './openapi/openapi.yaml',
   output: {
     path: './src/generated',
     // Emit `.js` import extensions so the generated ESM resolves under the

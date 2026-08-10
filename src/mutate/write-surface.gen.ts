@@ -111,7 +111,7 @@ export const WRITE_OPS = {
     allowedBodyFields: [],
     requiredBodyFields: [],
     idempotency: 'none',
-    summary: 'Soft-delete a budget phase (CAUTION: deleting an actual- or rollup-type phase removes the Actuals / totals COLUMN - reorganizing estimate columns never requires it)',
+    summary: 'Soft-delete a budget phase (CAUTION: deleting an actual- or rollup-type phase removes the actuals / totals COLUMN - reorganizing estimate columns never requires it)',
   },
   budgetUpdateLine: {
     op: 'budgetUpdateLine',
