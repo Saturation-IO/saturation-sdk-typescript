@@ -16,7 +16,6 @@ import {
 import {
   CommentsResource,
   ViewsResource,
-  UsageResource,
   WebhooksResource,
 } from './resources/extras.js';
 import type { Me } from './generated/types.gen.js';
@@ -85,11 +84,6 @@ export class ProjectScope {
     return new ViewsResource(this.t, this.id);
   }
 
-  /** Per-project usage rollups. */
-  usage(params?: Parameters<UsageResource['projectRollups']>[1]): ReturnType<UsageResource['projectRollups']> {
-    return new UsageResource(this.t).projectRollups(this.id, params);
-  }
-
   /** Project-scoped Spotlight search. */
   search(q: string, params?: Parameters<SearchResource['run']>[1]): ReturnType<SearchResource['run']> {
     return new SearchResource(this.t, this.id).run(q, params);
@@ -137,8 +131,6 @@ export class Saturation {
   readonly spaces: SpacesResource;
   /** Workspace comments attached to entities. */
   readonly comments: CommentsResource;
-  /** Metered usage and credit dashboards. */
-  readonly usage: UsageResource;
   /** Outbound webhook subscriptions. */
   readonly webhooks: WebhooksResource;
   /** Callable project accessor: `sat.projects(p)` and `sat.projects.list()`. */
@@ -160,7 +152,6 @@ export class Saturation {
     this.payments = new PaymentsResource(this.t);
     this.spaces = new SpacesResource(this.t);
     this.comments = new CommentsResource(this.t);
-    this.usage = new UsageResource(this.t);
     this.webhooks = new WebhooksResource(this.t);
     this.meta = new MetaResource(this.t);
 

@@ -6,12 +6,6 @@ import type {
   CommentTargetKind,
   View,
   ViewData,
-  UsageRollupRow,
-  UsageGroupBy,
-  UsageSource,
-  UsageOperationClass,
-  UsageCreditRow,
-  UsageOperationRow,
   Webhook,
   WebhookCreate,
   WebhookUpdate,
@@ -101,61 +95,6 @@ export class ViewsResource {
         cursor: params.cursor,
       },
     }) as Promise<ViewData>;
-  }
-}
-
-export interface UsageRollupParams {
-  from?: string;
-  to?: string;
-  groupBy?: UsageGroupBy;
-  source?: UsageSource;
-  operationClass?: UsageOperationClass;
-  tokenId?: string;
-  limit?: number;
-  cursor?: string;
-}
-
-/** Metered usage and credit dashboards: `sat.usage`. */
-export class UsageResource {
-  constructor(private readonly t: Transport) {}
-
-  /** Workspace usage rollups (aggregated from the metered request ledger). */
-  rollups(params: UsageRollupParams = {}): List<UsageRollupRow> {
-    const options = { query: { ...params } };
-    return new List<UsageRollupRow>(
-      () => this.t.paginate<typeof options, UsageRollupRow>(sdk.usageListRollups, options),
-      () => this.t.runPage<typeof options, UsageRollupRow>(sdk.usageListRollups, options),
-    );
-  }
-
-  /** Per-project usage rollups. */
-  projectRollups(projectId: string, params: UsageRollupParams = {}): List<UsageRollupRow> {
-    const options = {
-      path: { projectId },
-      query: { ...params },
-    };
-    return new List<UsageRollupRow>(
-      () => this.t.paginate<typeof options, UsageRollupRow>(sdk.usageListProjectRollups, options),
-      () => this.t.runPage<typeof options, UsageRollupRow>(sdk.usageListProjectRollups, options),
-    );
-  }
-
-  /** The credit ledger. */
-  credits(params: { from?: string; to?: string; limit?: number; cursor?: string } = {}): List<UsageCreditRow> {
-    const options = { query: { ...params } };
-    return new List<UsageCreditRow>(
-      () => this.t.paginate<typeof options, UsageCreditRow>(sdk.usageListCredits, options),
-      () => this.t.runPage<typeof options, UsageCreditRow>(sdk.usageListCredits, options),
-    );
-  }
-
-  /** The metered operation ledger. */
-  operations(params: { from?: string; to?: string; limit?: number; cursor?: string } = {}): List<UsageOperationRow> {
-    const options = { query: { ...params } };
-    return new List<UsageOperationRow>(
-      () => this.t.paginate<typeof options, UsageOperationRow>(sdk.usageListOperations, options),
-      () => this.t.runPage<typeof options, UsageOperationRow>(sdk.usageListOperations, options),
-    );
   }
 }
 

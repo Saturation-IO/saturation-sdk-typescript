@@ -4,7 +4,7 @@
 // (CREATE + value-UPDATE, additive only). Regenerate with:
 //   pnpm --filter @saturation/sdk generate:mutate
 //
-// 94 write operations selected from 156 total operations.
+// 94 write operations selected from 155 total operations.
 
 /** A single write operation's static metadata, derived from the OpenAPI spec. */
 export interface WriteOpDef {
