@@ -2,8 +2,6 @@
 
 The official TypeScript client for the [Saturation Public API](https://docs.saturation.io). It provides typed access to budgets, transactions, purchase orders, payments, documents, contacts, the Library, comments, search, and webhooks.
 
-The API and SDK may change before 1.0.
-
 - Node.js 18 or later and modern browsers
 - ESM, CommonJS, and TypeScript declarations
 - Types generated from the OpenAPI contract
@@ -11,14 +9,10 @@ The API and SDK may change before 1.0.
 
 ## Install
 
-> **Release status:** npm currently serves `0.1.0-alpha.0`, which uses an older
-> API contract. The examples in this README describe the current source and
-> require the next alpha release.
-
 ```bash
-pnpm add @saturationio/sdk@alpha
+pnpm add @saturationio/sdk
 # or
-npm install @saturationio/sdk@alpha
+npm install @saturationio/sdk
 ```
 
 ## Create a client
@@ -238,7 +232,7 @@ pnpm build
 npm pack --dry-run
 ```
 
-Publishing a release runs the same checks, then publishes the package to npm with the `alpha` tag. See the [API documentation](https://docs.saturation.io) for the HTTP contract.
+Publishing a GitHub release runs the same checks, then publishes the matching package version to npm. See the [API documentation](https://docs.saturation.io) for the HTTP contract.
 
 ## License
 
