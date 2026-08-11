@@ -14,10 +14,10 @@
 import type { WriteSurface } from '../mutate/write-surface.interface.gen.js';
 import { createBridgeWriteSurface, type WriteBridge } from '../mutate/write-surface.bridge.gen.js';
 import type {
-  BudgetUpsertLinePhaseDataData,
-  BudgetUpsertLinePhaseDataResponse,
-  MasterDataUpdateContactData,
-  MasterDataUpdateContactResponse,
+  BudgetUpdateLinePhaseDataData,
+  BudgetUpdateLinePhaseDataResponse,
+  ContactsUpdateData,
+  ContactsUpdateResponse,
   BudgetLine,
 } from '../generated/types.gen.js';
 
@@ -27,12 +27,12 @@ declare const bridge: WriteBridge;
 const full: WriteSurface = createBridgeWriteSurface(bridge);
 
 // 2. Composing the bridge with a correctly-typed native override satisfies the
-//    contract, including a native override for one operation.
+//    contract — the exact idiom next-api uses for the in-memory budget op.
 const composed = {
   ...createBridgeWriteSurface(bridge),
-  budgetUpsertLinePhaseData: (
-    _data: BudgetUpsertLinePhaseDataData,
-  ): Promise<BudgetUpsertLinePhaseDataResponse> => Promise.reject(new Error('stub')),
+  budgetUpdateLinePhaseData: (
+    _data: BudgetUpdateLinePhaseDataData,
+  ): Promise<BudgetUpdateLinePhaseDataResponse> => Promise.reject(new Error('stub')),
 } satisfies WriteSurface;
 
 // 3. FORCING FUNCTION — a WRONG return type for one op breaks `satisfies`.
@@ -40,21 +40,21 @@ const composed = {
 const badReturn = {
   ...createBridgeWriteSurface(bridge),
   // @ts-expect-error — `Promise<number>` is not the op's `Promise<…Response>`.
-  budgetUpsertLinePhaseData: (_data: BudgetUpsertLinePhaseDataData): Promise<number> =>
+  budgetUpdateLinePhaseData: (_data: BudgetUpdateLinePhaseDataData): Promise<number> =>
     Promise.resolve(1),
 } satisfies WriteSurface;
 
 // 4. FORCING FUNCTION — a single op whose return type drifts from the contract.
-const oneOp: Pick<WriteSurface, 'masterDataUpdateContact'> = {
-  // @ts-expect-error — must resolve `MasterDataUpdateContactResponse`, not `BudgetLine`.
-  masterDataUpdateContact: (_data: MasterDataUpdateContactData): Promise<BudgetLine> =>
+const oneOp: Pick<WriteSurface, 'contactsUpdate'> = {
+  // @ts-expect-error — must resolve `ContactsUpdateResponse`, not `BudgetLine`.
+  contactsUpdate: (_data: ContactsUpdateData): Promise<BudgetLine> =>
     Promise.reject(new Error('stub')),
 };
 
 // 5. FORCING FUNCTION — an impl MISSING ops does not satisfy the full contract.
 // @ts-expect-error — only one operation is present; the remainder are missing.
 const incomplete: WriteSurface = {
-  masterDataUpdateContact: (
-    _data: MasterDataUpdateContactData,
-  ): Promise<MasterDataUpdateContactResponse> => Promise.reject(new Error('stub')),
+  contactsUpdate: (
+    _data: ContactsUpdateData,
+  ): Promise<ContactsUpdateResponse> => Promise.reject(new Error('stub')),
 };

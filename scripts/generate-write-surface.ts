@@ -1,8 +1,8 @@
 /**
  * Generate the `mutate` write surface from the generated SDK.
  *
- * The `mutate` surface is an explicit write allowlist over the generated `/v1`
- * SDK, not a naive `POST/PUT/PATCH/DELETE` verb filter (some
+ * The `mutate` tool's model-facing surface is an **explicit write allowlist** over
+ * the generated `/v1` SDK — NOT a naive `POST/PUT/PATCH/DELETE` verb filter (some
  * POSTs are state-transition / computed actions, not data writes). This script:
  *
  *   1. Parses the do-not-edit `src/generated/sdk.gen.ts` (one block per operation:
@@ -24,11 +24,12 @@
  *        implementation to update or fail `tsc`.
  *      - `src/mutate/write-surface.bridge.gen.ts`: `createBridgeWriteSurface`, a
  *        ready-made `WriteSurface` whose every method forwards its typed
- *        `{ path, body, query }` to a generic dispatcher. Hosts can compose this
- *        with hand-written operations, and `satisfies WriteSurface` proves the
+ *        `{ path, body, query }` to the generic in-process dispatcher (the
+ *        app.fetch bridge). Hosts compose this with hand-written native ops
+ *        (e.g. the in-memory budget path) and `satisfies WriteSurface` proves the
  *        composition still covers the whole contract.
  *
- * Re-run after any SDK regeneration:  pnpm --filter @saturation/sdk generate:mutate
+ * Re-run after any SDK regeneration: pnpm generate:mutate
  *
  * The allowlist is the security boundary; everything else is derived from the
  * spec by code, so the surface cannot drift from the real route set.
@@ -60,7 +61,7 @@ type WriteMethod = 'post' | 'put' | 'patch' | 'delete';
  * Curated from the route inventory. Excluded on purpose (NOT a write, or
  * destructive/deferred to the rollback ledger): every `*Delete*` EXCEPT the
  * five reviewed soft deletes admitted 2026-08-02, plus
- * `documentsDeleteLink`, `library{Disable,Remove}*`, and `webhooksSendTestDelivery` (a
+ * `documentsUnlink`, `library{Disable,Remove}*`, and `webhooksSendTestDelivery` (a
  * side-effecting test action, not a data write — the exact "computed POST" a
  * verb filter would leak). The PO lifecycle (`Unlink` included; `Submit`
  * still reserved — the /v1 stub always 409s) was admitted 2026-08-07 (Simon's write-surface ruling for the write-audit
@@ -71,21 +72,21 @@ const WRITE_OP_ALLOWLIST: ReadonlySet<string> = new Set<string>([
   'budgetCreateLine',
   'budgetCreateLinesBulk',
   'budgetCreatePhase',
-  'budgetUpsertLinePhaseData',
-  'budgetUpsertLinePhaseDataBulk',
+  'budgetUpdateLinePhaseData',
+  'budgetUpdateLinePhaseDataBulk',
   'budgetUpdateLine',
   'budgetUpdatePhase',
   // ── reviewed soft deletes (Simon, 2026-08-02): the row keeps a deletedAt
   //    tombstone; each route's own lifecycle rules stand (journal-only
   //    transaction delete, draft-only PO delete) ──
   'transactionsDelete',
-  'masterDataDeleteContact',
+  'contactsDelete',
   'budgetDeleteLine',
   'budgetDeletePhase',
   'purchaseOrdersDelete',
   // ── documents: drop (create) + assign (link) + field update ──
-  'documentsDrop',
-  'documentsPutLink',
+  'documentsUpload',
+  'documentsLink',
   'documentsUpdate',
   // ── library: workspace templates + project installs (additive) + field updates ──
   'libraryAddProjectCurrency',
@@ -118,37 +119,37 @@ const WRITE_OP_ALLOWLIST: ReadonlySet<string> = new Set<string>([
   'libraryUpdateRatePackItem',
   'libraryUpdateTag',
   // ── master data: contacts / projects / spaces / comments ──
-  'masterDataCreateComment',
-  'masterDataCreateContact',
-  'masterDataCreateProject',
-  'masterDataCreateSpace',
-  'masterDataUpdateComment',
-  'masterDataUpdateContact',
-  'masterDataUpdateProject',
-  'masterDataUpdateSpace',
+  'commentsCreate',
+  'contactsCreate',
+  'projectsCreate',
+  'spacesCreate',
+  'commentsUpdate',
+  'contactsUpdate',
+  'projectsUpdate',
+  'spacesUpdate',
   // ── purchase orders: create header/item, link to budget, field updates ──
   'purchaseOrdersCreate',
   'purchaseOrdersCreateItem',
   'purchaseOrdersCancelSubmission',
   'purchaseOrdersMarkPaid',
-  'purchaseOrdersPutTransaction',
-  'purchaseOrdersDeleteTransaction',
+  'purchaseOrdersLinkTransaction',
+  'purchaseOrdersUnlinkTransaction',
   'purchaseOrdersUpdate',
   'purchaseOrdersUpdateItem',
   'purchaseOrdersVoid',
   // ── transactions: create (single + batch), items, field updates ──
   'transactionsCreate',
-  'transactionsBulkCreate',
-  'transactionsItemsCreate',
+  'transactionsCreateBulk',
+  'transactionsCreateItem',
   'transactionsUpdate',
-  'transactionsItemsUpdate',
+  'transactionsUpdateItem',
   // ── webhooks: full config surface ──
   'webhooksCreate',
   'webhooksUpdate',
   // ── full-surface ruling additions (2026-08-07): remaining deletes,
   //    disable/remove/unassign, webhook delete + ping ──
   'documentsDelete',
-  'documentsDeleteLink',
+  'documentsUnlink',
   'libraryDeleteCurrency',
   'libraryDeleteUnit',
   'libraryDeleteFringeGroup',
@@ -165,31 +166,32 @@ const WRITE_OP_ALLOWLIST: ReadonlySet<string> = new Set<string>([
   'libraryDisableIncentivePack',
   'libraryDisableRatePack',
   'libraryRemoveRatePack',
-  'masterDataDeleteComment',
-  'masterDataDeleteSpace',
+  'commentsDelete',
+  'spacesDelete',
   'purchaseOrdersDeleteItem',
-  'transactionsItemsDelete',
+  'transactionsDeleteItem',
   'webhooksDelete',
   'webhooksSendTestDelivery',
 ]);
 
 /**
- * The canonical write surface uses one explicit list, not a verb filter.
- * Durable transactional idempotency receipts enforce retry identity, and the
+ * The canonical MODEL-FACING write surface (SAT-5831): ONE explicit list, no
+ * verb filter. POSTs re-admitted 2026-07-28 — durable transactional
+ * idempotency receipts (next-api) enforce retry identity end-to-end, and the
  * declaration gate below proves every keyed create declares its REQUIRED
  * `Idempotency-Key` header in the generated types (so an outcome-ambiguous
  * timeout replays instead of duplicating).
  *
- * The exposed set is the allowlist. Every
+ * FULL SURFACE (Simon, 2026-08-07): the exposed set IS the allowlist — every
  * op above ships in the model-facing catalog. The only /v1 writes absent are
  * the two structural carve-outs documented on the allowlist
- * (`purchaseOrdersSubmit` reserved stub, `documentsDrop` upload-tool bytes).
+ * (`purchaseOrdersSubmit` reserved stub, `documentsUpload` upload-tool bytes).
  */
 const AGENT_WRITE_EXPOSED_OPS: readonly string[] = [
   // ── value updates (the pre-existing exposed set) ──
   'budgetUpdateLine',
   'budgetUpdatePhase',
-  'budgetUpsertLinePhaseData',
+  'budgetUpdateLinePhaseData',
   'documentsUpdate',
   'libraryUpdateCurrency',
   'libraryUpdateUnit',
@@ -204,19 +206,19 @@ const AGENT_WRITE_EXPOSED_OPS: readonly string[] = [
   'libraryUpdateRatePack',
   'libraryUpdateRatePackItem',
   'libraryUpdateTag',
-  'masterDataUpdateComment',
-  'masterDataUpdateContact',
-  'masterDataUpdateProject',
-  'masterDataUpdateSpace',
+  'commentsUpdate',
+  'contactsUpdate',
+  'projectsUpdate',
+  'spacesUpdate',
   'purchaseOrdersUpdate',
   'purchaseOrdersUpdateItem',
-  'transactionsItemsUpdate',
+  'transactionsUpdateItem',
   'transactionsUpdate',
   // ── keyed creates (receipt-backed; Idempotency-Key REQUIRED — D6) ──
   'budgetCreateLine',
   'budgetCreateLinesBulk',
   'budgetCreatePhase',
-  'budgetUpsertLinePhaseDataBulk',
+  'budgetUpdateLinePhaseDataBulk',
   'libraryCreateCurrency',
   'libraryCreateUnit',
   'libraryCreateFringeGroup',
@@ -225,25 +227,25 @@ const AGENT_WRITE_EXPOSED_OPS: readonly string[] = [
   'libraryCreateRatePack',
   'libraryCreateRatePackItem',
   'libraryCreateTag',
-  'masterDataCreateComment',
-  'masterDataCreateContact',
-  'masterDataCreateProject',
-  'masterDataCreateSpace',
+  'commentsCreate',
+  'contactsCreate',
+  'projectsCreate',
+  'spacesCreate',
   'purchaseOrdersCreate',
   'purchaseOrdersCreateItem',
-  'transactionsBulkCreate',
+  'transactionsCreateBulk',
   'transactionsCreate',
-  'transactionsItemsCreate',
+  'transactionsCreateItem',
   // ── PO lifecycle transitions (Simon, 2026-08-07): status moves guarded by
   //    the routes' own lifecycle preconditions — a repeated call is rejected
   //    with a typed 4xx (or is a same-state no-op), never a duplicate ──
   'purchaseOrdersCancelSubmission',
   'purchaseOrdersMarkPaid',
   'purchaseOrdersVoid',
-  'purchaseOrdersPutTransaction',
-  'purchaseOrdersDeleteTransaction',
+  'purchaseOrdersLinkTransaction',
+  'purchaseOrdersUnlinkTransaction',
   // ── naturally idempotent creates (no key; repeat call returns the original) ──
-  'documentsPutLink',
+  'documentsLink',
   'libraryAddProjectIncentive',
   'libraryAddRatePack',
   // ── library pack enables (Simon, 2026-08-02): enabling a pack the workspace
@@ -256,13 +258,13 @@ const AGENT_WRITE_EXPOSED_OPS: readonly string[] = [
   //    so "repeat returns the original record" would be a lie the model acts
   //    on. The public catalog publishes delete-specific retry wording. ──
   'transactionsDelete',
-  'masterDataDeleteContact',
+  'contactsDelete',
   'budgetDeleteLine',
   'budgetDeletePhase',
   'purchaseOrdersDelete',
   // ── full-surface ruling (2026-08-07): the rest of the write inventory ──
   'documentsDelete',
-  'documentsDeleteLink',
+  'documentsUnlink',
   'libraryAddProjectCurrency',
   'libraryAddProjectFringe',
   'libraryAddProjectFringeGroup',
@@ -283,10 +285,10 @@ const AGENT_WRITE_EXPOSED_OPS: readonly string[] = [
   'libraryDisableIncentivePack',
   'libraryDisableRatePack',
   'libraryRemoveRatePack',
-  'masterDataDeleteComment',
-  'masterDataDeleteSpace',
+  'commentsDelete',
+  'spacesDelete',
   'purchaseOrdersDeleteItem',
-  'transactionsItemsDelete',
+  'transactionsDeleteItem',
   'webhooksCreate',
   'webhooksDelete',
   'webhooksSendTestDelivery',
@@ -304,7 +306,7 @@ const KEYED_CREATE_OPS: ReadonlySet<string> = new Set([
   'budgetCreateLine',
   'budgetCreateLinesBulk',
   'budgetCreatePhase',
-  'budgetUpsertLinePhaseDataBulk',
+  'budgetUpdateLinePhaseDataBulk',
   'libraryCreateCurrency',
   'libraryCreateUnit',
   'libraryCreateFringeGroup',
@@ -313,15 +315,15 @@ const KEYED_CREATE_OPS: ReadonlySet<string> = new Set([
   'libraryCreateRatePack',
   'libraryCreateRatePackItem',
   'libraryCreateTag',
-  'masterDataCreateComment',
-  'masterDataCreateContact',
-  'masterDataCreateProject',
-  'masterDataCreateSpace',
+  'commentsCreate',
+  'contactsCreate',
+  'projectsCreate',
+  'spacesCreate',
   'purchaseOrdersCreate',
   'purchaseOrdersCreateItem',
-  'transactionsBulkCreate',
+  'transactionsCreateBulk',
   'transactionsCreate',
-  'transactionsItemsCreate',
+  'transactionsCreateItem',
 ]);
 
 /**
@@ -329,7 +331,7 @@ const KEYED_CREATE_OPS: ReadonlySet<string> = new Set([
  * a repeat call returns the ORIGINAL record, never a duplicate or a 409.
  */
 const NATURALLY_IDEMPOTENT_OPS: Readonly<Record<string, string>> = {
-  documentsPutLink: 'same-id FK set; the route has an explicit same-target no-op branch',
+  documentsLink: 'same-id FK set; the route has an explicit same-target no-op branch',
   libraryAddProjectIncentive: 'copy-on-use `@@unique([projectId, source])` — repeat add returns the existing link',
   libraryAddRatePack: 'copy-on-use `@@unique([projectId, ratePackId])` — repeat add returns the existing link',
   libraryEnableRatePack: 'upsert on `@@unique([workspaceId, ratePackId])` with deterministic id `wrp-<ws>-<pack>` — repeat enable returns the existing enablement',
@@ -350,12 +352,12 @@ const TRANSITION_OPS: ReadonlySet<string> = new Set([
   'purchaseOrdersCancelSubmission',
   'purchaseOrdersMarkPaid',
   'purchaseOrdersVoid',
-  'purchaseOrdersPutTransaction',
-  'purchaseOrdersDeleteTransaction',
+  'purchaseOrdersLinkTransaction',
+  'purchaseOrdersUnlinkTransaction',
   // Guarded actions (full-surface ruling 2026-08-07): a repeat cannot
   // duplicate data — unassign of an unassigned doc is a typed miss; webhook
   // create 409s on a duplicate URL; ping re-sends a test event (no data row).
-  'documentsDeleteLink',
+  'documentsUnlink',
   'webhooksCreate',
   'webhooksSendTestDelivery',
 ]);
@@ -568,12 +570,6 @@ function expandTeachableAliases(types: string, text: string): string {
           /\bamount\?: number \| null/g,
           'amount?: number (integer MINOR units - $12,400.00 = 1240000, never major-unit dollars) | null',
         );
-        if (name.startsWith('PurchaseOrderItem')) {
-          inline = inline.replace(
-            /\brate\?: number \| null/g,
-            'rate?: number (MINOR units per unit; when amount is omitted the server computes qty x rate) | null',
-          );
-        }
         out = out.replace(new RegExp(`\\b${name}\\b`, 'g'), inline);
         changed = true;
         continue;
@@ -714,7 +710,7 @@ function emitInterface(selected: ParsedOp[]): string {
 //
 // The \`mutate\` write surface CONTRACT: one typed method per allowlisted /v1
 // write op, \`<op>(data: <Op>Data): Promise<<Op>Response>\`. Regenerate with:
-//   pnpm --filter @saturation/sdk generate:mutate
+//   pnpm generate:mutate
 //
 // This interface is the forcing function: when the OpenAPI document (and thus
 // the generated \`types.gen.ts\` request/response types) changes, every
@@ -738,8 +734,9 @@ ${methods}
 }
 
 /**
- * Emit `createBridgeWriteSurface`, a `WriteSurface` whose every method forwards
- * its typed `{ path, body, query }` to the generic dispatcher.
+ * Emit `createBridgeWriteSurface` — a `WriteSurface` whose every method forwards
+ * its typed `{ path, body, query }` to the generic in-process dispatcher. This
+ * is the interim, uniformly-typed implementation hosts compose with native ops.
  */
 function emitBridge(selected: ParsedOp[]): string {
   const imports = importedTypeNames(selected)
@@ -757,10 +754,12 @@ function emitBridge(selected: ParsedOp[]): string {
 
   return `// AUTO-GENERATED by scripts/generate-write-surface.ts — DO NOT EDIT.
 //
-// \`createBridgeWriteSurface\` is a {@link WriteSurface} implementation. Every
-// operation forwards its typed \`{ path, body, query }\` to
-// {@link WriteBridge.mutate}. Typing lives in each method's signature.
-// Regenerate with:  pnpm --filter @saturation/sdk generate:mutate
+// \`createBridgeWriteSurface\` — the interim {@link WriteSurface} implementation:
+// every op forwards its typed \`{ path, body, query }\` to the generic in-process
+// dispatcher ({@link WriteBridge.mutate}, built with \`fetch: app.fetch\`), so the
+// body still flows bearerAuth -> CASL -> \$transaction -> audit verbatim. Typing
+// lives in each method's signature; the runtime is the generic gated bridge.
+// Regenerate with: pnpm generate:mutate
 //
 // ${selected.length} write operations.
 
@@ -779,8 +778,9 @@ export interface WriteBridgeArgs {
 }
 
 /**
- * The minimal generic dispatcher the bridge surface delegates to.
- * {@link MutateClient} satisfies this interface.
+ * The minimal generic dispatcher the bridge surface delegates to. A
+ * {@link MutateClient} (built with \`fetch: app.fetch\`) satisfies it: its
+ * \`mutate(op, args)\` runs the op through the gated /v1 chain in-process.
  */
 export interface WriteBridge {
   mutate(op: string, args: WriteBridgeArgs): Promise<unknown>;
@@ -808,7 +808,7 @@ type OptionsEnvelope = {
  *
  *   const surface = {
  *     ...createBridgeWriteSurface(bridge),
- *     budgetUpsertLinePhaseData: nativeUpsert, // hand-written, type-checked
+ *     budgetUpdateLinePhaseData: nativeUpsert, // hand-written, type-checked
  *   } satisfies WriteSurface;
  */
 export function createBridgeWriteSurface(bridge: WriteBridge): WriteSurface {
@@ -869,8 +869,10 @@ function main(): void {
       `Allowlisted write ops absent from the generated SDK (typo or removed route): ${missing.join(', ')}`,
     );
   }
-  // The surface is curated, so its safety invariants are asserted next to the
-  // allowlist. A regeneration that violates these throws before it can emit.
+  // The surface is curated, and THE ALLOWLIST IS THE SECURITY BOUNDARY, so
+  // its safety invariants are asserted HERE — next to the allowlist — not only in
+  // next-api's integration test (a different package a `generate:mutate` run need
+  // not execute). A regen that violates these throws before it can emit.
   //
   // (1) Every op must resolve to a write verb (post/put/patch) — reject GET and,
   //     defensively, any delete/head/options that slipped past the type.
@@ -896,8 +898,8 @@ function main(): void {
     'purchaseOrdersCancelSubmission',
     'purchaseOrdersMarkPaid',
     'purchaseOrdersVoid',
-    'purchaseOrdersDeleteTransaction',
-    'documentsDeleteLink',
+    'purchaseOrdersUnlinkTransaction',
+    'documentsUnlink',
     'webhooksSendTestDelivery',
   ]);
   // SOFT deletes: the five reviewed 2026-08-02 plus the remainder of the
@@ -906,7 +908,7 @@ function main(): void {
   // op still fails here until it is explicitly enumerated.
   const REVIEWED_SOFT_DELETE_OPS = new Set([
     'transactionsDelete',
-    'masterDataDeleteContact',
+    'contactsDelete',
     'budgetDeleteLine',
     'budgetDeletePhase',
     'purchaseOrdersDelete',
@@ -927,10 +929,10 @@ function main(): void {
     'libraryDisableIncentivePack',
     'libraryDisableRatePack',
     'libraryRemoveRatePack',
-    'masterDataDeleteComment',
-    'masterDataDeleteSpace',
+    'commentsDelete',
+    'spacesDelete',
     'purchaseOrdersDeleteItem',
-    'transactionsItemsDelete',
+    'transactionsDeleteItem',
     'webhooksDelete',
   ]);
   const destructive = selected.filter((o) =>
@@ -1023,18 +1025,13 @@ function main(): void {
       let bodyTypeStr = bodyTypeText(types, o.dataType);
       // PO item ops take the item shape as their whole body, so no alias name
       // survives for the money-alias expansion to teach (R6-F1). Teach the
-      // fields op-scoped: amount is minor units everywhere on the contract,
-      // but `rate` is only money on PO items (currency/fringe rates are
-      // ratios), so this stays out of FIELD_INLINE_TEACHINGS.
+      // amount is minor units everywhere on the contract. Quantity and rate
+      // stay as the contract's raw number-or-formula strings.
       if (o.op === 'purchaseOrdersCreateItem' || o.op === 'purchaseOrdersUpdateItem') {
         bodyTypeStr = bodyTypeStr
           .replace(
             /\bamount\?: number \| null/g,
             'amount?: number (integer MINOR units - $12,400.00 = 1240000, never major-unit dollars) | null',
-          )
-          .replace(
-            /\brate\?: number \| null/g,
-            'rate?: number (MINOR units per unit; when amount is omitted the server computes qty x rate) | null',
           );
       }
       const bodyType = JSON.stringify(bodyTypeStr);
@@ -1066,7 +1063,7 @@ function main(): void {
 //
 // The \`mutate\` write surface: an explicit allowlist over the generated /v1 SDK
 // (CREATE + value-UPDATE, additive only). Regenerate with:
-//   pnpm --filter @saturation/sdk generate:mutate
+//   pnpm generate:mutate
 //
 // ${selected.length} write operations selected from ${all.length} total operations.
 

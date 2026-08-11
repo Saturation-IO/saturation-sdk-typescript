@@ -280,8 +280,8 @@ export class WorkspaceCurrenciesResource {
   list(params: ListParams = {}): List<Currency> {
     const options = { query: { ...params } };
     return new List<Currency>(
-      () => this.t.paginate<typeof options, Currency>(sdk.libraryListCurrencys, options),
-      () => this.t.runPage<typeof options, Currency>(sdk.libraryListCurrencys, options),
+      () => this.t.paginate<typeof options, Currency>(sdk.libraryListCurrencies, options),
+      () => this.t.runPage<typeof options, Currency>(sdk.libraryListCurrencies, options),
     );
   }
   async get(currencyId: string): Promise<Currency> {
@@ -379,13 +379,15 @@ export class WorkspaceTagsResource {
 export class WorkspaceUnitsResource {
   constructor(private readonly t: Transport) {}
 
-  list(params: { q?: string } = {}): List<Unit> {
-    const options = { query: { ...params } };
+  /** Built-in + custom units available in the workspace. */
+  list(): List<Unit> {
+    const options = {};
     return new List<Unit>(
       () => this.t.paginate<typeof options, Unit>(sdk.libraryListUnits, options),
       () => this.t.runPage<typeof options, Unit>(sdk.libraryListUnits, options),
     );
   }
+
   async get(unitId: string): Promise<Unit> {
     return this.t.run(sdk.libraryGetUnit, { path: { unitId } }) as Promise<Unit>;
   }

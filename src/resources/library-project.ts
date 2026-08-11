@@ -1,7 +1,6 @@
 import * as sdk from '../generated/sdk.gen.js';
 import type {
   ProjectRatePack,
-  ProjectRatePackExpand,
   ProjectIncentive,
   ProjectIncentiveAdd,
   ProjectIncentiveUpdate,
@@ -18,21 +17,15 @@ import type {
 import { Transport, List } from '../http.js';
 import { Expanded, type ExpandMap, serializeExpand } from '../expand.js';
 
-const projectRatePackExpandMap = {
-  installedPack: 'installedPack',
-} satisfies ExpandMap<ProjectRatePackExpand>;
-type ProjectRatePackExpandMap = typeof projectRatePackExpandMap;
-
 const projectIncentiveExpandMap = {
   source: 'source',
-  components: 'components',
 } satisfies ExpandMap<ProjectIncentiveExpand>;
 type ProjectIncentiveExpandMap = typeof projectIncentiveExpandMap;
 
 /**
  * The project-scope Library — *resident* copies. Rate packs are installed here
  * (copy-on-use from the workspace source); incentives / fringes / globals /
- * currencies / fringe groups are added from a workspace source. Editing a resident
+ * currencies and fringe groups are added from a workspace source. Editing a resident
  * copy diverges it without breaking provenance (`sourceId`).
  */
 export class ProjectLibraryResource {
@@ -70,17 +63,14 @@ export class ProjectRatePacksResource {
     private readonly projectId: string,
   ) {}
 
-  list<E extends ProjectRatePackExpand = never>(
-    params: { expand?: readonly E[]; limit?: number; cursor?: string } = {},
-  ): List<Expanded<ProjectRatePack, ProjectRatePackExpandMap, E>> {
+  list(params: { limit?: number; cursor?: string } = {}): List<ProjectRatePack> {
     const options = {
       path: { projectId: this.projectId },
-      query: { expand: serializeExpand(params.expand), limit: params.limit, cursor: params.cursor },
+      query: { limit: params.limit, cursor: params.cursor },
     };
-    type Row = Expanded<ProjectRatePack, ProjectRatePackExpandMap, E>;
-    return new List<Row>(
-      () => this.t.paginate<typeof options, Row>(sdk.libraryListProjectRatePacks, options),
-      () => this.t.runPage<typeof options, Row>(sdk.libraryListProjectRatePacks, options),
+    return new List<ProjectRatePack>(
+      () => this.t.paginate<typeof options, ProjectRatePack>(sdk.libraryListProjectRatePacks, options),
+      () => this.t.runPage<typeof options, ProjectRatePack>(sdk.libraryListProjectRatePacks, options),
     );
   }
 
@@ -328,4 +318,5 @@ export class ProjectTagsResource {
       () => this.t.runPage<typeof options, Row>(sdk.libraryListProjectTags, options),
     );
   }
+
 }

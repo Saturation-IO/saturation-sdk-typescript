@@ -1,14 +1,19 @@
 /**
- * `mutate` is the generic write dispatcher over the generated `/v1` SDK.
+ * `mutate` — the generic write dispatcher over the generated `/v1` SDK.
  *
  * One loop, no per-operation code. The model names a write op (`budgetCreateLine`,
- * `masterDataCreateContact`, …) from the generated {@link WRITE_OPS} table and
+ * `contactsCreate`, …) from the generated {@link WRITE_OPS} table and
  * passes `{ path, body, query }`; the dispatcher resolves the op's verb + URL and
- * runs it through the shared {@link Transport}. Callers can provide a custom
- * fetch implementation through the same transport option as the main client.
+ * runs it through the shared {@link Transport}. When the transport is built with
+ * `fetch: app.fetch`, the call executes the **full production chain in-process** —
+ * `bearerAuth → CASL gate → $transaction → audit` — with no socket and no
+ * self-HTTP. The gated write logic is reached verbatim; nothing is re-implemented.
  *
- * The {@link WRITE_OPS} allowlist rejects unknown and read operations before a
- * request is built. Server authorization remains the security boundary.
+ * The {@link WRITE_OPS} allowlist is a defense-in-depth gate: a non-write or
+ * unknown op is refused before any request is built. The real security boundary
+ * is the **scoped, default-deny bearer token** the bridge mints (see the
+ * `mintAgentToken` helper in next-api) — this surface only ensures the agent
+ * cannot even *name* a read or a deferred destructive op.
  */
 
 import { Transport, type FetchLike } from '../http.js';
@@ -21,12 +26,13 @@ export type { WriteOp, WriteOpDef } from './write-surface.gen.js';
 
 /** Options for {@link createMutate}. The bearer token determines the workspace. */
 export interface MutateOptions {
-  /** A bearer token authorized for the requested write operations. */
+  /** A default-deny, write-scoped bearer token (NEVER a no-scopes/full-ability token). */
   token: string;
   /** API base URL. Must end in `/v1` so paths line up with the mounted router. */
   baseURL?: string;
   /**
-   * Optional request executor. Omit it to use `globalThis.fetch`.
+   * The in-process executor. Pass a Hono `app.fetch` to reach the live `/v1`
+   * handlers with no socket. Omit to hit the real network (`globalThis.fetch`).
    */
   fetch?: FetchLike;
 }
@@ -129,8 +135,9 @@ type MethodFn = (options: Record<string, unknown>) => Promise<{
 }>;
 
 /**
- * A write-only handle over the `/v1` API. The generated {@link WRITE_OPS} table
- * is the only operation surface it exposes.
+ * A write-only handle over the gated `/v1` API. Build it with `fetch: app.fetch`
+ * for the in-process agent path; the generated {@link WRITE_OPS} table is the
+ * only surface it exposes.
  */
 export class MutateClient {
   private readonly transport: Transport;
@@ -192,8 +199,8 @@ export class MutateClient {
     // Build a synthetic operation that calls the verb-method with this op's URL,
     // then route it through the shared transport's success/error normalization.
     // `security` is what the generated ops pass to trigger `setAuthParams` (the
-    // bearer Authorization header). JSON Content-Type mirrors every generated
-    // write operation.
+    // bearer Authorization header); without it the in-process request is
+    // unauthenticated. JSON Content-Type mirrors every generated write op.
     const runOp = (options: { client: Client } & Record<string, unknown>) => {
       const method = (options.client as unknown as Record<string, MethodFn>)[def.method];
       const callerHeaders = (options.headers as Record<string, string> | undefined) ?? {};
@@ -215,7 +222,7 @@ export class MutateClient {
   }
 }
 
-/** Build a {@link MutateClient}. */
+/** Build a {@link MutateClient}. The token MUST be write-scoped + default-deny. */
 export function createMutate(opts: MutateOptions): MutateClient {
   return new MutateClient(opts);
 }

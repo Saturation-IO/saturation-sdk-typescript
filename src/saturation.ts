@@ -21,13 +21,14 @@ import type { Me } from './generated/types.gen.js';
 
 /** Constructor options. The bearer token determines the workspace. */
 export interface SaturationOptions {
-  /** An `Authorization: Bearer <token>` credential created in Settings > Developers > API. */
+  /** A `Authorization: Bearer <token>` credential, minted in next-web Settings → Developers. */
   token: string;
   /** Override the API base URL (defaults to production). Use for local/staging. */
   baseURL?: string;
   /**
-   * Override the request executor. Defaults to `globalThis.fetch`. This is useful
-   * for tests, custom runtimes, and applications that provide their own fetch.
+   * Override the request executor. Defaults to `globalThis.fetch`. Pass a Hono
+   * `app.fetch` to run the SDK **in-process** against the live `/v1` handlers
+   * (no socket) — the seam the agent `mutate` bridge plugs into.
    */
   fetch?: FetchLike;
 }
@@ -86,7 +87,7 @@ export class ProjectScope {
 
 /**
  * `sat.projects` is both callable — `sat.projects(p)` opens a {@link ProjectScope} —
- * and a resource with `list/get/create/update/delete` for workspace project master data.
+ * and a resource with `list/get/create/update` for workspace project master data.
  */
 export interface ProjectsAccessor extends ProjectsResource {
   (projectId: string): ProjectScope;
@@ -109,9 +110,9 @@ export interface ProjectsAccessor extends ProjectsResource {
 export class Saturation {
   private readonly t: Transport;
 
-  /** Workspace-source Library (rate packs, incentives, fringes, globals, currencies, tags, units). */
+  /** Workspace Library (rate packs, incentives, fringes, globals, currencies, tags, and units). */
   readonly library: LibraryResource;
-  /** First-class documents with typed target links. */
+  /** Workspace documents and their links to other records. */
   readonly documents: DocumentsResource;
   /** Workspace-scoped contacts (vendors, crew, payees). */
   readonly contacts: ContactsResource;

@@ -111,11 +111,15 @@ export class PurchaseOrdersResource {
     });
   }
 
-  /** Reserved public-v1 submit path; throws until wired to the workspace approval-run service. */
-  async submit(purchaseOrderId: string): Promise<never> {
+  /** Submit through the same approval service used by the Saturation application. */
+  async submit(
+    purchaseOrderId: string,
+    opts: { idempotencyKey: string },
+  ): Promise<PurchaseOrder> {
     return this.t.run(sdk.purchaseOrdersSubmit, {
       path: { purchaseOrderId },
-    }) as Promise<never>;
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
+    }) as Promise<PurchaseOrder>;
   }
 
   /** Cancel a pending submission, returning the PO to draft. */
@@ -141,14 +145,14 @@ export class PurchaseOrdersResource {
 
   /** Link a transaction to a purchase order. */
   async linkTransaction(purchaseOrderId: string, transactionId: string): Promise<PurchaseOrder> {
-    return this.t.run(sdk.purchaseOrdersPutTransaction, {
+    return this.t.run(sdk.purchaseOrdersLinkTransaction, {
       path: { purchaseOrderId, transactionId },
     }) as Promise<PurchaseOrder>;
   }
 
   /** Unlink a transaction from a purchase order. */
   async unlinkTransaction(purchaseOrderId: string, transactionId: string): Promise<PurchaseOrder> {
-    return this.t.run(sdk.purchaseOrdersDeleteTransaction, {
+    return this.t.run(sdk.purchaseOrdersUnlinkTransaction, {
       path: { purchaseOrderId, transactionId },
     }) as Promise<PurchaseOrder>;
   }
@@ -160,8 +164,8 @@ export class PurchaseOrdersResource {
   ): List<PurchaseOrderTimelineEvent> {
     const options = { path: { purchaseOrderId }, query: params };
     return new List<PurchaseOrderTimelineEvent>(
-      () => this.t.paginate<typeof options, PurchaseOrderTimelineEvent>(sdk.purchaseOrdersTimeline, options),
-      () => this.t.runPage<typeof options, PurchaseOrderTimelineEvent>(sdk.purchaseOrdersTimeline, options),
+      () => this.t.paginate<typeof options, PurchaseOrderTimelineEvent>(sdk.purchaseOrdersGetTimeline, options),
+      () => this.t.runPage<typeof options, PurchaseOrderTimelineEvent>(sdk.purchaseOrdersGetTimeline, options),
     );
   }
 

@@ -3,7 +3,7 @@ import type { ErrorCode } from './generated/types.gen.js';
 export type { ErrorCode } from './generated/types.gen.js';
 
 /**
- * The documented error envelope, thrown on any non-2xx response.
+ * The §5d error envelope, thrown on any non-2xx response.
  *
  * Success is keyed off the HTTP status, never a `success` field — a 2xx returns
  * the bare resource (or `{ data, nextCursor }` collection); anything else throws
@@ -19,7 +19,7 @@ export class SaturationError extends Error {
   readonly code: ErrorCode;
   /** The id of the failed request — quote it in support tickets. */
   readonly requestId: string;
-  /** Per-field messages on validation / mass-assignment failures. */
+  /** Per-field validation messages, including read-only fields. */
   readonly fieldErrors?: Record<string, string[]>;
   /** On `permission_revoked` (403): the missing ability, e.g. `update:Transaction`. */
   readonly requiredAbility?: string;
@@ -63,7 +63,7 @@ export class SaturationError extends Error {
   }
 }
 
-/** Raw shape of the body documented by the OpenAPI `Error` schema. */
+/** Raw shape of the §5d error body, as documented in the OpenAPI `Error` schema. */
 interface RawErrorBody {
   success?: false;
   code?: ErrorCode;

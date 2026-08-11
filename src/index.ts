@@ -9,7 +9,7 @@
 export { Saturation, ProjectScope } from './saturation.js';
 export type { SaturationOptions, ProjectsAccessor } from './saturation.js';
 
-// Typed, status-keyed error model.
+// Error model (§5d): typed, status-keyed.
 export { SaturationError } from './errors.js';
 export type { ErrorCode } from './errors.js';
 
@@ -21,9 +21,12 @@ export type { Page, FetchLike } from './http.js';
 export { MutateClient, createMutate, validateMutateArgs, WRITE_OPS, WRITE_OP_IDS } from './mutate/index.js';
 export type { MutateOptions, MutateArgs, WriteOp, WriteOpDef } from './mutate/index.js';
 
-// The generated typed public write contract.
-export type { WriteSurface } from './mutate/index.js';
+// The generated typed write CONTRACT (`WriteSurface`) + its interim bridge impl.
+export { createBridgeWriteSurface } from './mutate/index.js';
+export type { WriteSurface, WriteBridge, WriteBridgeArgs } from './mutate/index.js';
 
+// Document link targets.
+export type { LinkTarget } from './resources/documents.js';
 
 // Phase write bodies, derived from the generated operation Data types.
 export type { BudgetPhaseCreate, BudgetPhaseUpdate } from './resources/budget.js';

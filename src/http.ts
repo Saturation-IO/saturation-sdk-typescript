@@ -2,12 +2,16 @@ import { createClient } from './generated/client/index.js';
 import type { Client } from './generated/client/index.js';
 import { toSaturationError } from './errors.js';
 
-/** Default production base URL. Overridable through the client constructor. */
+/** Default production base URL. Overridable via the constructor for local/staging. */
 export const DEFAULT_BASE_URL = 'https://next-api.saturation.io/v1';
 
 /**
- * The request executor used by the generated client. It defaults to
- * `globalThis.fetch` and can be replaced for tests or custom runtimes.
+ * The transport's request executor — the exact `(Request) => Promise<Response>`
+ * shape the generated fetch client invokes (`client.gen.ts:99-101`). Defaults to
+ * `globalThis.fetch`, but is overridable so the same SDK can run **in-process**
+ * against a Hono app's `app.fetch` (the loopback the `mutate` bridge uses) with
+ * no socket and no self-HTTP. This is the single transport seam Strategy D rests
+ * on: `app.fetch` and this type are the same function shape.
  */
 export type FetchLike = (request: Request) => Response | Promise<Response>;
 
@@ -55,14 +59,15 @@ export class Transport {
       // workspace header — the token determines the workspace.
       auth: opts.token,
       throwOnError: false,
-      // Use the caller's executor when provided. The generated client otherwise
-      // delegates to `globalThis.fetch`.
+      // The in-process seam: when provided, every request runs through this
+      // executor (e.g. a Hono `app.fetch`) instead of `globalThis.fetch`. The
+      // generated client resolves `config.fetch` at `client.gen.ts:45`.
       ...(opts.fetch ? { fetch: opts.fetch as typeof globalThis.fetch } : {}),
     });
   }
 
   /**
-   * Run one generated operation and normalize its documented result:
+   * Run one generated operation and normalize the result to §5d:
    *   - 2xx → resolve the bare success body (caller casts to the widened type),
    *   - otherwise → throw a typed `SaturationError` carrying `code`/`requestId`/…
    *

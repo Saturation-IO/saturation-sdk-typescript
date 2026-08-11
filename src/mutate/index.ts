@@ -1,5 +1,6 @@
 /**
- * The `mutate` write surface, a generated write-only handle over the `/v1` API.
+ * The `mutate` write surface — a generated, write-only handle over the gated
+ * `/v1` API, runnable in-process via `fetch: app.fetch`.
  */
 
 export {
@@ -16,7 +17,7 @@ export type {
   WriteOpDef,
 } from './mutate.js';
 
-// The generated typed write contract and its bridge implementation.
+// The generated typed write CONTRACT + its interim bridge implementation.
 export type { WriteSurface } from './write-surface.interface.gen.js';
 export { createBridgeWriteSurface } from './write-surface.bridge.gen.js';
 export type { WriteBridge, WriteBridgeArgs } from './write-surface.bridge.gen.js';

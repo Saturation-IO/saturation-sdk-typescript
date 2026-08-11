@@ -1,30 +1,33 @@
-# Saturation TypeScript SDK
+# @saturationio/sdk
 
-[![npm version](https://img.shields.io/npm/v/%40saturationio%2Fsdk?label=npm)](https://www.npmjs.com/package/@saturationio/sdk)
-[![CI](https://github.com/Saturation-IO/saturation-sdk-typescript/actions/workflows/ci.yml/badge.svg)](https://github.com/Saturation-IO/saturation-sdk-typescript/actions/workflows/ci.yml)
+The official TypeScript client for the [Saturation Public API](https://docs.saturation.io). It provides typed access to budgets, transactions, purchase orders, payments, documents, contacts, the Library, comments, search, and webhooks.
 
-The official TypeScript client for the [Saturation API](https://docs.saturation.io).
+The API and SDK may change before 1.0.
 
-> The SDK is in public alpha. Pin the alpha tag while the API and client surface
-> settle before the first stable release.
-
-The SDK works in Node.js 18 or newer and modern browsers. It ships ESM,
-CommonJS, and TypeScript declarations.
+- Node.js 18 or later and modern browsers
+- ESM, CommonJS, and TypeScript declarations
+- Types generated from the OpenAPI contract
+- Resource-based helpers for pagination, expansion, writes, and errors
 
 ## Install
 
-```console
+> **Release status:** npm currently serves `0.1.0-alpha.0`, which uses an older
+> API contract. The examples in this README describe the current source and
+> require the next alpha release.
+
+```bash
+pnpm add @saturationio/sdk@alpha
+# or
 npm install @saturationio/sdk@alpha
 ```
 
-```console
-pnpm add @saturationio/sdk@alpha
+## Create a client
+
+Create a token in Saturation under **Settings > Developers > API**, then set it in your environment:
+
+```bash
+export SATURATION_TOKEN="your-token"
 ```
-
-## Get started
-
-Create a personal token in Saturation under **Settings > Developers > API**.
-The token selects one workspace and carries your permissions in that workspace.
 
 ```ts
 import { Saturation } from '@saturationio/sdk';
@@ -34,47 +37,91 @@ const sat = new Saturation({
 });
 
 const me = await sat.me();
-console.log(me.email);
+const projects = await sat.projects.list({ limit: 10 }).page();
 
-for await (const project of sat.projects.list()) {
-  console.log(project.id, project.name);
+console.log(me.workspaces[0]?.workspaceName);
+for (const project of projects.data) {
+  console.log(project.name, project.id);
 }
 ```
 
-Keep tokens out of source control. The SDK sends the token as an
-`Authorization: Bearer <token>` header on each request.
+The token selects one workspace. You do not pass a workspace ID with each request. Tokens use the current permissions of their user or service identity, so removing access takes effect on the next request.
 
-## Work with a project
+## Client structure
 
-Open a project scope with a project ID, then use its resources:
+The client follows the same workspace and project hierarchy as Saturation:
+
+| Scope | Resources |
+| --- | --- |
+| Workspace | `sat.projects`, `sat.library`, `sat.contacts`, `sat.spaces`, `sat.documents`, `sat.purchaseOrders`, `sat.paymentRequests`, `sat.payments`, `sat.webhooks`, `sat.search()`, `sat.me()` |
+| Project | `sat.projects(id).budget`, `.transactions`, `.purchaseOrders`, `.paymentRequests`, `.payments`, `.library`, `.comments`, `.search()` |
+
+Project handles accept a project ID or slug:
 
 ```ts
-const project = sat.projects('prj_3d77');
-
-for await (const line of project.budget.lines.list({ kind: 'line' })) {
-  console.log(line.code, line.name);
-}
-
-for await (const transaction of project.transactions.list({ status: 'posted' })) {
-  console.log(transaction.id, transaction.amount);
-}
+const project = sat.projects('prj_8a12');
+const sameProject = sat.projects('feature-film-2026');
 ```
 
-The client follows cursor pagination while you iterate. Use `.page()` when you
-need one response page or `.all()` when the result set is small enough to hold
-in memory.
+## Read data
+
+### Pagination
+
+Collection methods return a `List`. Iterate through every page, fetch one page, or collect all rows.
 
 ```ts
+const project = sat.projects('feature-film-2026');
+
+for await (const tx of project.transactions.list({
+  source: 'manual',
+  status: 'posted',
+})) {
+  console.log(tx.id, tx.amount);
+}
+
 const page = await project.transactions.list({ withCount: true }).page();
-console.log(page.data.length, page.count, page.nextCursor);
+console.log(page.data, page.nextCursor, page.count);
 
-const contacts = await sat.contacts.list({ q: 'acme' }).all();
+const contacts = await sat.contacts.list({ q: 'Acme' }).all();
 ```
 
-## Create and update records
+`page()` fetches one page. Async iteration and `all()` follow `nextCursor` until the collection ends. Page size defaults to 50 and cannot exceed 100.
 
-Creates that can produce duplicate records require an idempotency key. Reuse
-the same key when retrying the same request.
+### Expand related data
+
+`expand` adds related records to the response type. Unexpanded relations stay absent from the type.
+
+```ts
+const line = await project.budget.lines.get('lin_3d77', {
+  expand: ['contact', 'phaseData', 'phaseTotals'],
+});
+
+line.contact;
+line.phaseData;
+line.phaseTotals;
+
+const leanLine = await project.budget.lines.get('lin_3d77');
+// @ts-expect-error: contact was not expanded
+leanLine.contact;
+```
+
+### Read budget data
+
+Phase data contains editable values. Totals come from the budget engine.
+
+```ts
+await project.budget.lines.upsertPhaseData('lin_3d77', 'phase_estimate', {
+  quantity: 5,
+  rate: 12000,
+});
+
+const totals = await project.budget.totals.get({ phase: 'phase_estimate' });
+console.log(totals.totals, totals.computedAt);
+```
+
+## Write data
+
+Methods that require an idempotency key take it as a second argument. Reuse the key when retrying the same request.
 
 ```ts
 const transaction = await project.transactions.create(
@@ -82,88 +129,108 @@ const transaction = await project.transactions.create(
     type: 'Invoice',
     amount: { amount: 152900, currency: 'USD' },
     timestamp: new Date().toISOString(),
+    description: 'Camera rental',
   },
   { idempotencyKey: crypto.randomUUID() },
 );
+```
 
-await project.transactions.update(transaction.id, {
-  merchant: 'Camera Rental Co.',
+Reusing a key with a different request body returns `idempotency_conflict`.
+
+### Link a document
+
+Upload a document once, then link it to a typed target. A document can have one link of each kind.
+
+```ts
+const document = await sat.documents.upload(
+  { file: invoiceFile },
+  { idempotencyKey: crypto.randomUUID() },
+);
+
+await sat.documents.link(document.id, { transaction: transaction.id });
+await sat.documents.link(document.id, { purchaseOrder: 'po_3d77' });
+
+const currentLinks = (await sat.documents.get(document.id)).links;
+```
+
+Use `{ replace: true }` to replace an existing link of the same kind:
+
+```ts
+await sat.documents.link(
+  document.id,
+  { transaction: 'txn_replacement' },
+  { replace: true },
+);
+```
+
+### Use the Library
+
+The workspace Library contains reusable sources. A project's Library contains the items added to that project.
+
+```ts
+await sat.library.ratePacks.enable('rtp_iatse_2026');
+
+await project.library.ratePacks.add('rtp_iatse_2026');
+await project.library.incentives.add({ programId: 'inc_ga_film_30' });
+```
+
+### Update comment reactions
+
+`reactionEmojis` replaces the current user's reactions and leaves other users unchanged.
+
+```ts
+await project.comments.update('cmt_123', {
+  reactionEmojis: ['👍', '🎬'],
 });
 ```
 
-Money uses integer minor units with an ISO 4217 currency. In the example above,
-`152900` USD means `$1,529.00`.
+Send an empty array to remove your reactions.
 
 ## Handle errors
 
-Non-2xx responses throw `SaturationError`. Use `code` for program logic and
-include `requestId` when contacting support.
+Non-2xx responses throw `SaturationError`. Branch on `code`, and include `requestId` when contacting support.
 
 ```ts
 import { SaturationError } from '@saturationio/sdk';
 
 try {
-  await sat.contacts.get('con_missing');
+  await sat.contacts.update('con_missing', { name: 'New name' });
 } catch (error) {
   if (error instanceof SaturationError) {
-    console.error(error.code, error.message, error.requestId);
-  } else {
-    throw error;
+    console.error(error.status, error.code, error.message, error.requestId);
+    console.error(error.fieldErrors);
+    console.error(error.retryAfter);
   }
 }
 ```
 
-## Expand related records
-
-The return type widens when you request a related record. Expanded fields are
-present in the type, and fields you did not request stay absent.
-
-```ts
-const line = await project.budget.lines.get('lin_3d77', {
-  expand: ['contact', 'phaseTotals'],
-});
-
-console.log(line.contact.name);
-console.log(line.phaseTotals);
-```
-
-## Client shape
-
-| Scope | Examples |
-| --- | --- |
-| Workspace | `sat.library.ratePacks`, `sat.documents`, `sat.contacts`, `sat.spaces`, `sat.search()`, `sat.me()` |
-| Project | `sat.projects(id).budget`, `.transactions`, `.purchaseOrders`, `.library.ratePacks`, `.comments`, `.search()` |
-
-The token is bound to one workspace, so workspace IDs do not appear in resource
-paths. The workspace Library is the source. A project's Library contains the
-packs and programs installed in that project.
+Success responses return the resource or collection page directly. They do not use a `success: true` wrapper.
 
 ## Configuration
 
 ```ts
 const sat = new Saturation({
-  token: process.env.SATURATION_TOKEN!,
-  baseURL: 'https://next-api.saturation.io/v1',
+  token: 'your-token',
+  baseURL: 'http://127.0.0.1:4300/v1',
 });
 ```
 
-`baseURL` defaults to `https://next-api.saturation.io/v1`. Override it only for
-a matching local or staging API.
+`baseURL` defaults to `https://next-api.saturation.io/v1`. The SDK also accepts a custom `fetch` implementation through the constructor.
 
-## Documentation for tools and agents
+## Data conventions
 
-- [API guides](https://docs.saturation.io)
-- [OpenAPI contract](https://docs.saturation.io/openapi.yaml)
-- [Agent documentation index](https://docs.saturation.io/llms.txt)
-- [Complete agent documentation](https://docs.saturation.io/llms-full.txt)
+- Money uses integer minor units and an ISO 4217 currency code: `{ amount: 152900, currency: 'USD' }`.
+- Dates use ISO 8601 strings.
+- IDs use prefixed strings such as `prj_`, `txn_`, `lin_`, and `doc_`.
+- List cursors are opaque. Pass `nextCursor` back unchanged.
 
-The generated types come from the same OpenAPI contract used by the API docs.
+## Development and releases
 
-## Development
+Generated files under `src/generated/` come from the canonical OpenAPI contract. Do not edit them by hand.
 
-Install Node.js 18 or newer and pnpm 10.26.2, then run:
+Run the package checks before opening a pull request:
 
-```console
+```bash
 pnpm install --frozen-lockfile
 pnpm typecheck
 pnpm test
@@ -171,21 +238,8 @@ pnpm build
 npm pack --dry-run
 ```
 
-The repository includes an OpenAPI snapshot at `openapi/openapi.yaml`. Files in
-`src/generated` and the `src/mutate/*.gen.ts` files are generated. Update the
-snapshot from the published OpenAPI contract, then regenerate and verify:
-
-```console
-curl --proto '=https' --tlsv1.2 -fsSL \
-  https://docs.saturation.io/openapi.yaml \
-  --output openapi/openapi.yaml
-pnpm generate
-pnpm generate:check
-```
-
-`pnpm generate:check` fails when committed generated files do not match the
-snapshot. See [CONTRIBUTING.md](CONTRIBUTING.md) for the pull request checklist.
+Publishing a release runs the same checks, then publishes the package to npm with the `alpha` tag. See the [API documentation](https://docs.saturation.io) for the HTTP contract.
 
 ## License
 
-See [LICENSE](LICENSE).
+[MIT](LICENSE)

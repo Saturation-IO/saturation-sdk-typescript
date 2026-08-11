@@ -27,7 +27,8 @@ import { Expanded, type ExpandMap, serializeExpand } from '../expand.js';
 /**
  * Map each budget-line expand key to the property it populates on `BudgetLine`,
  * so an expanded relation is widened to present-and-required in the return type.
- * `phaseData` and `phaseTotals` expose raw and computed phase values.
+ * `phaseTotals` populates computed values; `phaseData` populates the
+ * raw editable phase-data matrix; the rest are 1:1 with their property name.
  *
  * `account` is a valid expand key but projects classifier fields (`code`/`path`)
  * that are already inline on the row, so it has no dedicated widened property and
@@ -38,7 +39,6 @@ const budgetLineExpandMap = {
   phaseTotals: 'phaseTotals',
   phaseData: 'phaseData',
   contact: 'contact',
-  source: 'source',
 } satisfies ExpandMap<BudgetLineExpand>;
 type BudgetLineExpandMap = typeof budgetLineExpandMap;
 
@@ -108,7 +108,7 @@ export class BudgetResource {
 
   /** The full budget document: lines, visible phases, totals, and editable phase data. */
   async document(params: BudgetDocumentParams = {}): Promise<BudgetDocument> {
-    return this.t.run(sdk.budgetGetDocument, {
+    return this.t.run(sdk.budgetGet, {
       path: { projectId: this.projectId },
       query: {
         path: params.path,
@@ -178,7 +178,7 @@ export class BudgetLinesResource {
     }) as Promise<BudgetLine>;
   }
 
-  /** Create budget lines in one atomic request. */
+  /** Create budget lines in one all-or-nothing bulk write. */
   async createBulk(
     body: BudgetLineBulkCreate,
     opts: { idempotencyKey: string },
@@ -204,17 +204,16 @@ export class BudgetLinesResource {
     phaseId: string,
     body: BudgetLinePhaseDataUpsert,
   ): Promise<BudgetLinePhaseDataUpsertResponse> {
-    return this.t.run(sdk.budgetUpsertLinePhaseData, {
+    return this.t.run(sdk.budgetUpdateLinePhaseData, {
       path: { projectId: this.projectId, lineId, phaseId },
       body,
     }) as Promise<BudgetLinePhaseDataUpsertResponse>;
   }
 
-  /** Soft-delete a budget line. `reset` re-snapshots from source on resurrect. */
-  async delete(lineId: string, opts: { reset?: boolean } = {}): Promise<void> {
+  /** Delete a budget line. */
+  async delete(lineId: string): Promise<void> {
     await this.t.run(sdk.budgetDeleteLine, {
       path: { projectId: this.projectId, lineId },
-      query: opts.reset ? { reset: true } : undefined,
     });
   }
 }
@@ -225,12 +224,12 @@ export class BudgetPhaseDataResource {
     private readonly projectId: string,
   ) {}
 
-  /** Upsert editable line phase data in one atomic request. */
-  async bulk(
+  /** Upsert editable line phase data in one all-or-nothing bulk write. */
+  async upsertBulk(
     body: BudgetLinePhaseDataBulkUpsert,
     opts: { idempotencyKey: string },
   ): Promise<BudgetLinePhaseDataBulkUpsertResponse> {
-    return this.t.run(sdk.budgetUpsertLinePhaseDataBulk, {
+    return this.t.run(sdk.budgetUpdateLinePhaseDataBulk, {
       path: { projectId: this.projectId },
       headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,

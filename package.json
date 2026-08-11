@@ -55,6 +55,7 @@
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "0.97.3",
+    "@types/node": "^22.20.1",
     "tsx": "^4.19.2",
     "typescript": "^5.4.3",
     "vitest": "^4.1.0"
