@@ -64,15 +64,9 @@ describe('PurchaseOrdersResource scope defaults', () => {
     });
   });
 
-  it('exposes Activity and Timeline through their generated operations', async () => {
-    const { t, run, runPage } = transport();
+  it('exposes Timeline through its generated operation', async () => {
+    const { t, runPage } = transport();
     const resource = new PurchaseOrdersResource(t);
-
-    await resource.activity('po_1');
-    expect(run.mock.calls[0]?.[0]).toBe(sdk.purchaseOrdersActivity);
-
-    await resource.suggestedMatches('po_1');
-    expect(run.mock.calls[1]?.[0]).toBe(sdk.purchaseOrdersSuggestedMatches);
 
     await resource.timeline('po_1', { limit: 25, cursor: 'cursor_1' }).page();
     expect(runPage.mock.calls[0]?.[0]).toBe(sdk.purchaseOrdersTimeline);
@@ -82,18 +76,18 @@ describe('PurchaseOrdersResource scope defaults', () => {
     });
   });
 
-  it('exposes Mark paid, link, and unlink through their generated operations', async () => {
+  it('exposes Mark paid, link transaction, and unlink transaction through their generated operations', async () => {
     const { t, run } = transport();
     const resource = new PurchaseOrdersResource(t);
 
     await resource.markPaid('po_1');
     expect(run.mock.calls[0]?.[0]).toBe(sdk.purchaseOrdersMarkPaid);
 
-    await resource.link('po_1', { transactionId: 'txn_1' });
-    expect(run.mock.calls[1]?.[0]).toBe(sdk.purchaseOrdersLink);
+    await resource.linkTransaction('po_1', 'txn_1');
+    expect(run.mock.calls[1]?.[0]).toBe(sdk.purchaseOrdersPutTransaction);
 
-    await resource.unlink('po_1', { transactionId: 'txn_1' });
-    expect(run.mock.calls[2]?.[0]).toBe(sdk.purchaseOrdersUnlink);
+    await resource.unlinkTransaction('po_1', 'txn_1');
+    expect(run.mock.calls[2]?.[0]).toBe(sdk.purchaseOrdersDeleteTransaction);
 
   });
 });

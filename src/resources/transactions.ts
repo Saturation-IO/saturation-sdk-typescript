@@ -6,9 +6,8 @@ import type {
   TransactionStatus,
   TransactionJournalCreate,
   TransactionPatch,
-  TransactionBatchCreate,
+  TransactionBulkCreate,
   TransactionStats,
-  TransactionTypes,
   TransactionItem,
   TransactionItemCreate,
   TransactionItemPatch,
@@ -18,14 +17,13 @@ import { Transport, List } from '../http.js';
 import { Expanded, type ExpandMap, serializeExpand } from '../expand.js';
 
 /**
- * Transaction expand widening. `itemized` populates `items`; the rest are 1:1.
- * `itemized.account` is a valid depth-2 key with no dedicated property, so it
+ * Transaction expand widening. `items.account` is a valid depth-2 key with no dedicated property, so it
  * stays a valid `expand` value without a widening entry.
  */
 const transactionExpandMap = {
   contact: 'contact',
   documents: 'documents',
-  itemized: 'items',
+  items: 'items',
   account: 'account',
   purchaseOrder: 'purchaseOrder',
 } satisfies ExpandMap<TransactionExpandKey>;
@@ -122,12 +120,12 @@ export class TransactionsResource {
     }) as Promise<Transaction>;
   }
 
-  /** Batch-create journal transactions (replaces legacy `/actuals/batch`). */
-  async batchCreate(
-    body: TransactionBatchCreate,
+  /** Create multiple journal transactions atomically. */
+  async bulkCreate(
+    body: TransactionBulkCreate,
     opts: { idempotencyKey: string },
   ): Promise<unknown> {
-    return this.t.run(sdk.transactionsBatchCreate, {
+    return this.t.run(sdk.transactionsBulkCreate, {
       headers: { 'Idempotency-Key': opts.idempotencyKey },
       body: {
         transactions: body.transactions.map((transaction) => ({
@@ -160,13 +158,6 @@ export class TransactionsResource {
     return this.t.run(sdk.transactionsStats, {
       query: { ...params, projectId: this.projectId },
     }) as Promise<TransactionStats>;
-  }
-
-  /** Distinct visible `type` values in the project. */
-  async types(): Promise<TransactionTypes> {
-    return this.t.run(sdk.transactionsTypes, {
-      query: { projectId: this.projectId },
-    }) as Promise<TransactionTypes>;
   }
 
   /** Itemized lines on a transaction. */

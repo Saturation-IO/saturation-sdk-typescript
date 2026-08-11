@@ -12,7 +12,6 @@ import type {
   SpaceCreate,
   SpaceUpdate,
   Me,
-  Workspace,
   SearchHit,
   SearchKind,
   TagMode,
@@ -115,7 +114,7 @@ export interface ProjectListParams {
   withCount?: boolean;
 }
 
-/** Workspace-scoped projects: `sat.projects.list/get/create/update/delete`. */
+/** Workspace-scoped projects: `sat.projects.list/get/create/update`. */
 export class ProjectsResource {
   constructor(private readonly t: Transport) {}
 
@@ -128,9 +127,9 @@ export class ProjectsResource {
   }
 
   /** Get a project by `id` or `slug`. */
-  async get(slugOrId: string): Promise<Project> {
+  async get(project: string): Promise<Project> {
     return this.t.run(sdk.masterDataGetProject, {
-      path: { slugOrId },
+      path: { project },
     }) as Promise<Project>;
   }
 
@@ -141,17 +140,11 @@ export class ProjectsResource {
     }) as Promise<Project>;
   }
 
-  async update(slugOrId: string, body: ProjectUpdate): Promise<Project> {
+  async update(project: string, body: ProjectUpdate): Promise<Project> {
     return this.t.run(sdk.masterDataUpdateProject, {
-      path: { slugOrId },
+      path: { project },
       body,
     }) as Promise<Project>;
-  }
-
-  async delete(slugOrId: string): Promise<void> {
-    await this.t.run(sdk.masterDataDeleteProject, {
-      path: { slugOrId },
-    });
   }
 }
 
@@ -191,7 +184,6 @@ export interface SearchParams {
   types?: readonly SearchKind[];
   limit?: number;
   cursor?: string;
-  withCount?: boolean;
 }
 
 /** Spotlight search, permission-scoped in-query and keyset-paginated. */
@@ -208,18 +200,8 @@ export class SearchResource {
       types: params.types ? [...params.types] : undefined,
       limit: params.limit,
       cursor: params.cursor,
-      withCount: params.withCount,
+      projectId: this.projectId,
     };
-    if (this.projectId) {
-      const options = {
-        path: { projectId: this.projectId },
-        query,
-      };
-      return new List<SearchHit>(
-        () => this.t.paginate<typeof options, SearchHit>(sdk.searchProject, options),
-        () => this.t.runPage<typeof options, SearchHit>(sdk.searchProject, options),
-      );
-    }
     const options = { query };
     return new List<SearchHit>(
       () => this.t.paginate<typeof options, SearchHit>(sdk.searchWorkspace, options),
@@ -228,27 +210,13 @@ export class SearchResource {
   }
 }
 
-/** The `GET /v1/me` identity probe + workspace reach. */
+/** The `GET /v1/me` identity probe. */
 export class MetaResource {
   constructor(private readonly t: Transport) {}
 
   /** The token's identity and permission-filtered workspace reach (the auth probe). */
   async me(): Promise<Me> {
     return this.t.run(sdk.metaAuthGetMe, {}) as Promise<Me>;
-  }
-
-  /** The workspaces this token can act on. */
-  workspaces(params: { limit?: number; cursor?: string } = {}): List<Workspace> {
-    const options = { query: { ...params } };
-    return new List<Workspace>(
-      () => this.t.paginate<typeof options, Workspace>(sdk.metaAuthListWorkspaces, options),
-      () => this.t.runPage<typeof options, Workspace>(sdk.metaAuthListWorkspaces, options),
-    );
-  }
-
-  /** Unauthenticated liveness check. */
-  async health(): Promise<unknown> {
-    return this.t.run(sdk.metaAuthHealth, {});
   }
 }
 

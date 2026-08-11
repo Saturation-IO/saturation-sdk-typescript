@@ -24,8 +24,6 @@ export type { MutateOptions, MutateArgs, WriteOp, WriteOpDef } from './mutate/in
 // The generated typed public write contract.
 export type { WriteSurface } from './mutate/index.js';
 
-// Document assign targets (typed `{ transaction | purchaseOrder | … }` refs).
-export type { AssignTarget } from './resources/documents.js';
 
 // Phase write bodies, derived from the generated operation Data types.
 export type { BudgetPhaseCreate, BudgetPhaseUpdate } from './resources/budget.js';

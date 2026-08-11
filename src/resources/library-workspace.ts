@@ -10,21 +10,20 @@ import type {
   IncentivePack,
   IncentiveProgram,
   IncentivePackEnableLink,
-  FringeTemplate,
-  FringeTemplateWrite,
-  GlobalTemplate,
-  GlobalTemplateWrite,
-  CurrencyTemplate,
-  CurrencyTemplateWrite,
-  FringeTagTemplate,
-  FringeTagTemplateWrite,
+  Fringe,
+  FringeWrite,
+  Global,
+  GlobalWrite,
+  Currency,
+  CurrencyWrite,
+  FringeGroup,
+  FringeGroupWrite,
   Tag,
   TagCreate,
   TagUpdate,
   Unit,
-  CustomUnit,
-  CustomUnitCreate,
-  CustomUnitUpdate,
+  UnitCreate,
+  UnitUpdate,
 } from '../generated/types.gen.js';
 import { Transport, List } from '../http.js';
 
@@ -36,8 +35,8 @@ import { Transport, List } from '../http.js';
 export class LibraryResource {
   constructor(private readonly t: Transport) {}
 
-  get rates(): WorkspaceRatesResource {
-    return new WorkspaceRatesResource(this.t);
+  get ratePacks(): WorkspaceRatePacksResource {
+    return new WorkspaceRatePacksResource(this.t);
   }
   get incentives(): WorkspaceIncentivesResource {
     return new WorkspaceIncentivesResource(this.t);
@@ -51,8 +50,8 @@ export class LibraryResource {
   get currencies(): WorkspaceCurrenciesResource {
     return new WorkspaceCurrenciesResource(this.t);
   }
-  get fringeTags(): WorkspaceFringeTagsResource {
-    return new WorkspaceFringeTagsResource(this.t);
+  get fringeGroups(): WorkspaceFringeGroupsResource {
+    return new WorkspaceFringeGroupsResource(this.t);
   }
   get tags(): WorkspaceTagsResource {
     return new WorkspaceTagsResource(this.t);
@@ -70,7 +69,7 @@ interface ListParams {
   withCount?: boolean;
 }
 
-export class WorkspaceRatesResource {
+export class WorkspaceRatePacksResource {
   constructor(private readonly t: Transport) {}
 
   list(params: ListParams = {}): List<RatePack> {
@@ -210,32 +209,32 @@ export class WorkspaceIncentivesResource {
 export class WorkspaceFringesResource {
   constructor(private readonly t: Transport) {}
 
-  list(params: ListParams = {}): List<FringeTemplate> {
+  list(params: ListParams = {}): List<Fringe> {
     const options = { query: { ...params } };
-    return new List<FringeTemplate>(
-      () => this.t.paginate<typeof options, FringeTemplate>(sdk.libraryListFringeTemplates, options),
-      () => this.t.runPage<typeof options, FringeTemplate>(sdk.libraryListFringeTemplates, options),
+    return new List<Fringe>(
+      () => this.t.paginate<typeof options, Fringe>(sdk.libraryListFringes, options),
+      () => this.t.runPage<typeof options, Fringe>(sdk.libraryListFringes, options),
     );
   }
-  async get(fringeId: string): Promise<FringeTemplate> {
-    return this.t.run(sdk.libraryGetFringeTemplate, {
+  async get(fringeId: string): Promise<Fringe> {
+    return this.t.run(sdk.libraryGetFringe, {
       path: { fringeId },
-    }) as Promise<FringeTemplate>;
+    }) as Promise<Fringe>;
   }
-  async create(body: FringeTemplateWrite, opts: { idempotencyKey: string }): Promise<FringeTemplate> {
-    return this.t.run(sdk.libraryCreateFringeTemplate, {
+  async create(body: FringeWrite, opts: { idempotencyKey: string }): Promise<Fringe> {
+    return this.t.run(sdk.libraryCreateFringe, {
       headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
-    }) as Promise<FringeTemplate>;
+    }) as Promise<Fringe>;
   }
-  async update(fringeId: string, body: FringeTemplateWrite): Promise<FringeTemplate> {
-    return this.t.run(sdk.libraryUpdateFringeTemplate, {
+  async update(fringeId: string, body: FringeWrite): Promise<Fringe> {
+    return this.t.run(sdk.libraryUpdateFringe, {
       path: { fringeId },
       body,
-    }) as Promise<FringeTemplate>;
+    }) as Promise<Fringe>;
   }
   async delete(fringeId: string): Promise<void> {
-    await this.t.run(sdk.libraryDeleteFringeTemplate, {
+    await this.t.run(sdk.libraryDeleteFringe, {
       path: { fringeId },
     });
   }
@@ -244,32 +243,32 @@ export class WorkspaceFringesResource {
 export class WorkspaceGlobalsResource {
   constructor(private readonly t: Transport) {}
 
-  list(params: ListParams = {}): List<GlobalTemplate> {
+  list(params: ListParams = {}): List<Global> {
     const options = { query: { ...params } };
-    return new List<GlobalTemplate>(
-      () => this.t.paginate<typeof options, GlobalTemplate>(sdk.libraryListGlobalTemplates, options),
-      () => this.t.runPage<typeof options, GlobalTemplate>(sdk.libraryListGlobalTemplates, options),
+    return new List<Global>(
+      () => this.t.paginate<typeof options, Global>(sdk.libraryListGlobals, options),
+      () => this.t.runPage<typeof options, Global>(sdk.libraryListGlobals, options),
     );
   }
-  async get(globalId: string): Promise<GlobalTemplate> {
-    return this.t.run(sdk.libraryGetGlobalTemplate, {
+  async get(globalId: string): Promise<Global> {
+    return this.t.run(sdk.libraryGetGlobal, {
       path: { globalId },
-    }) as Promise<GlobalTemplate>;
+    }) as Promise<Global>;
   }
-  async create(body: GlobalTemplateWrite, opts: { idempotencyKey: string }): Promise<GlobalTemplate> {
-    return this.t.run(sdk.libraryCreateGlobalTemplate, {
+  async create(body: GlobalWrite, opts: { idempotencyKey: string }): Promise<Global> {
+    return this.t.run(sdk.libraryCreateGlobal, {
       headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
-    }) as Promise<GlobalTemplate>;
+    }) as Promise<Global>;
   }
-  async update(globalId: string, body: GlobalTemplateWrite): Promise<GlobalTemplate> {
-    return this.t.run(sdk.libraryUpdateGlobalTemplate, {
+  async update(globalId: string, body: GlobalWrite): Promise<Global> {
+    return this.t.run(sdk.libraryUpdateGlobal, {
       path: { globalId },
       body,
-    }) as Promise<GlobalTemplate>;
+    }) as Promise<Global>;
   }
   async delete(globalId: string): Promise<void> {
-    await this.t.run(sdk.libraryDeleteGlobalTemplate, {
+    await this.t.run(sdk.libraryDeleteGlobal, {
       path: { globalId },
     });
   }
@@ -278,67 +277,67 @@ export class WorkspaceGlobalsResource {
 export class WorkspaceCurrenciesResource {
   constructor(private readonly t: Transport) {}
 
-  list(params: ListParams = {}): List<CurrencyTemplate> {
+  list(params: ListParams = {}): List<Currency> {
     const options = { query: { ...params } };
-    return new List<CurrencyTemplate>(
-      () => this.t.paginate<typeof options, CurrencyTemplate>(sdk.libraryListCurrencyTemplates, options),
-      () => this.t.runPage<typeof options, CurrencyTemplate>(sdk.libraryListCurrencyTemplates, options),
+    return new List<Currency>(
+      () => this.t.paginate<typeof options, Currency>(sdk.libraryListCurrencys, options),
+      () => this.t.runPage<typeof options, Currency>(sdk.libraryListCurrencys, options),
     );
   }
-  async get(currencyId: string): Promise<CurrencyTemplate> {
-    return this.t.run(sdk.libraryGetCurrencyTemplate, {
+  async get(currencyId: string): Promise<Currency> {
+    return this.t.run(sdk.libraryGetCurrency, {
       path: { currencyId },
-    }) as Promise<CurrencyTemplate>;
+    }) as Promise<Currency>;
   }
-  async create(body: CurrencyTemplateWrite, opts: { idempotencyKey: string }): Promise<CurrencyTemplate> {
-    return this.t.run(sdk.libraryCreateCurrencyTemplate, {
+  async create(body: CurrencyWrite, opts: { idempotencyKey: string }): Promise<Currency> {
+    return this.t.run(sdk.libraryCreateCurrency, {
       headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
-    }) as Promise<CurrencyTemplate>;
+    }) as Promise<Currency>;
   }
-  async update(currencyId: string, body: CurrencyTemplateWrite): Promise<CurrencyTemplate> {
-    return this.t.run(sdk.libraryUpdateCurrencyTemplate, {
+  async update(currencyId: string, body: CurrencyWrite): Promise<Currency> {
+    return this.t.run(sdk.libraryUpdateCurrency, {
       path: { currencyId },
       body,
-    }) as Promise<CurrencyTemplate>;
+    }) as Promise<Currency>;
   }
   async delete(currencyId: string): Promise<void> {
-    await this.t.run(sdk.libraryDeleteCurrencyTemplate, {
+    await this.t.run(sdk.libraryDeleteCurrency, {
       path: { currencyId },
     });
   }
 }
 
-export class WorkspaceFringeTagsResource {
+export class WorkspaceFringeGroupsResource {
   constructor(private readonly t: Transport) {}
 
-  list(params: ListParams = {}): List<FringeTagTemplate> {
+  list(params: ListParams = {}): List<FringeGroup> {
     const options = { query: { ...params } };
-    return new List<FringeTagTemplate>(
-      () => this.t.paginate<typeof options, FringeTagTemplate>(sdk.libraryListFringeTagTemplates, options),
-      () => this.t.runPage<typeof options, FringeTagTemplate>(sdk.libraryListFringeTagTemplates, options),
+    return new List<FringeGroup>(
+      () => this.t.paginate<typeof options, FringeGroup>(sdk.libraryListFringeGroups, options),
+      () => this.t.runPage<typeof options, FringeGroup>(sdk.libraryListFringeGroups, options),
     );
   }
-  async get(fringeTagId: string): Promise<FringeTagTemplate> {
-    return this.t.run(sdk.libraryGetFringeTagTemplate, {
-      path: { fringeTagId },
-    }) as Promise<FringeTagTemplate>;
+  async get(fringeGroupId: string): Promise<FringeGroup> {
+    return this.t.run(sdk.libraryGetFringeGroup, {
+      path: { fringeGroupId },
+    }) as Promise<FringeGroup>;
   }
-  async create(body: FringeTagTemplateWrite, opts: { idempotencyKey: string }): Promise<FringeTagTemplate> {
-    return this.t.run(sdk.libraryCreateFringeTagTemplate, {
+  async create(body: FringeGroupWrite, opts: { idempotencyKey: string }): Promise<FringeGroup> {
+    return this.t.run(sdk.libraryCreateFringeGroup, {
       headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
-    }) as Promise<FringeTagTemplate>;
+    }) as Promise<FringeGroup>;
   }
-  async update(fringeTagId: string, body: FringeTagTemplateWrite): Promise<FringeTagTemplate> {
-    return this.t.run(sdk.libraryUpdateFringeTagTemplate, {
-      path: { fringeTagId },
+  async update(fringeGroupId: string, body: FringeGroupWrite): Promise<FringeGroup> {
+    return this.t.run(sdk.libraryUpdateFringeGroup, {
+      path: { fringeGroupId },
       body,
-    }) as Promise<FringeTagTemplate>;
+    }) as Promise<FringeGroup>;
   }
-  async delete(fringeTagId: string): Promise<void> {
-    await this.t.run(sdk.libraryDeleteFringeTagTemplate, {
-      path: { fringeTagId },
+  async delete(fringeGroupId: string): Promise<void> {
+    await this.t.run(sdk.libraryDeleteFringeGroup, {
+      path: { fringeGroupId },
     });
   }
 }
@@ -380,45 +379,30 @@ export class WorkspaceTagsResource {
 export class WorkspaceUnitsResource {
   constructor(private readonly t: Transport) {}
 
-  /** Built-in + custom units available in the workspace. */
-  list(): List<Unit> {
-    const options = {};
+  list(params: { q?: string } = {}): List<Unit> {
+    const options = { query: { ...params } };
     return new List<Unit>(
       () => this.t.paginate<typeof options, Unit>(sdk.libraryListUnits, options),
       () => this.t.runPage<typeof options, Unit>(sdk.libraryListUnits, options),
     );
   }
-
-  /** Custom (workspace-defined) units. */
-  custom(): WorkspaceCustomUnitsResource {
-    return new WorkspaceCustomUnitsResource(this.t);
+  async get(unitId: string): Promise<Unit> {
+    return this.t.run(sdk.libraryGetUnit, { path: { unitId } }) as Promise<Unit>;
   }
-}
-
-export class WorkspaceCustomUnitsResource {
-  constructor(private readonly t: Transport) {}
-
-  list(): List<CustomUnit> {
-    const options = {};
-    return new List<CustomUnit>(
-      () => this.t.paginate<typeof options, CustomUnit>(sdk.libraryListCustomUnits, options),
-      () => this.t.runPage<typeof options, CustomUnit>(sdk.libraryListCustomUnits, options),
-    );
-  }
-  async create(body: CustomUnitCreate, opts: { idempotencyKey: string }): Promise<CustomUnit> {
-    return this.t.run(sdk.libraryCreateCustomUnit, {
+  async create(body: UnitCreate, opts: { idempotencyKey: string }): Promise<Unit> {
+    return this.t.run(sdk.libraryCreateUnit, {
       headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
-    }) as Promise<CustomUnit>;
+    }) as Promise<Unit>;
   }
-  async update(unitId: string, body: CustomUnitUpdate): Promise<CustomUnit> {
-    return this.t.run(sdk.libraryUpdateCustomUnit, {
+  async update(unitId: string, body: UnitUpdate): Promise<Unit> {
+    return this.t.run(sdk.libraryUpdateUnit, {
       path: { unitId },
       body,
-    }) as Promise<CustomUnit>;
+    }) as Promise<Unit>;
   }
   async delete(unitId: string): Promise<void> {
-    await this.t.run(sdk.libraryDeleteCustomUnit, {
+    await this.t.run(sdk.libraryDeleteUnit, {
       path: { unitId },
     });
   }

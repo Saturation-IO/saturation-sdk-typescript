@@ -46,10 +46,10 @@ Keep tokens out of source control. The SDK sends the token as an
 
 ## Work with a project
 
-Open a project scope with a project ID or slug, then use its resources:
+Open a project scope with a project ID, then use its resources:
 
 ```ts
-const project = sat.projects('feature-film-2026');
+const project = sat.projects('prj_3d77');
 
 for await (const line of project.budget.lines.list({ kind: 'line' })) {
   console.log(line.code, line.name);
@@ -120,19 +120,19 @@ present in the type, and fields you did not request stay absent.
 
 ```ts
 const line = await project.budget.lines.get('lin_3d77', {
-  expand: ['contact', 'documents'],
+  expand: ['contact', 'phaseTotals'],
 });
 
 console.log(line.contact.name);
-console.log(line.documents.length);
+console.log(line.phaseTotals);
 ```
 
 ## Client shape
 
 | Scope | Examples |
 | --- | --- |
-| Workspace | `sat.library`, `sat.documents`, `sat.contacts`, `sat.spaces`, `sat.search()`, `sat.me()` |
-| Project | `sat.projects(id).budget`, `.transactions`, `.purchaseOrders`, `.library`, `.search()` |
+| Workspace | `sat.library.ratePacks`, `sat.documents`, `sat.contacts`, `sat.spaces`, `sat.search()`, `sat.me()` |
+| Project | `sat.projects(id).budget`, `.transactions`, `.purchaseOrders`, `.library.ratePacks`, `.comments`, `.search()` |
 
 The token is bound to one workspace, so workspace IDs do not appear in resource
 paths. The workspace Library is the source. A project's Library contains the

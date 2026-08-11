@@ -6,15 +6,14 @@ import type {
   ProjectIncentiveAdd,
   ProjectIncentiveUpdate,
   ProjectIncentiveExpand,
-  FringeCopy,
-  GlobalCopy,
-  CurrencyCopy,
-  FringeTagCopy,
-  FringeTemplateWrite,
-  GlobalTemplateWrite,
-  CurrencyTemplateWrite,
-  FringeTagTemplateWrite,
-  TagCreate,
+  ProjectFringe,
+  ProjectGlobal,
+  ProjectCurrency,
+  ProjectFringeGroup,
+  FringeWrite,
+  GlobalWrite,
+  CurrencyWrite,
+  FringeGroupWrite,
 } from '../generated/types.gen.js';
 import { Transport, List } from '../http.js';
 import { Expanded, type ExpandMap, serializeExpand } from '../expand.js';
@@ -25,7 +24,7 @@ const projectRatePackExpandMap = {
 type ProjectRatePackExpandMap = typeof projectRatePackExpandMap;
 
 const projectIncentiveExpandMap = {
-  sourceItem: 'sourceItem',
+  source: 'source',
   components: 'components',
 } satisfies ExpandMap<ProjectIncentiveExpand>;
 type ProjectIncentiveExpandMap = typeof projectIncentiveExpandMap;
@@ -33,7 +32,7 @@ type ProjectIncentiveExpandMap = typeof projectIncentiveExpandMap;
 /**
  * The project-scope Library — *resident* copies. Rate packs are installed here
  * (copy-on-use from the workspace source); incentives / fringes / globals /
- * currencies / fringe-tags are added from a workspace source. Editing a resident
+ * currencies / fringe groups are added from a workspace source. Editing a resident
  * copy diverges it without breaking provenance (`sourceId`).
  */
 export class ProjectLibraryResource {
@@ -42,8 +41,8 @@ export class ProjectLibraryResource {
     private readonly projectId: string,
   ) {}
 
-  get rates(): ProjectRatesResource {
-    return new ProjectRatesResource(this.t, this.projectId);
+  get ratePacks(): ProjectRatePacksResource {
+    return new ProjectRatePacksResource(this.t, this.projectId);
   }
   get incentives(): ProjectIncentivesResource {
     return new ProjectIncentivesResource(this.t, this.projectId);
@@ -57,15 +56,15 @@ export class ProjectLibraryResource {
   get currencies(): ProjectCurrenciesResource {
     return new ProjectCurrenciesResource(this.t, this.projectId);
   }
-  get fringeTags(): ProjectFringeTagsResource {
-    return new ProjectFringeTagsResource(this.t, this.projectId);
+  get fringeGroups(): ProjectFringeGroupsResource {
+    return new ProjectFringeGroupsResource(this.t, this.projectId);
   }
   get tags(): ProjectTagsResource {
     return new ProjectTagsResource(this.t, this.projectId);
   }
 }
 
-export class ProjectRatesResource {
+export class ProjectRatePacksResource {
   constructor(
     private readonly t: Transport,
     private readonly projectId: string,
@@ -158,32 +157,32 @@ export class ProjectFringesResource {
     private readonly projectId: string,
   ) {}
 
-  list(params: { limit?: number; cursor?: string } = {}): List<FringeCopy> {
+  list(params: { limit?: number; cursor?: string } = {}): List<ProjectFringe> {
     const options = {
       path: { projectId: this.projectId },
       query: { ...params },
     };
-    return new List<FringeCopy>(
-      () => this.t.paginate<typeof options, FringeCopy>(sdk.libraryListProjectFringes, options),
-      () => this.t.runPage<typeof options, FringeCopy>(sdk.libraryListProjectFringes, options),
+    return new List<ProjectFringe>(
+      () => this.t.paginate<typeof options, ProjectFringe>(sdk.libraryListProjectFringes, options),
+      () => this.t.runPage<typeof options, ProjectFringe>(sdk.libraryListProjectFringes, options),
     );
   }
-  async add(sourceId: string): Promise<FringeCopy> {
+  async add(sourceId: string): Promise<ProjectFringe> {
     return this.t.run(sdk.libraryAddProjectFringe, {
       path: { projectId: this.projectId },
       body: { sourceId },
-    }) as Promise<FringeCopy>;
+    }) as Promise<ProjectFringe>;
   }
-  async get(fringeId: string): Promise<FringeCopy> {
+  async get(fringeId: string): Promise<ProjectFringe> {
     return this.t.run(sdk.libraryGetProjectFringe, {
       path: { projectId: this.projectId, fringeId },
-    }) as Promise<FringeCopy>;
+    }) as Promise<ProjectFringe>;
   }
-  async update(fringeId: string, body: FringeTemplateWrite): Promise<FringeCopy> {
+  async update(fringeId: string, body: FringeWrite): Promise<ProjectFringe> {
     return this.t.run(sdk.libraryUpdateProjectFringe, {
       path: { projectId: this.projectId, fringeId },
       body,
-    }) as Promise<FringeCopy>;
+    }) as Promise<ProjectFringe>;
   }
   async delete(fringeId: string): Promise<void> {
     await this.t.run(sdk.libraryDeleteProjectFringe, {
@@ -198,32 +197,32 @@ export class ProjectGlobalsResource {
     private readonly projectId: string,
   ) {}
 
-  list(params: { limit?: number; cursor?: string } = {}): List<GlobalCopy> {
+  list(params: { limit?: number; cursor?: string } = {}): List<ProjectGlobal> {
     const options = {
       path: { projectId: this.projectId },
       query: { ...params },
     };
-    return new List<GlobalCopy>(
-      () => this.t.paginate<typeof options, GlobalCopy>(sdk.libraryListProjectGlobals, options),
-      () => this.t.runPage<typeof options, GlobalCopy>(sdk.libraryListProjectGlobals, options),
+    return new List<ProjectGlobal>(
+      () => this.t.paginate<typeof options, ProjectGlobal>(sdk.libraryListProjectGlobals, options),
+      () => this.t.runPage<typeof options, ProjectGlobal>(sdk.libraryListProjectGlobals, options),
     );
   }
-  async add(sourceId: string): Promise<GlobalCopy> {
+  async add(sourceId: string): Promise<ProjectGlobal> {
     return this.t.run(sdk.libraryAddProjectGlobal, {
       path: { projectId: this.projectId },
       body: { sourceId },
-    }) as Promise<GlobalCopy>;
+    }) as Promise<ProjectGlobal>;
   }
-  async get(globalId: string): Promise<GlobalCopy> {
+  async get(globalId: string): Promise<ProjectGlobal> {
     return this.t.run(sdk.libraryGetProjectGlobal, {
       path: { projectId: this.projectId, globalId },
-    }) as Promise<GlobalCopy>;
+    }) as Promise<ProjectGlobal>;
   }
-  async update(globalId: string, body: GlobalTemplateWrite): Promise<GlobalCopy> {
+  async update(globalId: string, body: GlobalWrite): Promise<ProjectGlobal> {
     return this.t.run(sdk.libraryUpdateProjectGlobal, {
       path: { projectId: this.projectId, globalId },
       body,
-    }) as Promise<GlobalCopy>;
+    }) as Promise<ProjectGlobal>;
   }
   async delete(globalId: string): Promise<void> {
     await this.t.run(sdk.libraryDeleteProjectGlobal, {
@@ -238,32 +237,32 @@ export class ProjectCurrenciesResource {
     private readonly projectId: string,
   ) {}
 
-  list(params: { limit?: number; cursor?: string } = {}): List<CurrencyCopy> {
+  list(params: { limit?: number; cursor?: string } = {}): List<ProjectCurrency> {
     const options = {
       path: { projectId: this.projectId },
       query: { ...params },
     };
-    return new List<CurrencyCopy>(
-      () => this.t.paginate<typeof options, CurrencyCopy>(sdk.libraryListProjectCurrencies, options),
-      () => this.t.runPage<typeof options, CurrencyCopy>(sdk.libraryListProjectCurrencies, options),
+    return new List<ProjectCurrency>(
+      () => this.t.paginate<typeof options, ProjectCurrency>(sdk.libraryListProjectCurrencies, options),
+      () => this.t.runPage<typeof options, ProjectCurrency>(sdk.libraryListProjectCurrencies, options),
     );
   }
-  async add(sourceId: string): Promise<CurrencyCopy> {
+  async add(sourceId: string): Promise<ProjectCurrency> {
     return this.t.run(sdk.libraryAddProjectCurrency, {
       path: { projectId: this.projectId },
       body: { sourceId },
-    }) as Promise<CurrencyCopy>;
+    }) as Promise<ProjectCurrency>;
   }
-  async get(currencyId: string): Promise<CurrencyCopy> {
+  async get(currencyId: string): Promise<ProjectCurrency> {
     return this.t.run(sdk.libraryGetProjectCurrency, {
       path: { projectId: this.projectId, currencyId },
-    }) as Promise<CurrencyCopy>;
+    }) as Promise<ProjectCurrency>;
   }
-  async update(currencyId: string, body: CurrencyTemplateWrite): Promise<CurrencyCopy> {
+  async update(currencyId: string, body: CurrencyWrite): Promise<ProjectCurrency> {
     return this.t.run(sdk.libraryUpdateProjectCurrency, {
       path: { projectId: this.projectId, currencyId },
       body,
-    }) as Promise<CurrencyCopy>;
+    }) as Promise<ProjectCurrency>;
   }
   async delete(currencyId: string): Promise<void> {
     await this.t.run(sdk.libraryDeleteProjectCurrency, {
@@ -272,42 +271,42 @@ export class ProjectCurrenciesResource {
   }
 }
 
-export class ProjectFringeTagsResource {
+export class ProjectFringeGroupsResource {
   constructor(
     private readonly t: Transport,
     private readonly projectId: string,
   ) {}
 
-  list(params: { limit?: number; cursor?: string } = {}): List<FringeTagCopy> {
+  list(params: { limit?: number; cursor?: string } = {}): List<ProjectFringeGroup> {
     const options = {
       path: { projectId: this.projectId },
       query: { ...params },
     };
-    return new List<FringeTagCopy>(
-      () => this.t.paginate<typeof options, FringeTagCopy>(sdk.libraryListProjectFringeTags, options),
-      () => this.t.runPage<typeof options, FringeTagCopy>(sdk.libraryListProjectFringeTags, options),
+    return new List<ProjectFringeGroup>(
+      () => this.t.paginate<typeof options, ProjectFringeGroup>(sdk.libraryListProjectFringeGroups, options),
+      () => this.t.runPage<typeof options, ProjectFringeGroup>(sdk.libraryListProjectFringeGroups, options),
     );
   }
-  async add(sourceId: string): Promise<FringeTagCopy> {
-    return this.t.run(sdk.libraryAddProjectFringeTag, {
+  async add(sourceId: string): Promise<ProjectFringeGroup> {
+    return this.t.run(sdk.libraryAddProjectFringeGroup, {
       path: { projectId: this.projectId },
       body: { sourceId },
-    }) as Promise<FringeTagCopy>;
+    }) as Promise<ProjectFringeGroup>;
   }
-  async get(fringeTagId: string): Promise<FringeTagCopy> {
-    return this.t.run(sdk.libraryGetProjectFringeTag, {
-      path: { projectId: this.projectId, fringeTagId },
-    }) as Promise<FringeTagCopy>;
+  async get(fringeGroupId: string): Promise<ProjectFringeGroup> {
+    return this.t.run(sdk.libraryGetProjectFringeGroup, {
+      path: { projectId: this.projectId, fringeGroupId },
+    }) as Promise<ProjectFringeGroup>;
   }
-  async update(fringeTagId: string, body: FringeTagTemplateWrite): Promise<FringeTagCopy> {
-    return this.t.run(sdk.libraryUpdateProjectFringeTag, {
-      path: { projectId: this.projectId, fringeTagId },
+  async update(fringeGroupId: string, body: FringeGroupWrite): Promise<ProjectFringeGroup> {
+    return this.t.run(sdk.libraryUpdateProjectFringeGroup, {
+      path: { projectId: this.projectId, fringeGroupId },
       body,
-    }) as Promise<FringeTagCopy>;
+    }) as Promise<ProjectFringeGroup>;
   }
-  async delete(fringeTagId: string): Promise<void> {
-    await this.t.run(sdk.libraryDeleteProjectFringeTag, {
-      path: { projectId: this.projectId, fringeTagId },
+  async delete(fringeGroupId: string): Promise<void> {
+    await this.t.run(sdk.libraryDeleteProjectFringeGroup, {
+      path: { projectId: this.projectId, fringeGroupId },
     });
   }
 }
@@ -328,20 +327,5 @@ export class ProjectTagsResource {
       () => this.t.paginate<typeof options, Row>(sdk.libraryListProjectTags, options),
       () => this.t.runPage<typeof options, Row>(sdk.libraryListProjectTags, options),
     );
-  }
-
-  /** Add a tag to the project (creating it inline if `tag` is supplied). Safe to call again. */
-  async add(tagId: string, body: { tag?: TagCreate } = {}): Promise<unknown> {
-    return this.t.run(sdk.libraryAddProjectTag, {
-      path: { projectId: this.projectId, tagId },
-      body,
-    });
-  }
-
-  /** Remove a tag from the project. Safe to call again. */
-  async remove(tagId: string): Promise<void> {
-    await this.t.run(sdk.libraryRemoveProjectTag, {
-      path: { projectId: this.projectId, tagId },
-    });
   }
 }

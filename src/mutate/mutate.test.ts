@@ -29,7 +29,7 @@ describe('catalog teaches enums and Money minor units (B0 findings W-1/W-2)', ()
       expect(WRITE_OPS[op].bodyType).toContain('MINOR units per unit');
     }
     // Ratio rates stay untaught - a currency rate is not money.
-    expect(WRITE_OPS.libraryUpdateCurrencyTemplate.bodyType).not.toContain('MINOR units per unit');
+    expect(WRITE_OPS.libraryUpdateCurrency.bodyType).not.toContain('MINOR units per unit');
   });
 
   it('expansion never disturbs the top-level field contract', () => {
@@ -85,37 +85,34 @@ describe('validateMutateArgs', () => {
     const keyed = posts.filter((op) => op.idempotency === 'required').map((op) => op.op).sort();
     expect(keyed).toEqual([
       'budgetCreateLine',
-      'budgetCreateLinesBatch',
+      'budgetCreateLinesBulk',
       'budgetCreatePhase',
-      'budgetUpsertLinePhaseDataBatch',
-      'libraryCreateCurrencyTemplate',
-      'libraryCreateCustomUnit',
-      'libraryCreateFringeTagTemplate',
-      'libraryCreateFringeTemplate',
-      'libraryCreateGlobalTemplate',
+      'budgetUpsertLinePhaseDataBulk',
+      'libraryCreateCurrency',
+      'libraryCreateFringe',
+      'libraryCreateFringeGroup',
+      'libraryCreateGlobal',
       'libraryCreateRatePack',
       'libraryCreateRatePackItem',
       'libraryCreateTag',
+      'libraryCreateUnit',
       'masterDataCreateComment',
       'masterDataCreateContact',
       'masterDataCreateProject',
       'masterDataCreateSpace',
       'purchaseOrdersCreate',
       'purchaseOrdersCreateItem',
-      'transactionsBatchCreate',
+      'transactionsBulkCreate',
       'transactionsCreate',
       'transactionsItemsCreate',
     ]);
     const natural = posts.filter((op) => op.idempotency === 'natural').map((op) => op.op).sort();
     expect(natural).toEqual([
-      'documentsAssign',
       'libraryAddProjectCurrency',
       'libraryAddProjectFringe',
-      'libraryAddProjectFringeTag',
+      'libraryAddProjectFringeGroup',
       'libraryAddProjectGlobal',
       'libraryAddProjectIncentive',
-      'libraryAddProjectTag',
-      'libraryAddRatePack',
       'libraryEnableIncentivePack',
       'libraryEnableRatePack',
     ]);
@@ -123,14 +120,11 @@ describe('validateMutateArgs', () => {
     // status preconditions — a repeat is a typed 4xx / same-state no-op.
     const transitions = posts.filter((op) => op.idempotency === 'transition').map((op) => op.op).sort();
     expect(transitions).toEqual([
-      'documentsUnassign',
       'purchaseOrdersCancelSubmission',
-      'purchaseOrdersLink',
       'purchaseOrdersMarkPaid',
-      'purchaseOrdersUnlink',
       'purchaseOrdersVoid',
       'webhooksCreate',
-      'webhooksPing',
+      'webhooksSendTestDelivery',
     ]);
 
     // Full-surface ruling (2026-08-07): only the two STRUCTURAL carve-outs
@@ -140,7 +134,7 @@ describe('validateMutateArgs', () => {
     expect(WRITE_OPS).not.toHaveProperty('documentsDrop');
     expect(WRITE_OPS).toHaveProperty('webhooksCreate');
     expect(WRITE_OPS).toHaveProperty('webhooksUpdate');
-    expect(WRITE_OPS).toHaveProperty('masterDataDeleteProject');
+    expect(WRITE_OPS).not.toHaveProperty('masterDataDeleteProject');
     expect(WRITE_OPS).toHaveProperty('libraryDisableRatePack');
   });
 });

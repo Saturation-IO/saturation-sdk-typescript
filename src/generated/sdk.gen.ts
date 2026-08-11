@@ -2,7 +2,7 @@
 
 import { client } from './client.gen.js';
 import { type Client, formDataBodySerializer, type Options as Options2, type TDataShape } from './client/index.js';
-import type { BudgetCreateLineData, BudgetCreateLineErrors, BudgetCreateLineResponses, BudgetCreateLinesBatchData, BudgetCreateLinesBatchErrors, BudgetCreateLinesBatchResponses, BudgetCreatePhaseData, BudgetCreatePhaseErrors, BudgetCreatePhaseResponses, BudgetDeleteLineData, BudgetDeleteLineErrors, BudgetDeleteLineResponses, BudgetDeletePhaseData, BudgetDeletePhaseErrors, BudgetDeletePhaseResponses, BudgetGetCellData, BudgetGetCellErrors, BudgetGetCellResponses, BudgetGetDocumentData, BudgetGetDocumentErrors, BudgetGetDocumentResponses, BudgetGetLineData, BudgetGetLineErrors, BudgetGetLineResponses, BudgetGetPhaseData, BudgetGetPhaseErrors, BudgetGetPhaseResponses, BudgetGetRollupData, BudgetGetRollupErrors, BudgetGetRollupResponses, BudgetGetTotalsData, BudgetGetTotalsErrors, BudgetGetTotalsResponses, BudgetGetVarianceData, BudgetGetVarianceErrors, BudgetGetVarianceResponses, BudgetListAccountsData, BudgetListAccountsErrors, BudgetListAccountsResponses, BudgetListLinesData, BudgetListLinesErrors, BudgetListLinesResponses, BudgetListPhasesData, BudgetListPhasesErrors, BudgetListPhasesResponses, BudgetUpdateLineData, BudgetUpdateLineErrors, BudgetUpdateLineResponses, BudgetUpdatePhaseData, BudgetUpdatePhaseErrors, BudgetUpdatePhaseResponses, BudgetUpsertLinePhaseDataBatchData, BudgetUpsertLinePhaseDataBatchErrors, BudgetUpsertLinePhaseDataBatchResponses, BudgetUpsertLinePhaseDataData, BudgetUpsertLinePhaseDataErrors, BudgetUpsertLinePhaseDataResponses, DocumentsAssignData, DocumentsAssignErrors, DocumentsAssignResponses, DocumentsDeleteData, DocumentsDeleteErrors, DocumentsDeleteResponses, DocumentsDropData, DocumentsDropErrors, DocumentsDropResponses, DocumentsGetContentData, DocumentsGetContentErrors, DocumentsGetContentResponses, DocumentsGetData, DocumentsGetErrors, DocumentsGetExtractionData, DocumentsGetExtractionErrors, DocumentsGetExtractionResponses, DocumentsGetResponses, DocumentsListAssignmentsData, DocumentsListAssignmentsErrors, DocumentsListAssignmentsResponses, DocumentsListByContactData, DocumentsListByContactErrors, DocumentsListByContactResponses, DocumentsListByProjectData, DocumentsListByProjectErrors, DocumentsListByProjectResponses, DocumentsListByPurchaseOrderData, DocumentsListByPurchaseOrderErrors, DocumentsListByPurchaseOrderResponses, DocumentsListByTransactionData, DocumentsListByTransactionErrors, DocumentsListByTransactionResponses, DocumentsListData, DocumentsListErrors, DocumentsListResponses, DocumentsUnassignData, DocumentsUnassignErrors, DocumentsUnassignResponses, DocumentsUpdateData, DocumentsUpdateErrors, DocumentsUpdateResponses, LibraryAddProjectCurrencyData, LibraryAddProjectCurrencyErrors, LibraryAddProjectCurrencyResponses, LibraryAddProjectFringeData, LibraryAddProjectFringeErrors, LibraryAddProjectFringeResponses, LibraryAddProjectFringeTagData, LibraryAddProjectFringeTagErrors, LibraryAddProjectFringeTagResponses, LibraryAddProjectGlobalData, LibraryAddProjectGlobalErrors, LibraryAddProjectGlobalResponses, LibraryAddProjectIncentiveData, LibraryAddProjectIncentiveErrors, LibraryAddProjectIncentiveResponses, LibraryAddProjectTagData, LibraryAddProjectTagErrors, LibraryAddProjectTagResponses, LibraryAddRatePackData, LibraryAddRatePackErrors, LibraryAddRatePackResponses, LibraryCreateCurrencyTemplateData, LibraryCreateCurrencyTemplateErrors, LibraryCreateCurrencyTemplateResponses, LibraryCreateCustomUnitData, LibraryCreateCustomUnitErrors, LibraryCreateCustomUnitResponses, LibraryCreateFringeTagTemplateData, LibraryCreateFringeTagTemplateErrors, LibraryCreateFringeTagTemplateResponses, LibraryCreateFringeTemplateData, LibraryCreateFringeTemplateErrors, LibraryCreateFringeTemplateResponses, LibraryCreateGlobalTemplateData, LibraryCreateGlobalTemplateErrors, LibraryCreateGlobalTemplateResponses, LibraryCreateRatePackData, LibraryCreateRatePackErrors, LibraryCreateRatePackItemData, LibraryCreateRatePackItemErrors, LibraryCreateRatePackItemResponses, LibraryCreateRatePackResponses, LibraryCreateTagData, LibraryCreateTagErrors, LibraryCreateTagResponses, LibraryDeleteCurrencyTemplateData, LibraryDeleteCurrencyTemplateErrors, LibraryDeleteCurrencyTemplateResponses, LibraryDeleteCustomUnitData, LibraryDeleteCustomUnitErrors, LibraryDeleteCustomUnitResponses, LibraryDeleteFringeTagTemplateData, LibraryDeleteFringeTagTemplateErrors, LibraryDeleteFringeTagTemplateResponses, LibraryDeleteFringeTemplateData, LibraryDeleteFringeTemplateErrors, LibraryDeleteFringeTemplateResponses, LibraryDeleteGlobalTemplateData, LibraryDeleteGlobalTemplateErrors, LibraryDeleteGlobalTemplateResponses, LibraryDeleteProjectCurrencyData, LibraryDeleteProjectCurrencyErrors, LibraryDeleteProjectCurrencyResponses, LibraryDeleteProjectFringeData, LibraryDeleteProjectFringeErrors, LibraryDeleteProjectFringeResponses, LibraryDeleteProjectFringeTagData, LibraryDeleteProjectFringeTagErrors, LibraryDeleteProjectFringeTagResponses, LibraryDeleteProjectGlobalData, LibraryDeleteProjectGlobalErrors, LibraryDeleteProjectGlobalResponses, LibraryDeleteProjectIncentiveData, LibraryDeleteProjectIncentiveErrors, LibraryDeleteProjectIncentiveResponses, LibraryDeleteRatePackData, LibraryDeleteRatePackErrors, LibraryDeleteRatePackItemData, LibraryDeleteRatePackItemErrors, LibraryDeleteRatePackItemResponses, LibraryDeleteRatePackResponses, LibraryDeleteTagData, LibraryDeleteTagErrors, LibraryDeleteTagResponses, LibraryDisableIncentivePackData, LibraryDisableIncentivePackErrors, LibraryDisableIncentivePackResponses, LibraryDisableRatePackData, LibraryDisableRatePackErrors, LibraryDisableRatePackResponses, LibraryEnableIncentivePackData, LibraryEnableIncentivePackErrors, LibraryEnableIncentivePackResponses, LibraryEnableRatePackData, LibraryEnableRatePackErrors, LibraryEnableRatePackResponses, LibraryGetCurrencyTemplateData, LibraryGetCurrencyTemplateErrors, LibraryGetCurrencyTemplateResponses, LibraryGetFringeTagTemplateData, LibraryGetFringeTagTemplateErrors, LibraryGetFringeTagTemplateResponses, LibraryGetFringeTemplateData, LibraryGetFringeTemplateErrors, LibraryGetFringeTemplateResponses, LibraryGetGlobalTemplateData, LibraryGetGlobalTemplateErrors, LibraryGetGlobalTemplateResponses, LibraryGetIncentivePackData, LibraryGetIncentivePackErrors, LibraryGetIncentivePackResponses, LibraryGetProjectCurrencyData, LibraryGetProjectCurrencyErrors, LibraryGetProjectCurrencyResponses, LibraryGetProjectFringeData, LibraryGetProjectFringeErrors, LibraryGetProjectFringeResponses, LibraryGetProjectFringeTagData, LibraryGetProjectFringeTagErrors, LibraryGetProjectFringeTagResponses, LibraryGetProjectGlobalData, LibraryGetProjectGlobalErrors, LibraryGetProjectGlobalResponses, LibraryGetProjectIncentiveData, LibraryGetProjectIncentiveErrors, LibraryGetProjectIncentiveResponses, LibraryGetRatePackData, LibraryGetRatePackErrors, LibraryGetRatePackResponses, LibraryGetTagData, LibraryGetTagErrors, LibraryGetTagResponses, LibraryListCurrencyTemplatesData, LibraryListCurrencyTemplatesErrors, LibraryListCurrencyTemplatesResponses, LibraryListCustomUnitsData, LibraryListCustomUnitsErrors, LibraryListCustomUnitsResponses, LibraryListFringeTagTemplatesData, LibraryListFringeTagTemplatesErrors, LibraryListFringeTagTemplatesResponses, LibraryListFringeTemplatesData, LibraryListFringeTemplatesErrors, LibraryListFringeTemplatesResponses, LibraryListGlobalTemplatesData, LibraryListGlobalTemplatesErrors, LibraryListGlobalTemplatesResponses, LibraryListIncentivePacksData, LibraryListIncentivePacksErrors, LibraryListIncentivePacksResponses, LibraryListIncentiveProgramsData, LibraryListIncentiveProgramsErrors, LibraryListIncentiveProgramsResponses, LibraryListProjectCurrenciesData, LibraryListProjectCurrenciesErrors, LibraryListProjectCurrenciesResponses, LibraryListProjectFringesData, LibraryListProjectFringesErrors, LibraryListProjectFringesResponses, LibraryListProjectFringeTagsData, LibraryListProjectFringeTagsErrors, LibraryListProjectFringeTagsResponses, LibraryListProjectGlobalsData, LibraryListProjectGlobalsErrors, LibraryListProjectGlobalsResponses, LibraryListProjectIncentivesData, LibraryListProjectIncentivesErrors, LibraryListProjectIncentivesResponses, LibraryListProjectRatePacksData, LibraryListProjectRatePacksErrors, LibraryListProjectRatePacksResponses, LibraryListProjectTagsData, LibraryListProjectTagsErrors, LibraryListProjectTagsResponses, LibraryListRatePackItemsData, LibraryListRatePackItemsErrors, LibraryListRatePackItemsResponses, LibraryListRatePacksData, LibraryListRatePacksErrors, LibraryListRatePacksResponses, LibraryListTagsData, LibraryListTagsErrors, LibraryListTagsResponses, LibraryListUnitsData, LibraryListUnitsErrors, LibraryListUnitsResponses, LibraryRemoveProjectTagData, LibraryRemoveProjectTagErrors, LibraryRemoveProjectTagResponses, LibraryRemoveRatePackData, LibraryRemoveRatePackErrors, LibraryRemoveRatePackResponses, LibraryUpdateCurrencyTemplateData, LibraryUpdateCurrencyTemplateErrors, LibraryUpdateCurrencyTemplateResponses, LibraryUpdateCustomUnitData, LibraryUpdateCustomUnitErrors, LibraryUpdateCustomUnitResponses, LibraryUpdateFringeTagTemplateData, LibraryUpdateFringeTagTemplateErrors, LibraryUpdateFringeTagTemplateResponses, LibraryUpdateFringeTemplateData, LibraryUpdateFringeTemplateErrors, LibraryUpdateFringeTemplateResponses, LibraryUpdateGlobalTemplateData, LibraryUpdateGlobalTemplateErrors, LibraryUpdateGlobalTemplateResponses, LibraryUpdateProjectCurrencyData, LibraryUpdateProjectCurrencyErrors, LibraryUpdateProjectCurrencyResponses, LibraryUpdateProjectFringeData, LibraryUpdateProjectFringeErrors, LibraryUpdateProjectFringeResponses, LibraryUpdateProjectFringeTagData, LibraryUpdateProjectFringeTagErrors, LibraryUpdateProjectFringeTagResponses, LibraryUpdateProjectGlobalData, LibraryUpdateProjectGlobalErrors, LibraryUpdateProjectGlobalResponses, LibraryUpdateProjectIncentiveData, LibraryUpdateProjectIncentiveErrors, LibraryUpdateProjectIncentiveResponses, LibraryUpdateRatePackData, LibraryUpdateRatePackErrors, LibraryUpdateRatePackItemData, LibraryUpdateRatePackItemErrors, LibraryUpdateRatePackItemResponses, LibraryUpdateRatePackResponses, LibraryUpdateTagData, LibraryUpdateTagErrors, LibraryUpdateTagResponses, MasterDataCreateCommentData, MasterDataCreateCommentErrors, MasterDataCreateCommentResponses, MasterDataCreateContactData, MasterDataCreateContactErrors, MasterDataCreateContactResponses, MasterDataCreateProjectData, MasterDataCreateProjectErrors, MasterDataCreateProjectResponses, MasterDataCreateSpaceData, MasterDataCreateSpaceErrors, MasterDataCreateSpaceResponses, MasterDataDeleteCommentData, MasterDataDeleteCommentErrors, MasterDataDeleteCommentResponses, MasterDataDeleteContactData, MasterDataDeleteContactErrors, MasterDataDeleteContactResponses, MasterDataDeleteProjectData, MasterDataDeleteProjectErrors, MasterDataDeleteProjectResponses, MasterDataDeleteSpaceData, MasterDataDeleteSpaceErrors, MasterDataDeleteSpaceResponses, MasterDataGetContactData, MasterDataGetContactErrors, MasterDataGetContactResponses, MasterDataGetProjectData, MasterDataGetProjectErrors, MasterDataGetProjectResponses, MasterDataGetViewData, MasterDataGetViewDataData, MasterDataGetViewDataErrors, MasterDataGetViewDataResponses, MasterDataGetViewErrors, MasterDataGetViewResponses, MasterDataListCommentsData, MasterDataListCommentsErrors, MasterDataListCommentsResponses, MasterDataListContactsData, MasterDataListContactsErrors, MasterDataListContactsResponses, MasterDataListProjectsData, MasterDataListProjectsErrors, MasterDataListProjectsResponses, MasterDataListSpacesData, MasterDataListSpacesErrors, MasterDataListSpacesResponses, MasterDataListViewsData, MasterDataListViewsErrors, MasterDataListViewsResponses, MasterDataUpdateCommentData, MasterDataUpdateCommentErrors, MasterDataUpdateCommentResponses, MasterDataUpdateContactData, MasterDataUpdateContactErrors, MasterDataUpdateContactResponses, MasterDataUpdateProjectData, MasterDataUpdateProjectErrors, MasterDataUpdateProjectResponses, MasterDataUpdateSpaceData, MasterDataUpdateSpaceErrors, MasterDataUpdateSpaceResponses, MetaAuthGetMeData, MetaAuthGetMeErrors, MetaAuthGetMeResponses, MetaAuthHealthData, MetaAuthHealthErrors, MetaAuthHealthResponses, MetaAuthListWorkspacesData, MetaAuthListWorkspacesErrors, MetaAuthListWorkspacesResponses, PaymentRequestsGetData, PaymentRequestsGetErrors, PaymentRequestsGetResponses, PaymentRequestsListData, PaymentRequestsListErrors, PaymentRequestsListResponses, PaymentsGetData, PaymentsGetErrors, PaymentsGetResponses, PaymentsListData, PaymentsListErrors, PaymentsListResponses, PaymentsTimelineData, PaymentsTimelineErrors, PaymentsTimelineResponses, PurchaseOrdersActivityData, PurchaseOrdersActivityErrors, PurchaseOrdersActivityResponses, PurchaseOrdersCancelSubmissionData, PurchaseOrdersCancelSubmissionErrors, PurchaseOrdersCancelSubmissionResponses, PurchaseOrdersCreateData, PurchaseOrdersCreateErrors, PurchaseOrdersCreateItemData, PurchaseOrdersCreateItemErrors, PurchaseOrdersCreateItemResponses, PurchaseOrdersCreateResponses, PurchaseOrdersDeleteData, PurchaseOrdersDeleteErrors, PurchaseOrdersDeleteItemData, PurchaseOrdersDeleteItemErrors, PurchaseOrdersDeleteItemResponses, PurchaseOrdersDeleteResponses, PurchaseOrdersGetData, PurchaseOrdersGetErrors, PurchaseOrdersGetResponses, PurchaseOrdersLinkData, PurchaseOrdersLinkErrors, PurchaseOrdersLinkResponses, PurchaseOrdersListData, PurchaseOrdersListErrors, PurchaseOrdersListItemsData, PurchaseOrdersListItemsErrors, PurchaseOrdersListItemsResponses, PurchaseOrdersListResponses, PurchaseOrdersListTransactionsData, PurchaseOrdersListTransactionsErrors, PurchaseOrdersListTransactionsResponses, PurchaseOrdersMarkPaidData, PurchaseOrdersMarkPaidErrors, PurchaseOrdersMarkPaidResponses, PurchaseOrdersSubmitData, PurchaseOrdersSubmitErrors, PurchaseOrdersSuggestedMatchesData, PurchaseOrdersSuggestedMatchesErrors, PurchaseOrdersSuggestedMatchesResponses, PurchaseOrdersTimelineData, PurchaseOrdersTimelineErrors, PurchaseOrdersTimelineResponses, PurchaseOrdersUnlinkData, PurchaseOrdersUnlinkErrors, PurchaseOrdersUnlinkResponses, PurchaseOrdersUpdateData, PurchaseOrdersUpdateErrors, PurchaseOrdersUpdateItemData, PurchaseOrdersUpdateItemErrors, PurchaseOrdersUpdateItemResponses, PurchaseOrdersUpdateResponses, PurchaseOrdersVoidData, PurchaseOrdersVoidErrors, PurchaseOrdersVoidResponses, SearchProjectData, SearchProjectErrors, SearchProjectResponses, SearchWorkspaceData, SearchWorkspaceErrors, SearchWorkspaceResponses, TransactionsBatchCreateData, TransactionsBatchCreateErrors, TransactionsBatchCreateResponses, TransactionsCreateData, TransactionsCreateErrors, TransactionsCreateResponses, TransactionsDeleteData, TransactionsDeleteErrors, TransactionsDeleteResponses, TransactionsGetData, TransactionsGetErrors, TransactionsGetResponses, TransactionsItemsCreateData, TransactionsItemsCreateErrors, TransactionsItemsCreateResponses, TransactionsItemsDeleteData, TransactionsItemsDeleteErrors, TransactionsItemsDeleteResponses, TransactionsItemsListData, TransactionsItemsListErrors, TransactionsItemsListResponses, TransactionsItemsUpdateData, TransactionsItemsUpdateErrors, TransactionsItemsUpdateResponses, TransactionsListData, TransactionsListErrors, TransactionsListResponses, TransactionsStatsData, TransactionsStatsErrors, TransactionsStatsResponses, TransactionsTypesData, TransactionsTypesErrors, TransactionsTypesResponses, TransactionsUpdateData, TransactionsUpdateErrors, TransactionsUpdateResponses, WebhooksCreateData, WebhooksCreateErrors, WebhooksCreateResponses, WebhooksDeleteData, WebhooksDeleteErrors, WebhooksDeleteResponses, WebhooksGetData, WebhooksGetErrors, WebhooksGetResponses, WebhooksListData, WebhooksListDeliveriesData, WebhooksListDeliveriesErrors, WebhooksListDeliveriesResponses, WebhooksListErrors, WebhooksListResponses, WebhooksPingData, WebhooksPingErrors, WebhooksPingResponses, WebhooksUpdateData, WebhooksUpdateErrors, WebhooksUpdateResponses } from './types.gen.js';
+import type { BudgetCreateLineData, BudgetCreateLineErrors, BudgetCreateLineResponses, BudgetCreateLinesBulkData, BudgetCreateLinesBulkErrors, BudgetCreateLinesBulkResponses, BudgetCreatePhaseData, BudgetCreatePhaseErrors, BudgetCreatePhaseResponses, BudgetDeleteLineData, BudgetDeleteLineErrors, BudgetDeleteLineResponses, BudgetDeletePhaseData, BudgetDeletePhaseErrors, BudgetDeletePhaseResponses, BudgetGetDocumentData, BudgetGetDocumentErrors, BudgetGetDocumentResponses, BudgetGetLineData, BudgetGetLineErrors, BudgetGetLineResponses, BudgetGetPhaseData, BudgetGetPhaseErrors, BudgetGetPhaseResponses, BudgetGetTotalsData, BudgetGetTotalsErrors, BudgetGetTotalsResponses, BudgetListLinesData, BudgetListLinesErrors, BudgetListLinesResponses, BudgetListPhasesData, BudgetListPhasesErrors, BudgetListPhasesResponses, BudgetUpdateLineData, BudgetUpdateLineErrors, BudgetUpdateLineResponses, BudgetUpdatePhaseData, BudgetUpdatePhaseErrors, BudgetUpdatePhaseResponses, BudgetUpsertLinePhaseDataBulkData, BudgetUpsertLinePhaseDataBulkErrors, BudgetUpsertLinePhaseDataBulkResponses, BudgetUpsertLinePhaseDataData, BudgetUpsertLinePhaseDataErrors, BudgetUpsertLinePhaseDataResponses, DocumentsDeleteData, DocumentsDeleteErrors, DocumentsDeleteLinkData, DocumentsDeleteLinkErrors, DocumentsDeleteLinkResponses, DocumentsDeleteResponses, DocumentsDropData, DocumentsDropErrors, DocumentsDropResponses, DocumentsGetContentData, DocumentsGetContentErrors, DocumentsGetContentResponses, DocumentsGetData, DocumentsGetErrors, DocumentsGetExtractionData, DocumentsGetExtractionErrors, DocumentsGetExtractionResponses, DocumentsGetResponses, DocumentsListData, DocumentsListErrors, DocumentsListResponses, DocumentsPutLinkData, DocumentsPutLinkErrors, DocumentsPutLinkResponses, DocumentsUpdateData, DocumentsUpdateErrors, DocumentsUpdateResponses, LibraryAddProjectCurrencyData, LibraryAddProjectCurrencyErrors, LibraryAddProjectCurrencyResponses, LibraryAddProjectFringeData, LibraryAddProjectFringeErrors, LibraryAddProjectFringeGroupData, LibraryAddProjectFringeGroupErrors, LibraryAddProjectFringeGroupResponses, LibraryAddProjectFringeResponses, LibraryAddProjectGlobalData, LibraryAddProjectGlobalErrors, LibraryAddProjectGlobalResponses, LibraryAddProjectIncentiveData, LibraryAddProjectIncentiveErrors, LibraryAddProjectIncentiveResponses, LibraryAddRatePackData, LibraryAddRatePackErrors, LibraryAddRatePackResponses, LibraryCreateCurrencyData, LibraryCreateCurrencyErrors, LibraryCreateCurrencyResponses, LibraryCreateFringeData, LibraryCreateFringeErrors, LibraryCreateFringeGroupData, LibraryCreateFringeGroupErrors, LibraryCreateFringeGroupResponses, LibraryCreateFringeResponses, LibraryCreateGlobalData, LibraryCreateGlobalErrors, LibraryCreateGlobalResponses, LibraryCreateRatePackData, LibraryCreateRatePackErrors, LibraryCreateRatePackItemData, LibraryCreateRatePackItemErrors, LibraryCreateRatePackItemResponses, LibraryCreateRatePackResponses, LibraryCreateTagData, LibraryCreateTagErrors, LibraryCreateTagResponses, LibraryCreateUnitData, LibraryCreateUnitErrors, LibraryCreateUnitResponses, LibraryDeleteCurrencyData, LibraryDeleteCurrencyErrors, LibraryDeleteCurrencyResponses, LibraryDeleteFringeData, LibraryDeleteFringeErrors, LibraryDeleteFringeGroupData, LibraryDeleteFringeGroupErrors, LibraryDeleteFringeGroupResponses, LibraryDeleteFringeResponses, LibraryDeleteGlobalData, LibraryDeleteGlobalErrors, LibraryDeleteGlobalResponses, LibraryDeleteProjectCurrencyData, LibraryDeleteProjectCurrencyErrors, LibraryDeleteProjectCurrencyResponses, LibraryDeleteProjectFringeData, LibraryDeleteProjectFringeErrors, LibraryDeleteProjectFringeGroupData, LibraryDeleteProjectFringeGroupErrors, LibraryDeleteProjectFringeGroupResponses, LibraryDeleteProjectFringeResponses, LibraryDeleteProjectGlobalData, LibraryDeleteProjectGlobalErrors, LibraryDeleteProjectGlobalResponses, LibraryDeleteProjectIncentiveData, LibraryDeleteProjectIncentiveErrors, LibraryDeleteProjectIncentiveResponses, LibraryDeleteRatePackData, LibraryDeleteRatePackErrors, LibraryDeleteRatePackItemData, LibraryDeleteRatePackItemErrors, LibraryDeleteRatePackItemResponses, LibraryDeleteRatePackResponses, LibraryDeleteTagData, LibraryDeleteTagErrors, LibraryDeleteTagResponses, LibraryDeleteUnitData, LibraryDeleteUnitErrors, LibraryDeleteUnitResponses, LibraryDisableIncentivePackData, LibraryDisableIncentivePackErrors, LibraryDisableIncentivePackResponses, LibraryDisableRatePackData, LibraryDisableRatePackErrors, LibraryDisableRatePackResponses, LibraryEnableIncentivePackData, LibraryEnableIncentivePackErrors, LibraryEnableIncentivePackResponses, LibraryEnableRatePackData, LibraryEnableRatePackErrors, LibraryEnableRatePackResponses, LibraryGetCurrencyData, LibraryGetCurrencyErrors, LibraryGetCurrencyResponses, LibraryGetFringeData, LibraryGetFringeErrors, LibraryGetFringeGroupData, LibraryGetFringeGroupErrors, LibraryGetFringeGroupResponses, LibraryGetFringeResponses, LibraryGetGlobalData, LibraryGetGlobalErrors, LibraryGetGlobalResponses, LibraryGetIncentivePackData, LibraryGetIncentivePackErrors, LibraryGetIncentivePackResponses, LibraryGetProjectCurrencyData, LibraryGetProjectCurrencyErrors, LibraryGetProjectCurrencyResponses, LibraryGetProjectFringeData, LibraryGetProjectFringeErrors, LibraryGetProjectFringeGroupData, LibraryGetProjectFringeGroupErrors, LibraryGetProjectFringeGroupResponses, LibraryGetProjectFringeResponses, LibraryGetProjectGlobalData, LibraryGetProjectGlobalErrors, LibraryGetProjectGlobalResponses, LibraryGetProjectIncentiveData, LibraryGetProjectIncentiveErrors, LibraryGetProjectIncentiveResponses, LibraryGetRatePackData, LibraryGetRatePackErrors, LibraryGetRatePackResponses, LibraryGetTagData, LibraryGetTagErrors, LibraryGetTagResponses, LibraryGetUnitData, LibraryGetUnitErrors, LibraryGetUnitResponses, LibraryListCurrencysData, LibraryListCurrencysErrors, LibraryListCurrencysResponses, LibraryListFringeGroupsData, LibraryListFringeGroupsErrors, LibraryListFringeGroupsResponses, LibraryListFringesData, LibraryListFringesErrors, LibraryListFringesResponses, LibraryListGlobalsData, LibraryListGlobalsErrors, LibraryListGlobalsResponses, LibraryListIncentivePacksData, LibraryListIncentivePacksErrors, LibraryListIncentivePacksResponses, LibraryListIncentiveProgramsData, LibraryListIncentiveProgramsErrors, LibraryListIncentiveProgramsResponses, LibraryListProjectCurrenciesData, LibraryListProjectCurrenciesErrors, LibraryListProjectCurrenciesResponses, LibraryListProjectFringeGroupsData, LibraryListProjectFringeGroupsErrors, LibraryListProjectFringeGroupsResponses, LibraryListProjectFringesData, LibraryListProjectFringesErrors, LibraryListProjectFringesResponses, LibraryListProjectGlobalsData, LibraryListProjectGlobalsErrors, LibraryListProjectGlobalsResponses, LibraryListProjectIncentivesData, LibraryListProjectIncentivesErrors, LibraryListProjectIncentivesResponses, LibraryListProjectRatePacksData, LibraryListProjectRatePacksErrors, LibraryListProjectRatePacksResponses, LibraryListProjectTagsData, LibraryListProjectTagsErrors, LibraryListProjectTagsResponses, LibraryListRatePackItemsData, LibraryListRatePackItemsErrors, LibraryListRatePackItemsResponses, LibraryListRatePacksData, LibraryListRatePacksErrors, LibraryListRatePacksResponses, LibraryListTagsData, LibraryListTagsErrors, LibraryListTagsResponses, LibraryListUnitsData, LibraryListUnitsErrors, LibraryListUnitsResponses, LibraryRemoveRatePackData, LibraryRemoveRatePackErrors, LibraryRemoveRatePackResponses, LibraryUpdateCurrencyData, LibraryUpdateCurrencyErrors, LibraryUpdateCurrencyResponses, LibraryUpdateFringeData, LibraryUpdateFringeErrors, LibraryUpdateFringeGroupData, LibraryUpdateFringeGroupErrors, LibraryUpdateFringeGroupResponses, LibraryUpdateFringeResponses, LibraryUpdateGlobalData, LibraryUpdateGlobalErrors, LibraryUpdateGlobalResponses, LibraryUpdateProjectCurrencyData, LibraryUpdateProjectCurrencyErrors, LibraryUpdateProjectCurrencyResponses, LibraryUpdateProjectFringeData, LibraryUpdateProjectFringeErrors, LibraryUpdateProjectFringeGroupData, LibraryUpdateProjectFringeGroupErrors, LibraryUpdateProjectFringeGroupResponses, LibraryUpdateProjectFringeResponses, LibraryUpdateProjectGlobalData, LibraryUpdateProjectGlobalErrors, LibraryUpdateProjectGlobalResponses, LibraryUpdateProjectIncentiveData, LibraryUpdateProjectIncentiveErrors, LibraryUpdateProjectIncentiveResponses, LibraryUpdateRatePackData, LibraryUpdateRatePackErrors, LibraryUpdateRatePackItemData, LibraryUpdateRatePackItemErrors, LibraryUpdateRatePackItemResponses, LibraryUpdateRatePackResponses, LibraryUpdateTagData, LibraryUpdateTagErrors, LibraryUpdateTagResponses, LibraryUpdateUnitData, LibraryUpdateUnitErrors, LibraryUpdateUnitResponses, MasterDataCreateCommentData, MasterDataCreateCommentErrors, MasterDataCreateCommentResponses, MasterDataCreateContactData, MasterDataCreateContactErrors, MasterDataCreateContactResponses, MasterDataCreateProjectData, MasterDataCreateProjectErrors, MasterDataCreateProjectResponses, MasterDataCreateSpaceData, MasterDataCreateSpaceErrors, MasterDataCreateSpaceResponses, MasterDataDeleteCommentData, MasterDataDeleteCommentErrors, MasterDataDeleteCommentResponses, MasterDataDeleteContactData, MasterDataDeleteContactErrors, MasterDataDeleteContactResponses, MasterDataDeleteSpaceData, MasterDataDeleteSpaceErrors, MasterDataDeleteSpaceResponses, MasterDataGetContactData, MasterDataGetContactErrors, MasterDataGetContactResponses, MasterDataGetProjectData, MasterDataGetProjectErrors, MasterDataGetProjectResponses, MasterDataListCommentsData, MasterDataListCommentsErrors, MasterDataListCommentsResponses, MasterDataListContactsData, MasterDataListContactsErrors, MasterDataListContactsResponses, MasterDataListProjectsData, MasterDataListProjectsErrors, MasterDataListProjectsResponses, MasterDataListSpacesData, MasterDataListSpacesErrors, MasterDataListSpacesResponses, MasterDataUpdateCommentData, MasterDataUpdateCommentErrors, MasterDataUpdateCommentResponses, MasterDataUpdateContactData, MasterDataUpdateContactErrors, MasterDataUpdateContactResponses, MasterDataUpdateProjectData, MasterDataUpdateProjectErrors, MasterDataUpdateProjectResponses, MasterDataUpdateSpaceData, MasterDataUpdateSpaceErrors, MasterDataUpdateSpaceResponses, MetaAuthGetMeData, MetaAuthGetMeErrors, MetaAuthGetMeResponses, PaymentRequestsGetData, PaymentRequestsGetErrors, PaymentRequestsGetResponses, PaymentRequestsListData, PaymentRequestsListErrors, PaymentRequestsListResponses, PaymentsGetData, PaymentsGetErrors, PaymentsGetResponses, PaymentsListData, PaymentsListErrors, PaymentsListResponses, PaymentsTimelineData, PaymentsTimelineErrors, PaymentsTimelineResponses, PurchaseOrdersCancelSubmissionData, PurchaseOrdersCancelSubmissionErrors, PurchaseOrdersCancelSubmissionResponses, PurchaseOrdersCreateData, PurchaseOrdersCreateErrors, PurchaseOrdersCreateItemData, PurchaseOrdersCreateItemErrors, PurchaseOrdersCreateItemResponses, PurchaseOrdersCreateResponses, PurchaseOrdersDeleteData, PurchaseOrdersDeleteErrors, PurchaseOrdersDeleteItemData, PurchaseOrdersDeleteItemErrors, PurchaseOrdersDeleteItemResponses, PurchaseOrdersDeleteResponses, PurchaseOrdersDeleteTransactionData, PurchaseOrdersDeleteTransactionErrors, PurchaseOrdersDeleteTransactionResponses, PurchaseOrdersGetData, PurchaseOrdersGetErrors, PurchaseOrdersGetResponses, PurchaseOrdersListData, PurchaseOrdersListErrors, PurchaseOrdersListItemsData, PurchaseOrdersListItemsErrors, PurchaseOrdersListItemsResponses, PurchaseOrdersListResponses, PurchaseOrdersMarkPaidData, PurchaseOrdersMarkPaidErrors, PurchaseOrdersMarkPaidResponses, PurchaseOrdersPutTransactionData, PurchaseOrdersPutTransactionErrors, PurchaseOrdersPutTransactionResponses, PurchaseOrdersSubmitData, PurchaseOrdersSubmitErrors, PurchaseOrdersTimelineData, PurchaseOrdersTimelineErrors, PurchaseOrdersTimelineResponses, PurchaseOrdersUpdateData, PurchaseOrdersUpdateErrors, PurchaseOrdersUpdateItemData, PurchaseOrdersUpdateItemErrors, PurchaseOrdersUpdateItemResponses, PurchaseOrdersUpdateResponses, PurchaseOrdersVoidData, PurchaseOrdersVoidErrors, PurchaseOrdersVoidResponses, SearchWorkspaceData, SearchWorkspaceErrors, SearchWorkspaceResponses, TransactionsBulkCreateData, TransactionsBulkCreateErrors, TransactionsBulkCreateResponses, TransactionsCreateData, TransactionsCreateErrors, TransactionsCreateResponses, TransactionsDeleteData, TransactionsDeleteErrors, TransactionsDeleteResponses, TransactionsGetData, TransactionsGetErrors, TransactionsGetResponses, TransactionsItemsCreateData, TransactionsItemsCreateErrors, TransactionsItemsCreateResponses, TransactionsItemsDeleteData, TransactionsItemsDeleteErrors, TransactionsItemsDeleteResponses, TransactionsItemsListData, TransactionsItemsListErrors, TransactionsItemsListResponses, TransactionsItemsUpdateData, TransactionsItemsUpdateErrors, TransactionsItemsUpdateResponses, TransactionsListData, TransactionsListErrors, TransactionsListResponses, TransactionsStatsData, TransactionsStatsErrors, TransactionsStatsResponses, TransactionsUpdateData, TransactionsUpdateErrors, TransactionsUpdateResponses, WebhooksCreateData, WebhooksCreateErrors, WebhooksCreateResponses, WebhooksDeleteData, WebhooksDeleteErrors, WebhooksDeleteResponses, WebhooksGetData, WebhooksGetErrors, WebhooksGetResponses, WebhooksListData, WebhooksListDeliveriesData, WebhooksListDeliveriesErrors, WebhooksListDeliveriesResponses, WebhooksListErrors, WebhooksListResponses, WebhooksSendTestDeliveryData, WebhooksSendTestDeliveryErrors, WebhooksSendTestDeliveryResponses, WebhooksUpdateData, WebhooksUpdateErrors, WebhooksUpdateResponses } from './types.gen.js';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -41,42 +41,9 @@ export const budgetGetTotals = <ThrowOnError extends boolean = false>(options: O
 });
 
 /**
- * Get the engine rollup for a phase
- *
- * Returns the computed rollup for a single phase as of `computedAt`. `expand` is not supported.
- */
-export const budgetGetRollup = <ThrowOnError extends boolean = false>(options: Options<BudgetGetRollupData, ThrowOnError>) => (options.client ?? client).get<BudgetGetRollupResponses, BudgetGetRollupErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/budget/rollup',
-    ...options
-});
-
-/**
- * Get computed variance between two phases
- *
- * Returns the computed variance (`to` minus `from`) between two phases as of `computedAt`. `expand` is rejected.
- */
-export const budgetGetVariance = <ThrowOnError extends boolean = false>(options: Options<BudgetGetVarianceData, ThrowOnError>) => (options.client ?? client).get<BudgetGetVarianceResponses, BudgetGetVarianceErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/budget/variance',
-    ...options
-});
-
-/**
- * Read one budget value by account and column
- *
- * Reads one budget value by `account` + `column`, never a raw domain address. `account` accepts a path/code; `column` names the value column (e.g. a phase). Wildcard/subtree pattern reads stay internal-only. The value is computed server-side as of `computedAt`, with the same caching behavior as `/budget/totals`: the value is the engine's truth as of `computedAt` (in the body), the response carries `Cache-Control: max-age=T` + an opaque `ETag` header, and a conditional GET (`If-None-Match`) re-runs the row-derived permission gate before returning `304`. `expand` is rejected (`400 expand_invalid`); a warm-up miss returns `504 budget_compute_timeout`.
- */
-export const budgetGetCell = <ThrowOnError extends boolean = false>(options: Options<BudgetGetCellData, ThrowOnError>) => (options.client ?? client).get<BudgetGetCellResponses, BudgetGetCellErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/budget/cells',
-    ...options
-});
-
-/**
  * List budget lines (paginated, filterable)
  *
- * Browse/edit individual stored budget lines, paginated. Filters AND-compose. `accountId` is a classifier and returns a set (an account code can sit on many rows); `path` returns exactly one row (or `409 account_path_ambiguous` if a coded path matches more than one live row). For the complete budget document use `GET /budget`. Expand keys: `phases, phaseData, contact, account, sourceItem`; `phaseData` returns raw editable estimate phase data keyed by phase id. (The legacy `lines.notes` expand is not ported, the note is a plain-text `line.notes` field always present inline; see `BudgetLine.notes`.)
+ * Browse/edit individual stored budget lines, paginated. Filters AND-compose. `accountId` is a classifier and returns a set (an account code can sit on many rows); `path` returns exactly one row (or `409 account_path_ambiguous` if a coded path matches more than one live row). For the complete budget document use `GET /budget`. Expand keys: `phaseTotals, phaseData, contact, account, source`; `phaseData` returns raw editable estimate phase data keyed by phase id. (The legacy `lines.notes` expand is not ported, the note is a plain-text `line.notes` field always present inline; see `BudgetLine.notes`.)
  */
 export const budgetListLines = <ThrowOnError extends boolean = false>(options: Options<BudgetListLinesData, ThrowOnError>) => (options.client ?? client).get<BudgetListLinesResponses, BudgetListLinesErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -101,13 +68,13 @@ export const budgetCreateLine = <ThrowOnError extends boolean = false>(options: 
 });
 
 /**
- * Create budget lines in one all-or-nothing batch
+ * Create budget lines in one all-or-nothing bulk
  *
- * Creates multiple stored budget lines, each optionally carrying initial editable phase data keyed by phase id. The batch is transactional: either every line and phase-data entry is written, or none are. A required `Idempotency-Key` provides exactly-once same-body retries.
+ * Creates multiple stored budget lines, each optionally carrying initial editable phase data keyed by phase id. The bulk is transactional: either every line and phase-data entry is written, or none are. A required `Idempotency-Key` provides exactly-once same-body retries.
  */
-export const budgetCreateLinesBatch = <ThrowOnError extends boolean = false>(options: Options<BudgetCreateLinesBatchData, ThrowOnError>) => (options.client ?? client).post<BudgetCreateLinesBatchResponses, BudgetCreateLinesBatchErrors, ThrowOnError>({
+export const budgetCreateLinesBulk = <ThrowOnError extends boolean = false>(options: Options<BudgetCreateLinesBulkData, ThrowOnError>) => (options.client ?? client).post<BudgetCreateLinesBulkResponses, BudgetCreateLinesBulkErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/budget/lines/batch',
+    url: '/projects/{projectId}/budget/lines/bulk',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -116,13 +83,13 @@ export const budgetCreateLinesBatch = <ThrowOnError extends boolean = false>(opt
 });
 
 /**
- * Upsert editable line phase data in one all-or-nothing batch
+ * Upsert editable line phase data in one all-or-nothing bulk
  *
- * Upserts raw editable estimate phase data for existing lines and phases. The batch is transactional: either every phase-data entry is written, or none are. A required `Idempotency-Key` provides exactly-once same-body retries.
+ * Upserts raw editable estimate phase data for existing lines and phases. The bulk is transactional: either every phase-data entry is written, or none are. A required `Idempotency-Key` provides exactly-once same-body retries.
  */
-export const budgetUpsertLinePhaseDataBatch = <ThrowOnError extends boolean = false>(options: Options<BudgetUpsertLinePhaseDataBatchData, ThrowOnError>) => (options.client ?? client).post<BudgetUpsertLinePhaseDataBatchResponses, BudgetUpsertLinePhaseDataBatchErrors, ThrowOnError>({
+export const budgetUpsertLinePhaseDataBulk = <ThrowOnError extends boolean = false>(options: Options<BudgetUpsertLinePhaseDataBulkData, ThrowOnError>) => (options.client ?? client).post<BudgetUpsertLinePhaseDataBulkResponses, BudgetUpsertLinePhaseDataBulkErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/budget/lines/phase-data/batch',
+    url: '/projects/{projectId}/budget/lines/phase-data/bulk',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -243,17 +210,6 @@ export const budgetUpdatePhase = <ThrowOnError extends boolean = false>(options:
 });
 
 /**
- * List budget accounts (account-typed lines)
- *
- * Derived view of the chart of accounts, the budget lines where `kind=account`. Returns `code`, `name`, `parentId`, `path`, `depth`.
- */
-export const budgetListAccounts = <ThrowOnError extends boolean = false>(options: Options<BudgetListAccountsData, ThrowOnError>) => (options.client ?? client).get<BudgetListAccountsResponses, BudgetListAccountsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/budget/accounts',
-    ...options
-});
-
-/**
  * List / filter documents
  *
  * List documents in the workspace, paginated (cap 100). Filter by folder, assignment target, unassigned-only, project, status, classification, coarse type, or a name/description search.
@@ -268,8 +224,7 @@ export const documentsList = <ThrowOnError extends boolean = false>(options?: Op
 /**
  * Drop a document (optionally assign atomically)
  *
- * Upload ("drop") a document once. Optionally assign it to one or more typed targets in the same atomic call via `metadata.assignTo`, the 80% "receipt onto this transaction" case. Atomic: if any target fails validation, permission, or the cross-workspace check, the request fails 4xx and NO document row (and no orphan blob) is created. In v1, multiple targets must be DISTINCT kinds (one reference per kind). The assign permission gate is `update` on each target's subject, not on the document.
- * This is a billable create (it stores a blob and a document row). Accepts an optional `Idempotency-Key` header for safe retries; replaying the same key with a different body returns `409 idempotency_conflict`.
+ * Upload a document once. Optionally link it to one or more typed targets in the same atomic call via `metadata.links`. If any target fails validation, permission, or the cross-workspace check, the request fails and creates no document row or orphan blob. Multiple targets must use distinct kinds. The link permission gate is `update` on each target subject. This is a billable create. It accepts an optional `Idempotency-Key` header for safe retries.
  */
 export const documentsDrop = <ThrowOnError extends boolean = false>(options: Options<DocumentsDropData, ThrowOnError>) => (options.client ?? client).post<DocumentsDropResponses, DocumentsDropErrors, ThrowOnError>({
     ...formDataBodySerializer,
@@ -306,7 +261,7 @@ export const documentsGet = <ThrowOnError extends boolean = false>(options: Opti
 /**
  * Rename / move / re-describe a document
  *
- * Update client-writable fields only (`name`, `description`, `folderId`). Assignments are managed via `/assign` and `/unassign`. Naming a server-owned field returns `422 field_read_only`.
+ * Update client-writable fields only (`name`, `description`, `folderId`). Links are managed through `/documents/{documentId}/links/{kind}`. Naming a server-owned field returns `422 field_read_only`.
  */
 export const documentsUpdate = <ThrowOnError extends boolean = false>(options: Options<DocumentsUpdateData, ThrowOnError>) => (options.client ?? client).patch<DocumentsUpdateResponses, DocumentsUpdateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -330,6 +285,32 @@ export const documentsGetContent = <ThrowOnError extends boolean = false>(option
 });
 
 /**
+ * Remove a document link
+ *
+ * Removes the current link for this kind. The operation is idempotent when no link of that kind exists.
+ */
+export const documentsDeleteLink = <ThrowOnError extends boolean = false>(options: Options<DocumentsDeleteLinkData, ThrowOnError>) => (options.client ?? client).delete<DocumentsDeleteLinkResponses, DocumentsDeleteLinkErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/documents/{documentId}/links/{kind}',
+    ...options
+});
+
+/**
+ * Link a document to a typed target
+ *
+ * Links the document to one target of this kind. The same target is an idempotent no-op. A different target conflicts unless replace is true.
+ */
+export const documentsPutLink = <ThrowOnError extends boolean = false>(options: Options<DocumentsPutLinkData, ThrowOnError>) => (options.client ?? client).put<DocumentsPutLinkResponses, DocumentsPutLinkErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/documents/{documentId}/links/{kind}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Get a document's structured extraction
  *
  * The structured fields the platform extracted from the document, the replacement for the legacy per-attachment parsed-document read. Returns the classification, a flat map of extracted typed fields (e.g. invoice number, vendor, total, dates), and any line items, each with a confidence score so a consumer can threshold low-confidence values. Available only once `status = READY`; while the document is still `PENDING`/`PROCESSING` this returns `404 not_found` (extraction not ready yet, re-fetch the document and retry when its `status` is `READY`), and a `FAILED` document has no extraction. Read-only, extraction is set by the platform, never by the client.
@@ -341,95 +322,6 @@ export const documentsGetExtraction = <ThrowOnError extends boolean = false>(opt
 });
 
 /**
- * Assign a document to a typed target
- *
- * Assign an already-dropped document to a typed `{ kind, id }` target. The permission gate is `update` on the target's subject, so you can only attach where you could already edit the thing, not on the document. Idempotent on the SAME id (`200` no-op); a same-kind assignment to a DIFFERENT id returns `409 already_assigned` unless `replace: true`. A target in a different workspace returns `404 not_found` (never silently ignored). It is deliberately indistinguishable from a target that does not exist, so cross-workspace existence is never leaked.
- */
-export const documentsAssign = <ThrowOnError extends boolean = false>(options: Options<DocumentsAssignData, ThrowOnError>) => (options.client ?? client).post<DocumentsAssignResponses, DocumentsAssignErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/documents/{documentId}/assign',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Unassign a document from a typed target
- *
- * Remove a document's assignment to a typed `{ kind, id }` target (clears that kind's reference). Idempotent, a `200` no-op when the document is not assigned to that target.
- */
-export const documentsUnassign = <ThrowOnError extends boolean = false>(options: Options<DocumentsUnassignData, ThrowOnError>) => (options.client ?? client).post<DocumentsUnassignResponses, DocumentsUnassignErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/documents/{documentId}/unassign',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * List a document's assignments
- *
- * The set of typed targets this document is currently assigned to, derived from its non-null per-kind reference (single-reference v1).
- */
-export const documentsListAssignments = <ThrowOnError extends boolean = false>(options: Options<DocumentsListAssignmentsData, ThrowOnError>) => (options.client ?? client).get<DocumentsListAssignmentsResponses, DocumentsListAssignmentsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/documents/{documentId}/assignments',
-    ...options
-});
-
-/**
- * List documents on a project
- *
- * Reverse read, documents scoped to this project (`projectId = {projectId}`).
- */
-export const documentsListByProject = <ThrowOnError extends boolean = false>(options: Options<DocumentsListByProjectData, ThrowOnError>) => (options.client ?? client).get<DocumentsListByProjectResponses, DocumentsListByProjectErrors, ThrowOnError>({
-    querySerializer: { parameters: { expand: { array: { explode: false } } } },
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/documents',
-    ...options
-});
-
-/**
- * List documents on a transaction
- *
- * Reverse read, documents assigned to this transaction (`transactionId = {txId}`).
- */
-export const documentsListByTransaction = <ThrowOnError extends boolean = false>(options: Options<DocumentsListByTransactionData, ThrowOnError>) => (options.client ?? client).get<DocumentsListByTransactionResponses, DocumentsListByTransactionErrors, ThrowOnError>({
-    querySerializer: { parameters: { expand: { array: { explode: false } } } },
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/transactions/{txId}/documents',
-    ...options
-});
-
-/**
- * List documents on a purchase order
- *
- * Reverse read, documents assigned to this purchase order (`purchaseOrderId = {purchaseOrderId}`).
- */
-export const documentsListByPurchaseOrder = <ThrowOnError extends boolean = false>(options: Options<DocumentsListByPurchaseOrderData, ThrowOnError>) => (options.client ?? client).get<DocumentsListByPurchaseOrderResponses, DocumentsListByPurchaseOrderErrors, ThrowOnError>({
-    querySerializer: { parameters: { expand: { array: { explode: false } } } },
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/purchase-orders/{purchaseOrderId}/documents',
-    ...options
-});
-
-/**
- * List documents on a contact
- *
- * Reverse read, documents assigned to this contact (`contactId = {contactId}`). Contacts are workspace-level, so this read is at WORKSPACE scope (not under a project); contact-only documents may have a null `projectId`.
- */
-export const documentsListByContact = <ThrowOnError extends boolean = false>(options: Options<DocumentsListByContactData, ThrowOnError>) => (options.client ?? client).get<DocumentsListByContactResponses, DocumentsListByContactErrors, ThrowOnError>({
-    querySerializer: { parameters: { expand: { array: { explode: false } } } },
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/contacts/{contactId}/documents',
-    ...options
-});
-
-/**
  * List rate packs visible to the workspace
  *
  * Rate packs visible to the workspace: `PUBLIC` ∪ workspace-owned, live. Each carries `enabled`/`isOwned`/`latestVersion`. Enabled/installed deprecated packs are included and flagged `deprecated: true`.
@@ -437,7 +329,7 @@ export const documentsListByContact = <ThrowOnError extends boolean = false>(opt
 export const libraryListRatePacks = <ThrowOnError extends boolean = false>(options?: Options<LibraryListRatePacksData, ThrowOnError>) => (options?.client ?? client).get<LibraryListRatePacksResponses, LibraryListRatePacksErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates',
+    url: '/library/rate-packs',
     ...options
 });
 
@@ -448,7 +340,7 @@ export const libraryListRatePacks = <ThrowOnError extends boolean = false>(optio
  */
 export const libraryCreateRatePack = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateRatePackData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateRatePackResponses, LibraryCreateRatePackErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates',
+    url: '/library/rate-packs',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -463,7 +355,7 @@ export const libraryCreateRatePack = <ThrowOnError extends boolean = false>(opti
  */
 export const libraryDeleteRatePack = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteRatePackData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteRatePackResponses, LibraryDeleteRatePackErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates/{packId}',
+    url: '/library/rate-packs/{packId}',
     ...options
 });
 
@@ -473,7 +365,7 @@ export const libraryDeleteRatePack = <ThrowOnError extends boolean = false>(opti
 export const libraryGetRatePack = <ThrowOnError extends boolean = false>(options: Options<LibraryGetRatePackData, ThrowOnError>) => (options.client ?? client).get<LibraryGetRatePackResponses, LibraryGetRatePackErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates/{packId}',
+    url: '/library/rate-packs/{packId}',
     ...options
 });
 
@@ -484,7 +376,7 @@ export const libraryGetRatePack = <ThrowOnError extends boolean = false>(options
  */
 export const libraryUpdateRatePack = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateRatePackData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateRatePackResponses, LibraryUpdateRatePackErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates/{packId}',
+    url: '/library/rate-packs/{packId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -499,7 +391,7 @@ export const libraryUpdateRatePack = <ThrowOnError extends boolean = false>(opti
  */
 export const libraryDisableRatePack = <ThrowOnError extends boolean = false>(options: Options<LibraryDisableRatePackData, ThrowOnError>) => (options.client ?? client).delete<LibraryDisableRatePackResponses, LibraryDisableRatePackErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates/{packId}/enable',
+    url: '/library/rate-packs/{packId}/enablement',
     ...options
 });
 
@@ -510,7 +402,7 @@ export const libraryDisableRatePack = <ThrowOnError extends boolean = false>(opt
  */
 export const libraryEnableRatePack = <ThrowOnError extends boolean = false>(options: Options<LibraryEnableRatePackData, ThrowOnError>) => (options.client ?? client).post<LibraryEnableRatePackResponses, LibraryEnableRatePackErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates/{packId}/enable',
+    url: '/library/rate-packs/{packId}/enablement',
     ...options
 });
 
@@ -521,7 +413,7 @@ export const libraryEnableRatePack = <ThrowOnError extends boolean = false>(opti
  */
 export const libraryListRatePackItems = <ThrowOnError extends boolean = false>(options: Options<LibraryListRatePackItemsData, ThrowOnError>) => (options.client ?? client).get<LibraryListRatePackItemsResponses, LibraryListRatePackItemsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates/{packId}/items',
+    url: '/library/rate-packs/{packId}/items',
     ...options
 });
 
@@ -532,7 +424,7 @@ export const libraryListRatePackItems = <ThrowOnError extends boolean = false>(o
  */
 export const libraryCreateRatePackItem = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateRatePackItemData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateRatePackItemResponses, LibraryCreateRatePackItemErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates/{packId}/items',
+    url: '/library/rate-packs/{packId}/items',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -547,7 +439,7 @@ export const libraryCreateRatePackItem = <ThrowOnError extends boolean = false>(
  */
 export const libraryDeleteRatePackItem = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteRatePackItemData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteRatePackItemResponses, LibraryDeleteRatePackItemErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates/{packId}/items/{itemId}',
+    url: '/library/rate-packs/{packId}/items/{itemId}',
     ...options
 });
 
@@ -556,7 +448,7 @@ export const libraryDeleteRatePackItem = <ThrowOnError extends boolean = false>(
  */
 export const libraryUpdateRatePackItem = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateRatePackItemData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateRatePackItemResponses, LibraryUpdateRatePackItemErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates/{packId}/items/{itemId}',
+    url: '/library/rate-packs/{packId}/items/{itemId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -570,7 +462,7 @@ export const libraryUpdateRatePackItem = <ThrowOnError extends boolean = false>(
 export const libraryListIncentivePacks = <ThrowOnError extends boolean = false>(options?: Options<LibraryListIncentivePacksData, ThrowOnError>) => (options?.client ?? client).get<LibraryListIncentivePacksResponses, LibraryListIncentivePacksErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/incentives',
+    url: '/library/incentive-packs',
     ...options
 });
 
@@ -580,7 +472,7 @@ export const libraryListIncentivePacks = <ThrowOnError extends boolean = false>(
 export const libraryGetIncentivePack = <ThrowOnError extends boolean = false>(options: Options<LibraryGetIncentivePackData, ThrowOnError>) => (options.client ?? client).get<LibraryGetIncentivePackResponses, LibraryGetIncentivePackErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/incentives/{packId}',
+    url: '/library/incentive-packs/{packId}',
     ...options
 });
 
@@ -589,7 +481,7 @@ export const libraryGetIncentivePack = <ThrowOnError extends boolean = false>(op
  */
 export const libraryListIncentivePrograms = <ThrowOnError extends boolean = false>(options: Options<LibraryListIncentiveProgramsData, ThrowOnError>) => (options.client ?? client).get<LibraryListIncentiveProgramsResponses, LibraryListIncentiveProgramsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/incentives/{packId}/programs',
+    url: '/library/incentive-packs/{packId}/programs',
     ...options
 });
 
@@ -600,25 +492,25 @@ export const libraryListIncentivePrograms = <ThrowOnError extends boolean = fals
  */
 export const libraryDisableIncentivePack = <ThrowOnError extends boolean = false>(options: Options<LibraryDisableIncentivePackData, ThrowOnError>) => (options.client ?? client).delete<LibraryDisableIncentivePackResponses, LibraryDisableIncentivePackErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/incentives/{packId}/enable',
+    url: '/library/incentive-packs/{packId}/enablement',
     ...options
 });
 
 /**
  * Enable an incentive pack for the workspace
  *
- * Idempotent upsert/resurrect of the workspace-enable link. Enabling a deprecated pack returns `400 validation`; a PRIVATE pack owned by another workspace returns `404 not_found`. Incentive programs are added to a project via `POST …/projects/{projectId}/library/incentives/add`.
+ * Idempotent upsert or resurrection of the workspace enablement. Enabling a deprecated pack returns `400 validation`; a private pack owned by another workspace returns `404 not_found`. Incentive programs are added through `POST /projects/{projectId}/library/incentives`.
  */
 export const libraryEnableIncentivePack = <ThrowOnError extends boolean = false>(options: Options<LibraryEnableIncentivePackData, ThrowOnError>) => (options.client ?? client).post<LibraryEnableIncentivePackResponses, LibraryEnableIncentivePackErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/incentives/{packId}/enable',
+    url: '/library/incentive-packs/{packId}/enablement',
     ...options
 });
 
 /**
  * List workspace fringe templates
  */
-export const libraryListFringeTemplates = <ThrowOnError extends boolean = false>(options?: Options<LibraryListFringeTemplatesData, ThrowOnError>) => (options?.client ?? client).get<LibraryListFringeTemplatesResponses, LibraryListFringeTemplatesErrors, ThrowOnError>({
+export const libraryListFringes = <ThrowOnError extends boolean = false>(options?: Options<LibraryListFringesData, ThrowOnError>) => (options?.client ?? client).get<LibraryListFringesResponses, LibraryListFringesErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/fringes',
     ...options
@@ -627,7 +519,7 @@ export const libraryListFringeTemplates = <ThrowOnError extends boolean = false>
 /**
  * Create a workspace fringe template
  */
-export const libraryCreateFringeTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateFringeTemplateData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateFringeTemplateResponses, LibraryCreateFringeTemplateErrors, ThrowOnError>({
+export const libraryCreateFringe = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateFringeData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateFringeResponses, LibraryCreateFringeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/fringes',
     ...options,
@@ -640,9 +532,9 @@ export const libraryCreateFringeTemplate = <ThrowOnError extends boolean = false
 /**
  * Soft-delete a workspace fringe template
  *
- * Soft-deletes the template. Project copies keep their `sourceId`; `expand=sourceItem` then resolves to a tombstone (never null).
+ * Soft-deletes the template. Project copies keep their `sourceId`; `expand=source` then resolves to a tombstone (never null).
  */
-export const libraryDeleteFringeTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteFringeTemplateData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteFringeTemplateResponses, LibraryDeleteFringeTemplateErrors, ThrowOnError>({
+export const libraryDeleteFringe = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteFringeData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteFringeResponses, LibraryDeleteFringeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/fringes/{fringeId}',
     ...options
@@ -651,7 +543,7 @@ export const libraryDeleteFringeTemplate = <ThrowOnError extends boolean = false
 /**
  * Get a workspace fringe template
  */
-export const libraryGetFringeTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryGetFringeTemplateData, ThrowOnError>) => (options.client ?? client).get<LibraryGetFringeTemplateResponses, LibraryGetFringeTemplateErrors, ThrowOnError>({
+export const libraryGetFringe = <ThrowOnError extends boolean = false>(options: Options<LibraryGetFringeData, ThrowOnError>) => (options.client ?? client).get<LibraryGetFringeResponses, LibraryGetFringeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/fringes/{fringeId}',
     ...options
@@ -660,7 +552,7 @@ export const libraryGetFringeTemplate = <ThrowOnError extends boolean = false>(o
 /**
  * Update a workspace fringe template
  */
-export const libraryUpdateFringeTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateFringeTemplateData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateFringeTemplateResponses, LibraryUpdateFringeTemplateErrors, ThrowOnError>({
+export const libraryUpdateFringe = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateFringeData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateFringeResponses, LibraryUpdateFringeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/fringes/{fringeId}',
     ...options,
@@ -673,7 +565,7 @@ export const libraryUpdateFringeTemplate = <ThrowOnError extends boolean = false
 /**
  * List workspace global templates
  */
-export const libraryListGlobalTemplates = <ThrowOnError extends boolean = false>(options?: Options<LibraryListGlobalTemplatesData, ThrowOnError>) => (options?.client ?? client).get<LibraryListGlobalTemplatesResponses, LibraryListGlobalTemplatesErrors, ThrowOnError>({
+export const libraryListGlobals = <ThrowOnError extends boolean = false>(options?: Options<LibraryListGlobalsData, ThrowOnError>) => (options?.client ?? client).get<LibraryListGlobalsResponses, LibraryListGlobalsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/globals',
     ...options
@@ -682,7 +574,7 @@ export const libraryListGlobalTemplates = <ThrowOnError extends boolean = false>
 /**
  * Create a workspace global template
  */
-export const libraryCreateGlobalTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateGlobalTemplateData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateGlobalTemplateResponses, LibraryCreateGlobalTemplateErrors, ThrowOnError>({
+export const libraryCreateGlobal = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateGlobalData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateGlobalResponses, LibraryCreateGlobalErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/globals',
     ...options,
@@ -695,7 +587,7 @@ export const libraryCreateGlobalTemplate = <ThrowOnError extends boolean = false
 /**
  * Soft-delete a workspace global template
  */
-export const libraryDeleteGlobalTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteGlobalTemplateData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteGlobalTemplateResponses, LibraryDeleteGlobalTemplateErrors, ThrowOnError>({
+export const libraryDeleteGlobal = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteGlobalData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteGlobalResponses, LibraryDeleteGlobalErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/globals/{globalId}',
     ...options
@@ -704,7 +596,7 @@ export const libraryDeleteGlobalTemplate = <ThrowOnError extends boolean = false
 /**
  * Get a workspace global template
  */
-export const libraryGetGlobalTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryGetGlobalTemplateData, ThrowOnError>) => (options.client ?? client).get<LibraryGetGlobalTemplateResponses, LibraryGetGlobalTemplateErrors, ThrowOnError>({
+export const libraryGetGlobal = <ThrowOnError extends boolean = false>(options: Options<LibraryGetGlobalData, ThrowOnError>) => (options.client ?? client).get<LibraryGetGlobalResponses, LibraryGetGlobalErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/globals/{globalId}',
     ...options
@@ -713,7 +605,7 @@ export const libraryGetGlobalTemplate = <ThrowOnError extends boolean = false>(o
 /**
  * Update a workspace global template
  */
-export const libraryUpdateGlobalTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateGlobalTemplateData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateGlobalTemplateResponses, LibraryUpdateGlobalTemplateErrors, ThrowOnError>({
+export const libraryUpdateGlobal = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateGlobalData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateGlobalResponses, LibraryUpdateGlobalErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/globals/{globalId}',
     ...options,
@@ -726,7 +618,7 @@ export const libraryUpdateGlobalTemplate = <ThrowOnError extends boolean = false
 /**
  * List workspace currency templates
  */
-export const libraryListCurrencyTemplates = <ThrowOnError extends boolean = false>(options?: Options<LibraryListCurrencyTemplatesData, ThrowOnError>) => (options?.client ?? client).get<LibraryListCurrencyTemplatesResponses, LibraryListCurrencyTemplatesErrors, ThrowOnError>({
+export const libraryListCurrencys = <ThrowOnError extends boolean = false>(options?: Options<LibraryListCurrencysData, ThrowOnError>) => (options?.client ?? client).get<LibraryListCurrencysResponses, LibraryListCurrencysErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/currencies',
     ...options
@@ -735,7 +627,7 @@ export const libraryListCurrencyTemplates = <ThrowOnError extends boolean = fals
 /**
  * Create a workspace currency template
  */
-export const libraryCreateCurrencyTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateCurrencyTemplateData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateCurrencyTemplateResponses, LibraryCreateCurrencyTemplateErrors, ThrowOnError>({
+export const libraryCreateCurrency = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateCurrencyData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateCurrencyResponses, LibraryCreateCurrencyErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/currencies',
     ...options,
@@ -748,7 +640,7 @@ export const libraryCreateCurrencyTemplate = <ThrowOnError extends boolean = fal
 /**
  * Soft-delete a workspace currency template
  */
-export const libraryDeleteCurrencyTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteCurrencyTemplateData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteCurrencyTemplateResponses, LibraryDeleteCurrencyTemplateErrors, ThrowOnError>({
+export const libraryDeleteCurrency = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteCurrencyData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteCurrencyResponses, LibraryDeleteCurrencyErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/currencies/{currencyId}',
     ...options
@@ -757,7 +649,7 @@ export const libraryDeleteCurrencyTemplate = <ThrowOnError extends boolean = fal
 /**
  * Get a workspace currency template
  */
-export const libraryGetCurrencyTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryGetCurrencyTemplateData, ThrowOnError>) => (options.client ?? client).get<LibraryGetCurrencyTemplateResponses, LibraryGetCurrencyTemplateErrors, ThrowOnError>({
+export const libraryGetCurrency = <ThrowOnError extends boolean = false>(options: Options<LibraryGetCurrencyData, ThrowOnError>) => (options.client ?? client).get<LibraryGetCurrencyResponses, LibraryGetCurrencyErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/currencies/{currencyId}',
     ...options
@@ -766,7 +658,7 @@ export const libraryGetCurrencyTemplate = <ThrowOnError extends boolean = false>
 /**
  * Update a workspace currency template
  */
-export const libraryUpdateCurrencyTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateCurrencyTemplateData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateCurrencyTemplateResponses, LibraryUpdateCurrencyTemplateErrors, ThrowOnError>({
+export const libraryUpdateCurrency = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateCurrencyData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateCurrencyResponses, LibraryUpdateCurrencyErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/currencies/{currencyId}',
     ...options,
@@ -781,18 +673,18 @@ export const libraryUpdateCurrencyTemplate = <ThrowOnError extends boolean = fal
  *
  * Fringe groups.
  */
-export const libraryListFringeTagTemplates = <ThrowOnError extends boolean = false>(options?: Options<LibraryListFringeTagTemplatesData, ThrowOnError>) => (options?.client ?? client).get<LibraryListFringeTagTemplatesResponses, LibraryListFringeTagTemplatesErrors, ThrowOnError>({
+export const libraryListFringeGroups = <ThrowOnError extends boolean = false>(options?: Options<LibraryListFringeGroupsData, ThrowOnError>) => (options?.client ?? client).get<LibraryListFringeGroupsResponses, LibraryListFringeGroupsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/fringe-tags',
+    url: '/library/fringe-groups',
     ...options
 });
 
 /**
  * Create a workspace fringe-tag template
  */
-export const libraryCreateFringeTagTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateFringeTagTemplateData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateFringeTagTemplateResponses, LibraryCreateFringeTagTemplateErrors, ThrowOnError>({
+export const libraryCreateFringeGroup = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateFringeGroupData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateFringeGroupResponses, LibraryCreateFringeGroupErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/fringe-tags',
+    url: '/library/fringe-groups',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -803,27 +695,27 @@ export const libraryCreateFringeTagTemplate = <ThrowOnError extends boolean = fa
 /**
  * Soft-delete a workspace fringe-tag template
  */
-export const libraryDeleteFringeTagTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteFringeTagTemplateData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteFringeTagTemplateResponses, LibraryDeleteFringeTagTemplateErrors, ThrowOnError>({
+export const libraryDeleteFringeGroup = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteFringeGroupData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteFringeGroupResponses, LibraryDeleteFringeGroupErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/fringe-tags/{fringeTagId}',
+    url: '/library/fringe-groups/{fringeGroupId}',
     ...options
 });
 
 /**
  * Get a workspace fringe-tag template
  */
-export const libraryGetFringeTagTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryGetFringeTagTemplateData, ThrowOnError>) => (options.client ?? client).get<LibraryGetFringeTagTemplateResponses, LibraryGetFringeTagTemplateErrors, ThrowOnError>({
+export const libraryGetFringeGroup = <ThrowOnError extends boolean = false>(options: Options<LibraryGetFringeGroupData, ThrowOnError>) => (options.client ?? client).get<LibraryGetFringeGroupResponses, LibraryGetFringeGroupErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/fringe-tags/{fringeTagId}',
+    url: '/library/fringe-groups/{fringeGroupId}',
     ...options
 });
 
 /**
  * Update a workspace fringe-tag template
  */
-export const libraryUpdateFringeTagTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateFringeTagTemplateData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateFringeTagTemplateResponses, LibraryUpdateFringeTagTemplateErrors, ThrowOnError>({
+export const libraryUpdateFringeGroup = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateFringeGroupData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateFringeGroupResponses, LibraryUpdateFringeGroupErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/fringe-tags/{fringeTagId}',
+    url: '/library/fringe-groups/{fringeGroupId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -889,7 +781,7 @@ export const libraryUpdateTag = <ThrowOnError extends boolean = false>(options: 
 });
 
 /**
- * List units (built-in + custom)
+ * List units
  *
  * The 17 read-only built-in units merged with the workspace's live custom units.
  */
@@ -900,22 +792,13 @@ export const libraryListUnits = <ThrowOnError extends boolean = false>(options?:
 });
 
 /**
- * List workspace custom units
- */
-export const libraryListCustomUnits = <ThrowOnError extends boolean = false>(options?: Options<LibraryListCustomUnitsData, ThrowOnError>) => (options?.client ?? client).get<LibraryListCustomUnitsResponses, LibraryListCustomUnitsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/units/custom',
-    ...options
-});
-
-/**
- * Create a workspace custom unit
+ * Create a unit
  *
  * Built-in units cannot be changed. Custom units can be created, updated, and deleted.
  */
-export const libraryCreateCustomUnit = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateCustomUnitData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateCustomUnitResponses, LibraryCreateCustomUnitErrors, ThrowOnError>({
+export const libraryCreateUnit = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateUnitData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateUnitResponses, LibraryCreateUnitErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/units/custom',
+    url: '/library/units',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -924,20 +807,31 @@ export const libraryCreateCustomUnit = <ThrowOnError extends boolean = false>(op
 });
 
 /**
- * Soft-delete a workspace custom unit
+ * Delete a unit
  */
-export const libraryDeleteCustomUnit = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteCustomUnitData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteCustomUnitResponses, LibraryDeleteCustomUnitErrors, ThrowOnError>({
+export const libraryDeleteUnit = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteUnitData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteUnitResponses, LibraryDeleteUnitErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/units/custom/{unitId}',
+    url: '/library/units/{unitId}',
     ...options
 });
 
 /**
- * Update a workspace custom unit
+ * Get a unit
+ *
+ * Built-in units are readable and immutable. Custom units use the same shape and can be updated or deleted.
  */
-export const libraryUpdateCustomUnit = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateCustomUnitData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateCustomUnitResponses, LibraryUpdateCustomUnitErrors, ThrowOnError>({
+export const libraryGetUnit = <ThrowOnError extends boolean = false>(options: Options<LibraryGetUnitData, ThrowOnError>) => (options.client ?? client).get<LibraryGetUnitResponses, LibraryGetUnitErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/units/custom/{unitId}',
+    url: '/library/units/{unitId}',
+    ...options
+});
+
+/**
+ * Update a unit
+ */
+export const libraryUpdateUnit = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateUnitData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateUnitResponses, LibraryUpdateUnitErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/library/units/{unitId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -951,7 +845,7 @@ export const libraryUpdateCustomUnit = <ThrowOnError extends boolean = false>(op
 export const libraryListProjectRatePacks = <ThrowOnError extends boolean = false>(options: Options<LibraryListProjectRatePacksData, ThrowOnError>) => (options.client ?? client).get<LibraryListProjectRatePacksResponses, LibraryListProjectRatePacksErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/rates',
+    url: '/projects/{projectId}/library/rate-packs',
     ...options
 });
 
@@ -962,7 +856,7 @@ export const libraryListProjectRatePacks = <ThrowOnError extends boolean = false
  */
 export const libraryRemoveRatePack = <ThrowOnError extends boolean = false>(options: Options<LibraryRemoveRatePackData, ThrowOnError>) => (options.client ?? client).delete<LibraryRemoveRatePackResponses, LibraryRemoveRatePackErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/rates/{packId}/add',
+    url: '/projects/{projectId}/library/rate-packs/{packId}',
     ...options
 });
 
@@ -971,9 +865,9 @@ export const libraryRemoveRatePack = <ThrowOnError extends boolean = false>(opti
  *
  * Two-step ENABLE→ADD: requires a live workspace-enable link, else `400 validation` (`ERR_RATE_PACK_NOT_ENABLED_FOR_WORKSPACE`). Rejects deprecated (`400`); missing project/pack (`404`). Idempotent upsert/resurrect (deterministic id).
  */
-export const libraryAddRatePack = <ThrowOnError extends boolean = false>(options: Options<LibraryAddRatePackData, ThrowOnError>) => (options.client ?? client).post<LibraryAddRatePackResponses, LibraryAddRatePackErrors, ThrowOnError>({
+export const libraryAddRatePack = <ThrowOnError extends boolean = false>(options: Options<LibraryAddRatePackData, ThrowOnError>) => (options.client ?? client).put<LibraryAddRatePackResponses, LibraryAddRatePackErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/rates/{packId}/add',
+    url: '/projects/{projectId}/library/rate-packs/{packId}',
     ...options
 });
 
@@ -994,7 +888,7 @@ export const libraryListProjectIncentives = <ThrowOnError extends boolean = fals
  */
 export const libraryAddProjectIncentive = <ThrowOnError extends boolean = false>(options: Options<LibraryAddProjectIncentiveData, ThrowOnError>) => (options.client ?? client).post<LibraryAddProjectIncentiveResponses, LibraryAddProjectIncentiveErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/incentives/add',
+    url: '/projects/{projectId}/library/incentives',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1005,7 +899,7 @@ export const libraryAddProjectIncentive = <ThrowOnError extends boolean = false>
 /**
  * Remove a project incentive
  *
- * Soft-deletes the project incentive. Idempotent. Re-add resurrects (see `/add`).
+ * Soft-deletes the project incentive. Idempotent. Creating the same project incentive again resurrects it.
  */
 export const libraryDeleteProjectIncentive = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteProjectIncentiveData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteProjectIncentiveResponses, LibraryDeleteProjectIncentiveErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1055,7 +949,7 @@ export const libraryListProjectFringes = <ThrowOnError extends boolean = false>(
  */
 export const libraryAddProjectFringe = <ThrowOnError extends boolean = false>(options: Options<LibraryAddProjectFringeData, ThrowOnError>) => (options.client ?? client).post<LibraryAddProjectFringeResponses, LibraryAddProjectFringeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/fringes/add',
+    url: '/projects/{projectId}/library/fringes',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1116,7 +1010,7 @@ export const libraryListProjectGlobals = <ThrowOnError extends boolean = false>(
  */
 export const libraryAddProjectGlobal = <ThrowOnError extends boolean = false>(options: Options<LibraryAddProjectGlobalData, ThrowOnError>) => (options.client ?? client).post<LibraryAddProjectGlobalResponses, LibraryAddProjectGlobalErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/globals/add',
+    url: '/projects/{projectId}/library/globals',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1173,7 +1067,7 @@ export const libraryListProjectCurrencies = <ThrowOnError extends boolean = fals
  */
 export const libraryAddProjectCurrency = <ThrowOnError extends boolean = false>(options: Options<LibraryAddProjectCurrencyData, ThrowOnError>) => (options.client ?? client).post<LibraryAddProjectCurrencyResponses, LibraryAddProjectCurrencyErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/currencies/add',
+    url: '/projects/{projectId}/library/currencies',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1216,10 +1110,10 @@ export const libraryUpdateProjectCurrency = <ThrowOnError extends boolean = fals
 /**
  * List project fringe-tag copies
  */
-export const libraryListProjectFringeTags = <ThrowOnError extends boolean = false>(options: Options<LibraryListProjectFringeTagsData, ThrowOnError>) => (options.client ?? client).get<LibraryListProjectFringeTagsResponses, LibraryListProjectFringeTagsErrors, ThrowOnError>({
+export const libraryListProjectFringeGroups = <ThrowOnError extends boolean = false>(options: Options<LibraryListProjectFringeGroupsData, ThrowOnError>) => (options.client ?? client).get<LibraryListProjectFringeGroupsResponses, LibraryListProjectFringeGroupsErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/fringe-tags',
+    url: '/projects/{projectId}/library/fringe-groups',
     ...options
 });
 
@@ -1228,9 +1122,9 @@ export const libraryListProjectFringeTags = <ThrowOnError extends boolean = fals
  *
  * Idempotent on `(projectId, sourceId)`. Resurrect as-is; `?reset=true` re-snapshots.
  */
-export const libraryAddProjectFringeTag = <ThrowOnError extends boolean = false>(options: Options<LibraryAddProjectFringeTagData, ThrowOnError>) => (options.client ?? client).post<LibraryAddProjectFringeTagResponses, LibraryAddProjectFringeTagErrors, ThrowOnError>({
+export const libraryAddProjectFringeGroup = <ThrowOnError extends boolean = false>(options: Options<LibraryAddProjectFringeGroupData, ThrowOnError>) => (options.client ?? client).post<LibraryAddProjectFringeGroupResponses, LibraryAddProjectFringeGroupErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/fringe-tags/add',
+    url: '/projects/{projectId}/library/fringe-groups',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1241,28 +1135,28 @@ export const libraryAddProjectFringeTag = <ThrowOnError extends boolean = false>
 /**
  * Remove a project fringe-tag copy
  */
-export const libraryDeleteProjectFringeTag = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteProjectFringeTagData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteProjectFringeTagResponses, LibraryDeleteProjectFringeTagErrors, ThrowOnError>({
+export const libraryDeleteProjectFringeGroup = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteProjectFringeGroupData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteProjectFringeGroupResponses, LibraryDeleteProjectFringeGroupErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/fringe-tags/{fringeTagId}',
+    url: '/projects/{projectId}/library/fringe-groups/{fringeGroupId}',
     ...options
 });
 
 /**
  * Get a project fringe-tag copy
  */
-export const libraryGetProjectFringeTag = <ThrowOnError extends boolean = false>(options: Options<LibraryGetProjectFringeTagData, ThrowOnError>) => (options.client ?? client).get<LibraryGetProjectFringeTagResponses, LibraryGetProjectFringeTagErrors, ThrowOnError>({
+export const libraryGetProjectFringeGroup = <ThrowOnError extends boolean = false>(options: Options<LibraryGetProjectFringeGroupData, ThrowOnError>) => (options.client ?? client).get<LibraryGetProjectFringeGroupResponses, LibraryGetProjectFringeGroupErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/fringe-tags/{fringeTagId}',
+    url: '/projects/{projectId}/library/fringe-groups/{fringeGroupId}',
     ...options
 });
 
 /**
  * Update a project fringe-tag copy
  */
-export const libraryUpdateProjectFringeTag = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateProjectFringeTagData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateProjectFringeTagResponses, LibraryUpdateProjectFringeTagErrors, ThrowOnError>({
+export const libraryUpdateProjectFringeGroup = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateProjectFringeGroupData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateProjectFringeGroupResponses, LibraryUpdateProjectFringeGroupErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/fringe-tags/{fringeTagId}',
+    url: '/projects/{projectId}/library/fringe-groups/{fringeGroupId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1279,32 +1173,6 @@ export const libraryListProjectTags = <ThrowOnError extends boolean = false>(opt
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/projects/{projectId}/library/tags',
     ...options
-});
-
-/**
- * Remove a tag from the project
- *
- * Soft-deletes the `is linked to` edge. Idempotent. The edge is auto-reconciled from line/transaction tag assignments, so it may be silently re-created.
- */
-export const libraryRemoveProjectTag = <ThrowOnError extends boolean = false>(options: Options<LibraryRemoveProjectTagData, ThrowOnError>) => (options.client ?? client).delete<LibraryRemoveProjectTagResponses, LibraryRemoveProjectTagErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/tags/{tagId}/add',
-    ...options
-});
-
-/**
- * Add a workspace tag to the project
- *
- * Creates/reactivates the `is linked to` edge (idempotent). Supply `tag` in the body to create the workspace tag first if `{tagId}` does not yet exist. The edge is auto-reconciled from line/transaction tag assignments, so a manual remove may be silently re-created.
- */
-export const libraryAddProjectTag = <ThrowOnError extends boolean = false>(options: Options<LibraryAddProjectTagData, ThrowOnError>) => (options.client ?? client).post<LibraryAddProjectTagResponses, LibraryAddProjectTagErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/tags/{tagId}/add',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
 });
 
 /**
@@ -1334,24 +1202,13 @@ export const masterDataCreateProject = <ThrowOnError extends boolean = false>(op
 });
 
 /**
- * Delete a project
- *
- * Soft-delete a project (sets `soft-delete timestamp`; lineage preserved). Idempotent, deleting an already-deleted project returns `204`.
- */
-export const masterDataDeleteProject = <ThrowOnError extends boolean = false>(options: Options<MasterDataDeleteProjectData, ThrowOnError>) => (options.client ?? client).delete<MasterDataDeleteProjectResponses, MasterDataDeleteProjectErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{slugOrId}',
-    ...options
-});
-
-/**
  * Get a project
  *
  * Fetch one project by canonical id or slug. `404 not_found` also covers exists-but-unauthorized.
  */
 export const masterDataGetProject = <ThrowOnError extends boolean = false>(options: Options<MasterDataGetProjectData, ThrowOnError>) => (options.client ?? client).get<MasterDataGetProjectResponses, MasterDataGetProjectErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{slugOrId}',
+    url: '/projects/{project}',
     ...options
 });
 
@@ -1362,7 +1219,7 @@ export const masterDataGetProject = <ThrowOnError extends boolean = false>(optio
  */
 export const masterDataUpdateProject = <ThrowOnError extends boolean = false>(options: Options<MasterDataUpdateProjectData, ThrowOnError>) => (options.client ?? client).patch<MasterDataUpdateProjectResponses, MasterDataUpdateProjectErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{slugOrId}',
+    url: '/projects/{project}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1480,11 +1337,11 @@ export const masterDataUpdateContact = <ThrowOnError extends boolean = false>(op
 /**
  * List comments
  *
- * List comments across the workspace, permission-filtered to the projects the token can read. Narrow to one entity with `targetKind` + `targetId`, or one project with `projectId`. Paginated.
+ * List comments in one project. Narrow to one entity with `targetKind` + `targetId`. Paginated.
  */
-export const masterDataListComments = <ThrowOnError extends boolean = false>(options?: Options<MasterDataListCommentsData, ThrowOnError>) => (options?.client ?? client).get<MasterDataListCommentsResponses, MasterDataListCommentsErrors, ThrowOnError>({
+export const masterDataListComments = <ThrowOnError extends boolean = false>(options: Options<MasterDataListCommentsData, ThrowOnError>) => (options.client ?? client).get<MasterDataListCommentsResponses, MasterDataListCommentsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/comments',
+    url: '/projects/{projectId}/comments',
     ...options
 });
 
@@ -1495,7 +1352,7 @@ export const masterDataListComments = <ThrowOnError extends boolean = false>(opt
  */
 export const masterDataCreateComment = <ThrowOnError extends boolean = false>(options: Options<MasterDataCreateCommentData, ThrowOnError>) => (options.client ?? client).post<MasterDataCreateCommentResponses, MasterDataCreateCommentErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/comments',
+    url: '/projects/{projectId}/comments',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1510,7 +1367,7 @@ export const masterDataCreateComment = <ThrowOnError extends boolean = false>(op
  */
 export const masterDataDeleteComment = <ThrowOnError extends boolean = false>(options: Options<MasterDataDeleteCommentData, ThrowOnError>) => (options.client ?? client).delete<MasterDataDeleteCommentResponses, MasterDataDeleteCommentErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/comments/{commentId}',
+    url: '/projects/{projectId}/comments/{commentId}',
     ...options
 });
 
@@ -1521,54 +1378,13 @@ export const masterDataDeleteComment = <ThrowOnError extends boolean = false>(op
  */
 export const masterDataUpdateComment = <ThrowOnError extends boolean = false>(options: Options<MasterDataUpdateCommentData, ThrowOnError>) => (options.client ?? client).patch<MasterDataUpdateCommentResponses, MasterDataUpdateCommentErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/comments/{commentId}',
+    url: '/projects/{projectId}/comments/{commentId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
         ...options.headers
     }
 });
-
-/**
- * List saved views
- *
- * List the project's saved views the token can see (personal views of the principal plus workspace-visible views). Paginated.
- */
-export const masterDataListViews = <ThrowOnError extends boolean = false>(options: Options<MasterDataListViewsData, ThrowOnError>) => (options.client ?? client).get<MasterDataListViewsResponses, MasterDataListViewsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/views',
-    ...options
-});
-
-/**
- * Get a saved view
- *
- * Fetch one view's definition (its persisted filter + shape). Use `/data` to resolve its rows.
- */
-export const masterDataGetView = <ThrowOnError extends boolean = false>(options: Options<MasterDataGetViewData, ThrowOnError>) => (options.client ?? client).get<MasterDataGetViewResponses, MasterDataGetViewErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/views/{viewId}',
-    ...options
-});
-
-/**
- * Resolve a view's rows
- *
- * Apply the view's persisted filter and return the resolved rows (shape determined by the view's `subjectType`). Inline `expand` and flat filters layer on top of the view's filter; the result is permission-projected and paginated. An unknown `expand` key returns `400 expand_invalid`.
- */
-export const masterDataGetViewData = <ThrowOnError extends boolean = false>(options: Options<MasterDataGetViewDataData, ThrowOnError>) => (options.client ?? client).get<MasterDataGetViewDataResponses, MasterDataGetViewDataErrors, ThrowOnError>({
-    querySerializer: { parameters: { expand: { array: { explode: false } } } },
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/views/{viewId}/data',
-    ...options
-});
-
-/**
- * Liveness / readiness check
- *
- * Unauthenticated liveness + readiness probe for the public API edge. Confirms the dedicated database pool is reachable. Returns `200` when healthy and `503` when a dependency check fails, never a misleading `200` on a degraded edge (fail-loud).
- */
-export const metaAuthHealth = <ThrowOnError extends boolean = false>(options?: Options<MetaAuthHealthData, ThrowOnError>) => (options?.client ?? client).get<MetaAuthHealthResponses, MetaAuthHealthErrors, ThrowOnError>({ url: '/healthz', ...options });
 
 /**
  * The token's identity and workspace
@@ -1578,17 +1394,6 @@ export const metaAuthHealth = <ThrowOnError extends boolean = false>(options?: O
 export const metaAuthGetMe = <ThrowOnError extends boolean = false>(options?: Options<MetaAuthGetMeData, ThrowOnError>) => (options?.client ?? client).get<MetaAuthGetMeResponses, MetaAuthGetMeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/me',
-    ...options
-});
-
-/**
- * List the workspaces this token can act on
- *
- * The token's workspace, permission-filtered to the principal's live reach. Tokens are workspace-scoped, so the list contains at most one item. Paginated (cap 100). Each item carries the principal's current `workspaceRole`.
- */
-export const metaAuthListWorkspaces = <ThrowOnError extends boolean = false>(options?: Options<MetaAuthListWorkspacesData, ThrowOnError>) => (options?.client ?? client).get<MetaAuthListWorkspacesResponses, MetaAuthListWorkspacesErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/workspaces',
     ...options
 });
 
@@ -1759,54 +1564,20 @@ export const purchaseOrdersMarkPaid = <ThrowOnError extends boolean = false>(opt
 });
 
 /**
- * Link a transaction to a purchase order
- *
- * Link a transaction to a purchase order. This records only the relationship and does not change project, coding, itemization, actualization, or purchase-order status. A transaction already linked to a different PO returns `409 already_assigned`.
- */
-export const purchaseOrdersLink = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersLinkData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersLinkResponses, PurchaseOrdersLinkErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/purchase-orders/{purchaseOrderId}/link',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
  * Unlink a transaction from a purchase order
- *
- * Remove a transaction link. This does not change the project, coding, items, actualization, or PO status.
  */
-export const purchaseOrdersUnlink = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersUnlinkData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersUnlinkResponses, PurchaseOrdersUnlinkErrors, ThrowOnError>({
+export const purchaseOrdersDeleteTransaction = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersDeleteTransactionData, ThrowOnError>) => (options.client ?? client).delete<PurchaseOrdersDeleteTransactionResponses, PurchaseOrdersDeleteTransactionErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/purchase-orders/{purchaseOrderId}/unlink',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Get current purchase order activity
- *
- * Returns the live invoice, payment, and matching conditions shown in the product Activity column. Conditions disappear when resolved. This is current state, not event history.
- */
-export const purchaseOrdersActivity = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersActivityData, ThrowOnError>) => (options.client ?? client).get<PurchaseOrdersActivityResponses, PurchaseOrdersActivityErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/purchase-orders/{purchaseOrderId}/activity',
+    url: '/purchase-orders/{purchaseOrderId}/transactions/{transactionId}',
     ...options
 });
 
 /**
- * List suggested purchase order matches
- *
- * Returns records that may belong to the purchase order but are not linked. Accepting a suggestion uses the record's normal link action.
+ * Link a transaction to a purchase order
  */
-export const purchaseOrdersSuggestedMatches = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersSuggestedMatchesData, ThrowOnError>) => (options.client ?? client).get<PurchaseOrdersSuggestedMatchesResponses, PurchaseOrdersSuggestedMatchesErrors, ThrowOnError>({
+export const purchaseOrdersPutTransaction = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersPutTransactionData, ThrowOnError>) => (options.client ?? client).put<PurchaseOrdersPutTransactionResponses, PurchaseOrdersPutTransactionErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/purchase-orders/{purchaseOrderId}/suggested-matches',
+    url: '/purchase-orders/{purchaseOrderId}/transactions/{transactionId}',
     ...options
 });
 
@@ -1874,37 +1645,14 @@ export const purchaseOrdersUpdateItem = <ThrowOnError extends boolean = false>(o
 });
 
 /**
- * List transactions linked to a purchase order
+ * Search the workspace or one project
  *
- * Lists linked transactions you can read.
- */
-export const purchaseOrdersListTransactions = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersListTransactionsData, ThrowOnError>) => (options.client ?? client).get<PurchaseOrdersListTransactionsResponses, PurchaseOrdersListTransactionsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/purchase-orders/{purchaseOrderId}/transactions',
-    ...options
-});
-
-/**
- * Search (workspace scope)
- *
- * Ranked, mixed-type search across the workspace, permission-filtered so a token never sees results from projects it cannot read. Each hit is `{kind, id, label, snippet, score}`; fetch the full object by `{kind, id}`. `searchedTypes` echoes which kinds were actually queried so partial coverage is visible, never a silent empty (a project-scoped token, for example, drops `contacts`, they are workspace-level only). Results are returned in a stable order so pagination is consistent.
+ * Ranked, mixed-type search across the workspace or one project, permission-filtered so a token never sees results from projects it cannot read. Each hit is `{kind, id, label, snippet, score}`; fetch the full object by `{kind, id}`. `searchedTypes` echoes which kinds were actually queried so partial coverage is visible. Results are returned in a stable order so pagination is consistent.
  */
 export const searchWorkspace = <ThrowOnError extends boolean = false>(options: Options<SearchWorkspaceData, ThrowOnError>) => (options.client ?? client).get<SearchWorkspaceResponses, SearchWorkspaceErrors, ThrowOnError>({
     querySerializer: { parameters: { types: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/search',
-    ...options
-});
-
-/**
- * Search (project scope)
- *
- * The project-scoped variant of search: every kind is restricted to this `projectId` (intersected with the token's visibility), so results can only come from that project. As at workspace scope, the permission / view-access filter is applied before ranking and cap, `searchedTypes` is echoed, and results are returned in a stable order so pagination is consistent. `contacts` are workspace-level only and so are never returned at project scope; they are dropped from `searchedTypes`. A `projectId` the token cannot read returns `404 not_found` (same shape as exists-but-unauthorized, so existence never leaks).
- */
-export const searchProject = <ThrowOnError extends boolean = false>(options: Options<SearchProjectData, ThrowOnError>) => (options.client ?? client).get<SearchProjectResponses, SearchProjectErrors, ThrowOnError>({
-    querySerializer: { parameters: { types: { array: { explode: false } } } },
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/search',
     ...options
 });
 
@@ -1947,24 +1695,13 @@ export const transactionsStats = <ThrowOnError extends boolean = false>(options?
 });
 
 /**
- * Distinct visible transaction types
- *
- * The distinct `type` values the token can actually see - permission-filtered, never the raw workspace-wide set, so a project-scoped token's dropdown can't enumerate values that exist only on other projects' rows. Casing preserved.
- */
-export const transactionsTypes = <ThrowOnError extends boolean = false>(options?: Options<TransactionsTypesData, ThrowOnError>) => (options?.client ?? client).get<TransactionsTypesResponses, TransactionsTypesErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/transactions/types',
-    ...options
-});
-
-/**
  * Bulk journal import
  *
- * Create many JOURNAL transactions in one request. Every row is forced to `source=journal`; a non-journal source on any row -> `422 source_not_postable`. Each row may carry an optional `projectId` to assign it to a project (omit for a workspace-level / unassigned row). Over the cap (500) -> `413 batch_too_large`. Requires an `Idempotency-Key` header; replaying a key with a different body -> `409 idempotency_conflict`. This is the highest-stakes billable create (one credit charge per created row). Fires one `transaction.created` per created row.
+ * Create many JOURNAL transactions in one request. Every row is forced to `source=journal`; a non-journal source on any row -> `422 source_not_postable`. Each row may carry an optional `projectId` to assign it to a project (omit for a workspace-level / unassigned row). Over the cap (500) -> `413 bulk_too_large`. Requires an `Idempotency-Key` header; replaying a key with a different body -> `409 idempotency_conflict`. This is the highest-stakes billable create (one credit charge per created row). Fires one `transaction.created` per created row.
  */
-export const transactionsBatchCreate = <ThrowOnError extends boolean = false>(options: Options<TransactionsBatchCreateData, ThrowOnError>) => (options.client ?? client).post<TransactionsBatchCreateResponses, TransactionsBatchCreateErrors, ThrowOnError>({
+export const transactionsBulkCreate = <ThrowOnError extends boolean = false>(options: Options<TransactionsBulkCreateData, ThrowOnError>) => (options.client ?? client).post<TransactionsBulkCreateResponses, TransactionsBulkCreateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/transactions/batch',
+    url: '/transactions/bulk',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -2068,7 +1805,7 @@ export const transactionsItemsUpdate = <ThrowOnError extends boolean = false>(op
  * List the workspace's outbound webhook subscriptions the caller can manage, permission-filtered and paginated. Secrets are never included. Filter by subscribed `events` or by `active` state.
  */
 export const webhooksList = <ThrowOnError extends boolean = false>(options?: Options<WebhooksListData, ThrowOnError>) => (options?.client ?? client).get<WebhooksListResponses, WebhooksListErrors, ThrowOnError>({
-    querySerializer: { parameters: { expand: { array: { explode: false } }, events: { array: { explode: false } } } },
+    querySerializer: { parameters: { events: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/webhooks',
     ...options
@@ -2106,7 +1843,6 @@ export const webhooksDelete = <ThrowOnError extends boolean = false>(options: Op
  * Fetch one subscription. The `secret` is never returned. A subscription that exists but the caller cannot manage returns the same `404 not_found` as a genuine miss (existence never leaks).
  */
 export const webhooksGet = <ThrowOnError extends boolean = false>(options: Options<WebhooksGetData, ThrowOnError>) => (options.client ?? client).get<WebhooksGetResponses, WebhooksGetErrors, ThrowOnError>({
-    querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/webhooks/{webhookId}',
     ...options
@@ -2132,9 +1868,9 @@ export const webhooksUpdate = <ThrowOnError extends boolean = false>(options: Op
  *
  * Issue a synthetic `ping` event through the same signed, SSRF-guarded delivery path and record a `WebhookDelivery` row (readable via `GET.../deliveries`). Use it to confirm an endpoint is reachable and the signature verifies. No request body.
  */
-export const webhooksPing = <ThrowOnError extends boolean = false>(options: Options<WebhooksPingData, ThrowOnError>) => (options.client ?? client).post<WebhooksPingResponses, WebhooksPingErrors, ThrowOnError>({
+export const webhooksSendTestDelivery = <ThrowOnError extends boolean = false>(options: Options<WebhooksSendTestDeliveryData, ThrowOnError>) => (options.client ?? client).post<WebhooksSendTestDeliveryResponses, WebhooksSendTestDeliveryErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/webhooks/{webhookId}/ping',
+    url: '/webhooks/{webhookId}/test-delivery',
     ...options
 });
 

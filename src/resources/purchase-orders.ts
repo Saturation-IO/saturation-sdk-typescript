@@ -6,13 +6,9 @@ import type {
   PurchaseOrderExpand,
   PurchaseOrderItem,
   PurchaseOrderItemWrite,
-  PurchaseOrderActivity,
-  PurchaseOrderLink,
   PurchaseOrderSort,
   PurchaseOrderStatus,
-  PurchaseOrderSuggestedMatch,
   PurchaseOrderTimelineEvent,
-  Transaction,
 } from '../generated/types.gen.js';
 import { Transport, List } from '../http.js';
 import { Expanded, type ExpandMap, serializeExpand } from '../expand.js';
@@ -144,34 +140,17 @@ export class PurchaseOrdersResource {
   }
 
   /** Link a transaction to a purchase order. */
-  async link(purchaseOrderId: string, body: PurchaseOrderLink): Promise<PurchaseOrder> {
-    return this.t.run(sdk.purchaseOrdersLink, {
-      path: { purchaseOrderId },
-      body,
+  async linkTransaction(purchaseOrderId: string, transactionId: string): Promise<PurchaseOrder> {
+    return this.t.run(sdk.purchaseOrdersPutTransaction, {
+      path: { purchaseOrderId, transactionId },
     }) as Promise<PurchaseOrder>;
   }
 
   /** Unlink a transaction from a purchase order. */
-  async unlink(purchaseOrderId: string, body: PurchaseOrderLink): Promise<PurchaseOrder> {
-    return this.t.run(sdk.purchaseOrdersUnlink, {
-      path: { purchaseOrderId },
-      body,
+  async unlinkTransaction(purchaseOrderId: string, transactionId: string): Promise<PurchaseOrder> {
+    return this.t.run(sdk.purchaseOrdersDeleteTransaction, {
+      path: { purchaseOrderId, transactionId },
     }) as Promise<PurchaseOrder>;
-  }
-
-  /** Current live conditions using the product's Activity vocabulary. */
-  async activity(purchaseOrderId: string): Promise<PurchaseOrderActivity> {
-    return this.t.run(sdk.purchaseOrdersActivity, {
-      path: { purchaseOrderId },
-    }) as Promise<PurchaseOrderActivity>;
-  }
-
-  /** Records that may belong to the purchase order but are not linked. */
-  async suggestedMatches(purchaseOrderId: string): Promise<PurchaseOrderSuggestedMatch[]> {
-    const result = await this.t.run(sdk.purchaseOrdersSuggestedMatches, {
-      path: { purchaseOrderId },
-    }) as { data: PurchaseOrderSuggestedMatch[] };
-    return result.data;
   }
 
   /** Immutable purchase-order history, newest first. */
@@ -183,17 +162,6 @@ export class PurchaseOrdersResource {
     return new List<PurchaseOrderTimelineEvent>(
       () => this.t.paginate<typeof options, PurchaseOrderTimelineEvent>(sdk.purchaseOrdersTimeline, options),
       () => this.t.runPage<typeof options, PurchaseOrderTimelineEvent>(sdk.purchaseOrdersTimeline, options),
-    );
-  }
-
-  /** Transactions linked to a purchase order. */
-  transactions(purchaseOrderId: string): List<Transaction> {
-    const options = {
-      path: { purchaseOrderId },
-    };
-    return new List<Transaction>(
-      () => this.t.paginate<typeof options, Transaction>(sdk.purchaseOrdersListTransactions, options),
-      () => this.t.runPage<typeof options, Transaction>(sdk.purchaseOrdersListTransactions, options),
     );
   }
 
