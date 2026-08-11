@@ -9,7 +9,7 @@ sat.library.ratePacks.list();
 project.library.ratePacks.list();
 project.comments.list();
 sat.documents.link('doc_1', 'transaction', 'txn_1');
-project.transactions.bulkCreate({ transactions: [] }, { idempotencyKey: '0123456789abcdef' });
+project.transactions.bulkCreate({ transactions: [] }, { idempotencyKey: 'itg-po-key-0123456789' });
 project.purchaseOrders.linkTransaction('po_1', 'txn_1');
 
 // @ts-expect-error Project deletion is not public.
@@ -37,7 +37,7 @@ project.budget.lines.createBatch([]);
 // @ts-expect-error Batch naming is retired.
 project.budget.phaseData.upsertBatch([]);
 // @ts-expect-error Transaction batch naming is retired.
-project.transactions.batchCreate({ transactions: [] }, { idempotencyKey: '0123456789abcdef' });
+project.transactions.batchCreate({ transactions: [] }, { idempotencyKey: 'itg-po-key-0123456789' });
 // @ts-expect-error Transaction type discovery is retired.
 project.transactions.types();
 // @ts-expect-error Rate packs use their public noun.
