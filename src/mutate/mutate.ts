@@ -2,7 +2,7 @@
  * `mutate` — the generic write dispatcher over the generated `/v1` SDK.
  *
  * One loop, no per-operation code. The model names a write op (`budgetCreateLine`,
- * `masterDataCreateContact`, …) from the generated {@link WRITE_OPS} table and
+ * `contactsCreate`, …) from the generated {@link WRITE_OPS} table and
  * passes `{ path, body, query }`; the dispatcher resolves the op's verb + URL and
  * runs it through the shared {@link Transport}. When the transport is built with
  * `fetch: app.fetch`, the call executes the **full production chain in-process** —

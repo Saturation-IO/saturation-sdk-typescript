@@ -29,7 +29,7 @@
  *        (e.g. the in-memory budget path) and `satisfies WriteSurface` proves the
  *        composition still covers the whole contract.
  *
- * Re-run after any SDK regeneration:  pnpm --filter @saturation/sdk generate:mutate
+ * Re-run after any SDK regeneration: pnpm generate:mutate
  *
  * The allowlist is the security boundary; everything else is derived from the
  * spec by code, so the surface cannot drift from the real route set.
@@ -61,7 +61,7 @@ type WriteMethod = 'post' | 'put' | 'patch' | 'delete';
  * Curated from the route inventory. Excluded on purpose (NOT a write, or
  * destructive/deferred to the rollback ledger): every `*Delete*` EXCEPT the
  * five reviewed soft deletes admitted 2026-08-02, plus
- * `documentsUnassign`, `library{Disable,Remove}*`, and `webhooksPing` (a
+ * `documentsUnlink`, `library{Disable,Remove}*`, and `webhooksSendTestDelivery` (a
  * side-effecting test action, not a data write — the exact "computed POST" a
  * verb filter would leak). The PO lifecycle (`Unlink` included; `Submit`
  * still reserved — the /v1 stub always 409s) was admitted 2026-08-07 (Simon's write-surface ruling for the write-audit
@@ -70,95 +70,94 @@ type WriteMethod = 'post' | 'put' | 'patch' | 'delete';
 const WRITE_OP_ALLOWLIST: ReadonlySet<string> = new Set<string>([
   // ── budget: create lines/phases, set/upsert phase-data (value edits) ──
   'budgetCreateLine',
-  'budgetCreateLinesBatch',
+  'budgetCreateLinesBulk',
   'budgetCreatePhase',
-  'budgetUpsertLinePhaseData',
-  'budgetUpsertLinePhaseDataBatch',
+  'budgetUpdateLinePhaseData',
+  'budgetUpdateLinePhaseDataBulk',
   'budgetUpdateLine',
   'budgetUpdatePhase',
   // ── reviewed soft deletes (Simon, 2026-08-02): the row keeps a deletedAt
   //    tombstone; each route's own lifecycle rules stand (journal-only
   //    transaction delete, draft-only PO delete) ──
   'transactionsDelete',
-  'masterDataDeleteContact',
+  'contactsDelete',
   'budgetDeleteLine',
   'budgetDeletePhase',
   'purchaseOrdersDelete',
   // ── documents: drop (create) + assign (link) + field update ──
-  'documentsDrop',
-  'documentsAssign',
+  'documentsUpload',
+  'documentsLink',
   'documentsUpdate',
   // ── library: workspace templates + project installs (additive) + field updates ──
   'libraryAddProjectCurrency',
   'libraryAddProjectFringe',
-  'libraryAddProjectFringeTag',
+  'libraryAddProjectFringeGroup',
   'libraryAddProjectGlobal',
   'libraryAddProjectIncentive',
-  'libraryAddProjectTag',
   'libraryAddRatePack',
-  'libraryCreateCurrencyTemplate',
-  'libraryCreateCustomUnit',
-  'libraryCreateFringeTagTemplate',
-  'libraryCreateFringeTemplate',
-  'libraryCreateGlobalTemplate',
+  'libraryCreateCurrency',
+  'libraryCreateUnit',
+  'libraryCreateFringeGroup',
+  'libraryCreateFringe',
+  'libraryCreateGlobal',
   'libraryCreateRatePack',
   'libraryCreateRatePackItem',
   'libraryCreateTag',
   'libraryEnableIncentivePack',
   'libraryEnableRatePack',
-  'libraryUpdateCurrencyTemplate',
-  'libraryUpdateCustomUnit',
-  'libraryUpdateFringeTagTemplate',
-  'libraryUpdateFringeTemplate',
-  'libraryUpdateGlobalTemplate',
+  'libraryUpdateCurrency',
+  'libraryUpdateUnit',
+  'libraryUpdateFringeGroup',
+  'libraryUpdateFringe',
+  'libraryUpdateGlobal',
   'libraryUpdateProjectCurrency',
   'libraryUpdateProjectFringe',
-  'libraryUpdateProjectFringeTag',
+  'libraryUpdateProjectFringeGroup',
   'libraryUpdateProjectGlobal',
   'libraryUpdateProjectIncentive',
   'libraryUpdateRatePack',
   'libraryUpdateRatePackItem',
   'libraryUpdateTag',
   // ── master data: contacts / projects / spaces / comments ──
-  'masterDataCreateComment',
-  'masterDataCreateContact',
-  'masterDataCreateProject',
-  'masterDataCreateSpace',
-  'masterDataUpdateComment',
-  'masterDataUpdateContact',
-  'masterDataUpdateProject',
-  'masterDataUpdateSpace',
+  'commentsCreate',
+  'contactsCreate',
+  'projectsCreate',
+  'spacesCreate',
+  'commentsUpdate',
+  'contactsUpdate',
+  'projectsUpdate',
+  'spacesUpdate',
   // ── purchase orders: create header/item, link to budget, field updates ──
   'purchaseOrdersCreate',
   'purchaseOrdersCreateItem',
   'purchaseOrdersCancelSubmission',
   'purchaseOrdersMarkPaid',
-  'purchaseOrdersLink',
-  'purchaseOrdersUnlink',
+  'purchaseOrdersLinkTransaction',
+  'purchaseOrdersUnlinkTransaction',
   'purchaseOrdersUpdate',
   'purchaseOrdersUpdateItem',
   'purchaseOrdersVoid',
   // ── transactions: create (single + batch), items, field updates ──
   'transactionsCreate',
-  'transactionsBatchCreate',
-  'transactionsItemsCreate',
+  'transactionsCreateBulk',
+  'transactionsCreateItem',
   'transactionsUpdate',
-  'transactionsItemsUpdate',
+  'transactionsUpdateItem',
   // ── webhooks: full config surface ──
   'webhooksCreate',
   'webhooksUpdate',
   // ── full-surface ruling additions (2026-08-07): remaining deletes,
   //    disable/remove/unassign, webhook delete + ping ──
   'documentsDelete',
-  'documentsUnassign',
-  'libraryDeleteCurrencyTemplate',
-  'libraryDeleteCustomUnit',
-  'libraryDeleteFringeTagTemplate',
-  'libraryDeleteFringeTemplate',
-  'libraryDeleteGlobalTemplate',
+  'documentsUnlink',
+  'libraryDeleteCurrency',
+  'libraryDeleteUnit',
+  'libraryDeleteFringeGroup',
+  'libraryDeleteFringe',
+  'libraryDeleteGlobal',
   'libraryDeleteProjectCurrency',
   'libraryDeleteProjectFringe',
-  'libraryDeleteProjectFringeTag',
+  'libraryDeleteProjectFringeGroup',
   'libraryDeleteProjectGlobal',
   'libraryDeleteProjectIncentive',
   'libraryDeleteRatePack',
@@ -166,15 +165,13 @@ const WRITE_OP_ALLOWLIST: ReadonlySet<string> = new Set<string>([
   'libraryDeleteTag',
   'libraryDisableIncentivePack',
   'libraryDisableRatePack',
-  'libraryRemoveProjectTag',
   'libraryRemoveRatePack',
-  'masterDataDeleteComment',
-  'masterDataDeleteProject',
-  'masterDataDeleteSpace',
+  'commentsDelete',
+  'spacesDelete',
   'purchaseOrdersDeleteItem',
-  'transactionsItemsDelete',
+  'transactionsDeleteItem',
   'webhooksDelete',
-  'webhooksPing',
+  'webhooksSendTestDelivery',
 ]);
 
 /**
@@ -188,67 +185,67 @@ const WRITE_OP_ALLOWLIST: ReadonlySet<string> = new Set<string>([
  * FULL SURFACE (Simon, 2026-08-07): the exposed set IS the allowlist — every
  * op above ships in the model-facing catalog. The only /v1 writes absent are
  * the two structural carve-outs documented on the allowlist
- * (`purchaseOrdersSubmit` reserved stub, `documentsDrop` upload-tool bytes).
+ * (`purchaseOrdersSubmit` reserved stub, `documentsUpload` upload-tool bytes).
  */
 const AGENT_WRITE_EXPOSED_OPS: readonly string[] = [
   // ── value updates (the pre-existing exposed set) ──
   'budgetUpdateLine',
   'budgetUpdatePhase',
-  'budgetUpsertLinePhaseData',
+  'budgetUpdateLinePhaseData',
   'documentsUpdate',
-  'libraryUpdateCurrencyTemplate',
-  'libraryUpdateCustomUnit',
-  'libraryUpdateFringeTagTemplate',
-  'libraryUpdateFringeTemplate',
-  'libraryUpdateGlobalTemplate',
+  'libraryUpdateCurrency',
+  'libraryUpdateUnit',
+  'libraryUpdateFringeGroup',
+  'libraryUpdateFringe',
+  'libraryUpdateGlobal',
   'libraryUpdateProjectCurrency',
   'libraryUpdateProjectFringe',
-  'libraryUpdateProjectFringeTag',
+  'libraryUpdateProjectFringeGroup',
   'libraryUpdateProjectGlobal',
   'libraryUpdateProjectIncentive',
   'libraryUpdateRatePack',
   'libraryUpdateRatePackItem',
   'libraryUpdateTag',
-  'masterDataUpdateComment',
-  'masterDataUpdateContact',
-  'masterDataUpdateProject',
-  'masterDataUpdateSpace',
+  'commentsUpdate',
+  'contactsUpdate',
+  'projectsUpdate',
+  'spacesUpdate',
   'purchaseOrdersUpdate',
   'purchaseOrdersUpdateItem',
-  'transactionsItemsUpdate',
+  'transactionsUpdateItem',
   'transactionsUpdate',
   // ── keyed creates (receipt-backed; Idempotency-Key REQUIRED — D6) ──
   'budgetCreateLine',
-  'budgetCreateLinesBatch',
+  'budgetCreateLinesBulk',
   'budgetCreatePhase',
-  'budgetUpsertLinePhaseDataBatch',
-  'libraryCreateCurrencyTemplate',
-  'libraryCreateCustomUnit',
-  'libraryCreateFringeTagTemplate',
-  'libraryCreateFringeTemplate',
-  'libraryCreateGlobalTemplate',
+  'budgetUpdateLinePhaseDataBulk',
+  'libraryCreateCurrency',
+  'libraryCreateUnit',
+  'libraryCreateFringeGroup',
+  'libraryCreateFringe',
+  'libraryCreateGlobal',
   'libraryCreateRatePack',
   'libraryCreateRatePackItem',
   'libraryCreateTag',
-  'masterDataCreateComment',
-  'masterDataCreateContact',
-  'masterDataCreateProject',
-  'masterDataCreateSpace',
+  'commentsCreate',
+  'contactsCreate',
+  'projectsCreate',
+  'spacesCreate',
   'purchaseOrdersCreate',
   'purchaseOrdersCreateItem',
-  'transactionsBatchCreate',
+  'transactionsCreateBulk',
   'transactionsCreate',
-  'transactionsItemsCreate',
+  'transactionsCreateItem',
   // ── PO lifecycle transitions (Simon, 2026-08-07): status moves guarded by
   //    the routes' own lifecycle preconditions — a repeated call is rejected
   //    with a typed 4xx (or is a same-state no-op), never a duplicate ──
   'purchaseOrdersCancelSubmission',
   'purchaseOrdersMarkPaid',
   'purchaseOrdersVoid',
-  'purchaseOrdersLink',
-  'purchaseOrdersUnlink',
+  'purchaseOrdersLinkTransaction',
+  'purchaseOrdersUnlinkTransaction',
   // ── naturally idempotent creates (no key; repeat call returns the original) ──
-  'documentsAssign',
+  'documentsLink',
   'libraryAddProjectIncentive',
   'libraryAddRatePack',
   // ── library pack enables (Simon, 2026-08-02): enabling a pack the workspace
@@ -261,26 +258,25 @@ const AGENT_WRITE_EXPOSED_OPS: readonly string[] = [
   //    so "repeat returns the original record" would be a lie the model acts
   //    on. The public catalog publishes delete-specific retry wording. ──
   'transactionsDelete',
-  'masterDataDeleteContact',
+  'contactsDelete',
   'budgetDeleteLine',
   'budgetDeletePhase',
   'purchaseOrdersDelete',
   // ── full-surface ruling (2026-08-07): the rest of the write inventory ──
   'documentsDelete',
-  'documentsUnassign',
+  'documentsUnlink',
   'libraryAddProjectCurrency',
   'libraryAddProjectFringe',
-  'libraryAddProjectFringeTag',
+  'libraryAddProjectFringeGroup',
   'libraryAddProjectGlobal',
-  'libraryAddProjectTag',
-  'libraryDeleteCurrencyTemplate',
-  'libraryDeleteCustomUnit',
-  'libraryDeleteFringeTagTemplate',
-  'libraryDeleteFringeTemplate',
-  'libraryDeleteGlobalTemplate',
+  'libraryDeleteCurrency',
+  'libraryDeleteUnit',
+  'libraryDeleteFringeGroup',
+  'libraryDeleteFringe',
+  'libraryDeleteGlobal',
   'libraryDeleteProjectCurrency',
   'libraryDeleteProjectFringe',
-  'libraryDeleteProjectFringeTag',
+  'libraryDeleteProjectFringeGroup',
   'libraryDeleteProjectGlobal',
   'libraryDeleteProjectIncentive',
   'libraryDeleteRatePack',
@@ -288,16 +284,14 @@ const AGENT_WRITE_EXPOSED_OPS: readonly string[] = [
   'libraryDeleteTag',
   'libraryDisableIncentivePack',
   'libraryDisableRatePack',
-  'libraryRemoveProjectTag',
   'libraryRemoveRatePack',
-  'masterDataDeleteComment',
-  'masterDataDeleteProject',
-  'masterDataDeleteSpace',
+  'commentsDelete',
+  'spacesDelete',
   'purchaseOrdersDeleteItem',
-  'transactionsItemsDelete',
+  'transactionsDeleteItem',
   'webhooksCreate',
   'webhooksDelete',
-  'webhooksPing',
+  'webhooksSendTestDelivery',
   'webhooksUpdate',
 ];
 const AGENT_WRITE_EXPOSED_SET: ReadonlySet<string> = new Set(AGENT_WRITE_EXPOSED_OPS);
@@ -310,26 +304,26 @@ const AGENT_WRITE_EXPOSED_SET: ReadonlySet<string> = new Set(AGENT_WRITE_EXPOSED
  */
 const KEYED_CREATE_OPS: ReadonlySet<string> = new Set([
   'budgetCreateLine',
-  'budgetCreateLinesBatch',
+  'budgetCreateLinesBulk',
   'budgetCreatePhase',
-  'budgetUpsertLinePhaseDataBatch',
-  'libraryCreateCurrencyTemplate',
-  'libraryCreateCustomUnit',
-  'libraryCreateFringeTagTemplate',
-  'libraryCreateFringeTemplate',
-  'libraryCreateGlobalTemplate',
+  'budgetUpdateLinePhaseDataBulk',
+  'libraryCreateCurrency',
+  'libraryCreateUnit',
+  'libraryCreateFringeGroup',
+  'libraryCreateFringe',
+  'libraryCreateGlobal',
   'libraryCreateRatePack',
   'libraryCreateRatePackItem',
   'libraryCreateTag',
-  'masterDataCreateComment',
-  'masterDataCreateContact',
-  'masterDataCreateProject',
-  'masterDataCreateSpace',
+  'commentsCreate',
+  'contactsCreate',
+  'projectsCreate',
+  'spacesCreate',
   'purchaseOrdersCreate',
   'purchaseOrdersCreateItem',
-  'transactionsBatchCreate',
+  'transactionsCreateBulk',
   'transactionsCreate',
-  'transactionsItemsCreate',
+  'transactionsCreateItem',
 ]);
 
 /**
@@ -337,16 +331,15 @@ const KEYED_CREATE_OPS: ReadonlySet<string> = new Set([
  * a repeat call returns the ORIGINAL record, never a duplicate or a 409.
  */
 const NATURALLY_IDEMPOTENT_OPS: Readonly<Record<string, string>> = {
-  documentsAssign: 'same-id FK set; the route has an explicit same-target no-op branch',
+  documentsLink: 'same-id FK set; the route has an explicit same-target no-op branch',
   libraryAddProjectIncentive: 'copy-on-use `@@unique([projectId, source])` — repeat add returns the existing link',
   libraryAddRatePack: 'copy-on-use `@@unique([projectId, ratePackId])` — repeat add returns the existing link',
   libraryEnableRatePack: 'upsert on `@@unique([workspaceId, ratePackId])` with deterministic id `wrp-<ws>-<pack>` — repeat enable returns the existing enablement',
   libraryEnableIncentivePack: 'upsert on `@@unique([workspaceId, incentivePackId])` with deterministic id `wip-<ws>-<pack>` — repeat enable returns the existing enablement',
   libraryAddProjectCurrency: 'copy-on-use add, idempotent on `@@unique([projectId, sourceId])` — repeat add returns the existing project copy',
   libraryAddProjectFringe: 'copy-on-use add, idempotent on `@@unique([projectId, sourceId])` — repeat add returns the existing project copy',
-  libraryAddProjectFringeTag: 'copy-on-use add, idempotent on `@@unique([projectId, sourceId])` — repeat add returns the existing project copy',
+  libraryAddProjectFringeGroup: 'copy-on-use add, idempotent on `@@unique([projectId, sourceId])` — repeat add returns the existing project copy',
   libraryAddProjectGlobal: 'copy-on-use add, idempotent on `@@unique([projectId, sourceId])` — repeat add returns the existing project copy',
-  libraryAddProjectTag: 'attach, idempotent on the project-tag link — repeat add returns the existing attachment',
 };
 
 /**
@@ -359,14 +352,14 @@ const TRANSITION_OPS: ReadonlySet<string> = new Set([
   'purchaseOrdersCancelSubmission',
   'purchaseOrdersMarkPaid',
   'purchaseOrdersVoid',
-  'purchaseOrdersLink',
-  'purchaseOrdersUnlink',
+  'purchaseOrdersLinkTransaction',
+  'purchaseOrdersUnlinkTransaction',
   // Guarded actions (full-surface ruling 2026-08-07): a repeat cannot
   // duplicate data — unassign of an unassigned doc is a typed miss; webhook
   // create 409s on a duplicate URL; ping re-sends a test event (no data row).
-  'documentsUnassign',
+  'documentsUnlink',
   'webhooksCreate',
-  'webhooksPing',
+  'webhooksSendTestDelivery',
 ]);
 
 interface ParsedOp {
@@ -577,12 +570,6 @@ function expandTeachableAliases(types: string, text: string): string {
           /\bamount\?: number \| null/g,
           'amount?: number (integer MINOR units - $12,400.00 = 1240000, never major-unit dollars) | null',
         );
-        if (name.startsWith('PurchaseOrderItem')) {
-          inline = inline.replace(
-            /\brate\?: number \| null/g,
-            'rate?: number (MINOR units per unit; when amount is omitted the server computes qty x rate) | null',
-          );
-        }
         out = out.replace(new RegExp(`\\b${name}\\b`, 'g'), inline);
         changed = true;
         continue;
@@ -723,7 +710,7 @@ function emitInterface(selected: ParsedOp[]): string {
 //
 // The \`mutate\` write surface CONTRACT: one typed method per allowlisted /v1
 // write op, \`<op>(data: <Op>Data): Promise<<Op>Response>\`. Regenerate with:
-//   pnpm --filter @saturation/sdk generate:mutate
+//   pnpm generate:mutate
 //
 // This interface is the forcing function: when the OpenAPI document (and thus
 // the generated \`types.gen.ts\` request/response types) changes, every
@@ -772,7 +759,7 @@ function emitBridge(selected: ParsedOp[]): string {
 // dispatcher ({@link WriteBridge.mutate}, built with \`fetch: app.fetch\`), so the
 // body still flows bearerAuth -> CASL -> \$transaction -> audit verbatim. Typing
 // lives in each method's signature; the runtime is the generic gated bridge.
-// Regenerate with:  pnpm --filter @saturation/sdk generate:mutate
+// Regenerate with: pnpm generate:mutate
 //
 // ${selected.length} write operations.
 
@@ -821,7 +808,7 @@ type OptionsEnvelope = {
  *
  *   const surface = {
  *     ...createBridgeWriteSurface(bridge),
- *     budgetUpsertLinePhaseData: nativeUpsert, // hand-written, type-checked
+ *     budgetUpdateLinePhaseData: nativeUpsert, // hand-written, type-checked
  *   } satisfies WriteSurface;
  */
 export function createBridgeWriteSurface(bridge: WriteBridge): WriteSurface {
@@ -911,9 +898,9 @@ function main(): void {
     'purchaseOrdersCancelSubmission',
     'purchaseOrdersMarkPaid',
     'purchaseOrdersVoid',
-    'purchaseOrdersUnlink',
-    'documentsUnassign',
-    'webhooksPing',
+    'purchaseOrdersUnlinkTransaction',
+    'documentsUnlink',
+    'webhooksSendTestDelivery',
   ]);
   // SOFT deletes: the five reviewed 2026-08-02 plus the remainder of the
   // delete inventory admitted by the 2026-08-07 full-surface ruling. Every
@@ -921,19 +908,19 @@ function main(): void {
   // op still fails here until it is explicitly enumerated.
   const REVIEWED_SOFT_DELETE_OPS = new Set([
     'transactionsDelete',
-    'masterDataDeleteContact',
+    'contactsDelete',
     'budgetDeleteLine',
     'budgetDeletePhase',
     'purchaseOrdersDelete',
     'documentsDelete',
-    'libraryDeleteCurrencyTemplate',
-    'libraryDeleteCustomUnit',
-    'libraryDeleteFringeTagTemplate',
-    'libraryDeleteFringeTemplate',
-    'libraryDeleteGlobalTemplate',
+    'libraryDeleteCurrency',
+    'libraryDeleteUnit',
+    'libraryDeleteFringeGroup',
+    'libraryDeleteFringe',
+    'libraryDeleteGlobal',
     'libraryDeleteProjectCurrency',
     'libraryDeleteProjectFringe',
-    'libraryDeleteProjectFringeTag',
+    'libraryDeleteProjectFringeGroup',
     'libraryDeleteProjectGlobal',
     'libraryDeleteProjectIncentive',
     'libraryDeleteRatePack',
@@ -941,13 +928,11 @@ function main(): void {
     'libraryDeleteTag',
     'libraryDisableIncentivePack',
     'libraryDisableRatePack',
-    'libraryRemoveProjectTag',
     'libraryRemoveRatePack',
-    'masterDataDeleteComment',
-    'masterDataDeleteProject',
-    'masterDataDeleteSpace',
+    'commentsDelete',
+    'spacesDelete',
     'purchaseOrdersDeleteItem',
-    'transactionsItemsDelete',
+    'transactionsDeleteItem',
     'webhooksDelete',
   ]);
   const destructive = selected.filter((o) =>
@@ -1040,18 +1025,13 @@ function main(): void {
       let bodyTypeStr = bodyTypeText(types, o.dataType);
       // PO item ops take the item shape as their whole body, so no alias name
       // survives for the money-alias expansion to teach (R6-F1). Teach the
-      // fields op-scoped: amount is minor units everywhere on the contract,
-      // but `rate` is only money on PO items (currency/fringe rates are
-      // ratios), so this stays out of FIELD_INLINE_TEACHINGS.
+      // amount is minor units everywhere on the contract. Quantity and rate
+      // stay as the contract's raw number-or-formula strings.
       if (o.op === 'purchaseOrdersCreateItem' || o.op === 'purchaseOrdersUpdateItem') {
         bodyTypeStr = bodyTypeStr
           .replace(
             /\bamount\?: number \| null/g,
             'amount?: number (integer MINOR units - $12,400.00 = 1240000, never major-unit dollars) | null',
-          )
-          .replace(
-            /\brate\?: number \| null/g,
-            'rate?: number (MINOR units per unit; when amount is omitted the server computes qty x rate) | null',
           );
       }
       const bodyType = JSON.stringify(bodyTypeStr);
@@ -1083,7 +1063,7 @@ function main(): void {
 //
 // The \`mutate\` write surface: an explicit allowlist over the generated /v1 SDK
 // (CREATE + value-UPDATE, additive only). Regenerate with:
-//   pnpm --filter @saturation/sdk generate:mutate
+//   pnpm generate:mutate
 //
 // ${selected.length} write operations selected from ${all.length} total operations.
 

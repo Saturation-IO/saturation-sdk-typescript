@@ -1,6 +1,6 @@
 {
   "name": "@saturationio/sdk",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0",
   "description": "Official TypeScript SDK for the Saturation API (/v1)",
   "keywords": [
     "saturation",
@@ -18,7 +18,7 @@
     "type": "git",
     "url": "git+https://github.com/Saturation-IO/saturation-sdk-typescript.git"
   },
-  "license": "Proprietary",
+  "license": "MIT",
   "author": "Saturation",
   "packageManager": "pnpm@10.26.2",
   "type": "module",
@@ -45,7 +45,9 @@
     "build:esm": "tsc -p tsconfig.esm.json",
     "build:types": "tsc -p tsconfig.types.json",
     "clean": "rm -rf dist",
-    "generate": "openapi-ts",
+    "generate": "pnpm generate:client && pnpm generate:mutate",
+    "generate:client": "node scripts/generate-client.mjs",
+    "generate:check": "node scripts/check-generated.mjs",
     "generate:mutate": "tsx scripts/generate-write-surface.ts",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.typetest.json",
     "test": "vitest run",
@@ -53,6 +55,7 @@
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "0.97.3",
+    "@types/node": "^22.20.1",
     "tsx": "^4.19.2",
     "typescript": "^5.4.3",
     "vitest": "^4.1.0"

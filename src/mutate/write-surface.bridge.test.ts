@@ -26,14 +26,14 @@ describe('createBridgeWriteSurface delegates each op to the generic dispatcher',
     const { bridge, calls } = spyBridge();
     const surface = createBridgeWriteSurface(bridge);
 
-    await surface.budgetUpsertLinePhaseData({
+    await surface.budgetUpdateLinePhaseData({
       path: { projectId: 'prj_1', lineId: 'lin_1', phaseId: 'phs_1' },
       body: { rate: '2500', quantity: '2', multiplier: '1' },
       url: '/projects/{projectId}/budget/lines/{lineId}/phase-data/{phaseId}',
     });
 
     expect(calls).toHaveLength(1);
-    expect(calls[0]!.op).toBe('budgetUpsertLinePhaseData');
+    expect(calls[0]!.op).toBe('budgetUpdateLinePhaseData');
     expect(calls[0]!.args).toEqual({
       path: { projectId: 'prj_1', lineId: 'lin_1', phaseId: 'phs_1' },
       body: { rate: '2500', quantity: '2', multiplier: '1' },
@@ -44,13 +44,13 @@ describe('createBridgeWriteSurface delegates each op to the generic dispatcher',
     const { bridge, calls } = spyBridge();
     const surface = createBridgeWriteSurface(bridge);
 
-    await surface.masterDataUpdateContact({
+    await surface.contactsUpdate({
       path: { contactId: 'con_1' },
       body: { name: 'Jane Doe', email: 'jane@example.com' },
       url: '/contacts/{contactId}',
     });
 
-    expect(calls[0]!.op).toBe('masterDataUpdateContact');
+    expect(calls[0]!.op).toBe('contactsUpdate');
     expect(calls[0]!.args).toEqual({
       path: { contactId: 'con_1' },
       body: { name: 'Jane Doe', email: 'jane@example.com' },
@@ -62,9 +62,9 @@ describe('createBridgeWriteSurface delegates each op to the generic dispatcher',
     const { bridge } = spyBridge();
     const surface = createBridgeWriteSurface(bridge);
     const result = await surface.transactionsUpdate({
-      path: { txId: 'txn_1' },
+      path: { transactionId: 'txn_1' },
       body: { status: 'posted' },
-      url: '/transactions/{txId}',
+      url: '/transactions/{transactionId}',
     });
     expect(result).toEqual({ ok: true });
   });

@@ -19,7 +19,7 @@ export class SaturationError extends Error {
   readonly code: ErrorCode;
   /** The id of the failed request — quote it in support tickets. */
   readonly requestId: string;
-  /** Per-field messages on validation / mass-assignment failures. */
+  /** Per-field validation messages, including read-only fields. */
   readonly fieldErrors?: Record<string, string[]>;
   /** On `permission_revoked` (403): the missing ability, e.g. `update:Transaction`. */
   readonly requiredAbility?: string;

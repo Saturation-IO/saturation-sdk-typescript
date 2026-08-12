@@ -12,7 +12,6 @@ import type {
   SpaceCreate,
   SpaceUpdate,
   Me,
-  Workspace,
   SearchHit,
   SearchKind,
   TagMode,
@@ -68,8 +67,8 @@ export class ContactsResource {
     };
     type Row = Expanded<Contact, ContactExpandMap, E>;
     return new List<Row>(
-      () => this.t.paginate<typeof options, Row>(sdk.masterDataListContacts, options),
-      () => this.t.runPage<typeof options, Row>(sdk.masterDataListContacts, options),
+      () => this.t.paginate<typeof options, Row>(sdk.contactsList, options),
+      () => this.t.runPage<typeof options, Row>(sdk.contactsList, options),
     );
   }
 
@@ -77,28 +76,28 @@ export class ContactsResource {
     contactId: string,
     params: { expand?: readonly E[] } = {},
   ): Promise<Expanded<Contact, ContactExpandMap, E>> {
-    return this.t.run(sdk.masterDataGetContact, {
+    return this.t.run(sdk.contactsGet, {
       path: { contactId },
       query: { expand: serializeExpand(params.expand) },
     }) as Promise<Expanded<Contact, ContactExpandMap, E>>;
   }
 
   async create(body: ContactCreate, opts: { idempotencyKey: string }): Promise<Contact> {
-    return this.t.run(sdk.masterDataCreateContact, {
+    return this.t.run(sdk.contactsCreate, {
       headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<Contact>;
   }
 
   async update(contactId: string, body: ContactUpdate): Promise<Contact> {
-    return this.t.run(sdk.masterDataUpdateContact, {
+    return this.t.run(sdk.contactsUpdate, {
       path: { contactId },
       body,
     }) as Promise<Contact>;
   }
 
   async delete(contactId: string): Promise<void> {
-    await this.t.run(sdk.masterDataDeleteContact, {
+    await this.t.run(sdk.contactsDelete, {
       path: { contactId },
     });
   }
@@ -115,44 +114,39 @@ export interface ProjectListParams {
   withCount?: boolean;
 }
 
-/** Workspace-scoped projects: `sat.projects.list/get/create/update/delete`. */
+/** Workspace-scoped projects: `sat.projects.list/get/create/update`. */
 export class ProjectsResource {
   constructor(private readonly t: Transport) {}
 
   list(params: ProjectListParams = {}): List<Project> {
     const options = { query: { ...params } };
     return new List<Project>(
-      () => this.t.paginate<typeof options, Project>(sdk.masterDataListProjects, options),
-      () => this.t.runPage<typeof options, Project>(sdk.masterDataListProjects, options),
+      () => this.t.paginate<typeof options, Project>(sdk.projectsList, options),
+      () => this.t.runPage<typeof options, Project>(sdk.projectsList, options),
     );
   }
 
   /** Get a project by `id` or `slug`. */
-  async get(slugOrId: string): Promise<Project> {
-    return this.t.run(sdk.masterDataGetProject, {
-      path: { slugOrId },
+  async get(projectId: string): Promise<Project> {
+    return this.t.run(sdk.projectsGet, {
+      path: { projectId },
     }) as Promise<Project>;
   }
 
   async create(body: ProjectCreate, opts: { idempotencyKey: string }): Promise<Project> {
-    return this.t.run(sdk.masterDataCreateProject, {
+    return this.t.run(sdk.projectsCreate, {
       headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<Project>;
   }
 
-  async update(slugOrId: string, body: ProjectUpdate): Promise<Project> {
-    return this.t.run(sdk.masterDataUpdateProject, {
-      path: { slugOrId },
+  async update(projectId: string, body: ProjectUpdate): Promise<Project> {
+    return this.t.run(sdk.projectsUpdate, {
+      path: { projectId },
       body,
     }) as Promise<Project>;
   }
 
-  async delete(slugOrId: string): Promise<void> {
-    await this.t.run(sdk.masterDataDeleteProject, {
-      path: { slugOrId },
-    });
-  }
 }
 
 /** Workspace spaces (folders that group projects): `sat.spaces`. */
@@ -162,25 +156,25 @@ export class SpacesResource {
   list(params: { limit?: number; cursor?: string } = {}): List<Space> {
     const options = { query: { ...params } };
     return new List<Space>(
-      () => this.t.paginate<typeof options, Space>(sdk.masterDataListSpaces, options),
-      () => this.t.runPage<typeof options, Space>(sdk.masterDataListSpaces, options),
+      () => this.t.paginate<typeof options, Space>(sdk.spacesList, options),
+      () => this.t.runPage<typeof options, Space>(sdk.spacesList, options),
     );
   }
   /** Create a space. Pass `idempotencyKey` for a safe retry of the create. */
   async create(body: SpaceCreate, opts: { idempotencyKey: string }): Promise<Space> {
-    return this.t.run(sdk.masterDataCreateSpace, {
+    return this.t.run(sdk.spacesCreate, {
       headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<Space>;
   }
   async update(spaceId: string, body: SpaceUpdate): Promise<Space> {
-    return this.t.run(sdk.masterDataUpdateSpace, {
+    return this.t.run(sdk.spacesUpdate, {
       path: { spaceId },
       body,
     }) as Promise<Space>;
   }
   async delete(spaceId: string): Promise<void> {
-    await this.t.run(sdk.masterDataDeleteSpace, {
+    await this.t.run(sdk.spacesDelete, {
       path: { spaceId },
     });
   }
@@ -206,20 +200,11 @@ export class SearchResource {
     const query = {
       q,
       types: params.types ? [...params.types] : undefined,
+      projectId: this.projectId,
       limit: params.limit,
       cursor: params.cursor,
       withCount: params.withCount,
     };
-    if (this.projectId) {
-      const options = {
-        path: { projectId: this.projectId },
-        query,
-      };
-      return new List<SearchHit>(
-        () => this.t.paginate<typeof options, SearchHit>(sdk.searchProject, options),
-        () => this.t.runPage<typeof options, SearchHit>(sdk.searchProject, options),
-      );
-    }
     const options = { query };
     return new List<SearchHit>(
       () => this.t.paginate<typeof options, SearchHit>(sdk.searchWorkspace, options),
@@ -228,28 +213,15 @@ export class SearchResource {
   }
 }
 
-/** The `GET /v1/me` identity probe + workspace reach. */
+/** The `GET /v1/me` identity probe. */
 export class MetaResource {
   constructor(private readonly t: Transport) {}
 
   /** The token's identity and permission-filtered workspace reach (the auth probe). */
   async me(): Promise<Me> {
-    return this.t.run(sdk.metaAuthGetMe, {}) as Promise<Me>;
+    return this.t.run(sdk.meGet, {}) as Promise<Me>;
   }
 
-  /** The workspaces this token can act on. */
-  workspaces(params: { limit?: number; cursor?: string } = {}): List<Workspace> {
-    const options = { query: { ...params } };
-    return new List<Workspace>(
-      () => this.t.paginate<typeof options, Workspace>(sdk.metaAuthListWorkspaces, options),
-      () => this.t.runPage<typeof options, Workspace>(sdk.metaAuthListWorkspaces, options),
-    );
-  }
-
-  /** Unauthenticated liveness check. */
-  async health(): Promise<unknown> {
-    return this.t.run(sdk.metaAuthHealth, {});
-  }
 }
 
 export type { Page };

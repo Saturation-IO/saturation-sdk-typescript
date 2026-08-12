@@ -4,13 +4,15 @@ export type ClientOptions = {
     baseUrl: 'https://next-api.saturation.io/v1' | 'http://localhost:4300/v1' | (string & {});
 };
 
+export type Webhooks = WebhooksReceiveEventWebhookRequest;
+
 /**
- * A stable, prefixed canonical identifier (e.g. `ws_…`, `prj_…`, `acc_…`, `txn_…`, `bud_…`, `po_…`, `doc_…`). The internal domain `address` is never exposed.
+ * A stable resource ID, such as `prj_…`, `txn_…`, or `doc_…`.
  */
 export type Id = string;
 
 /**
- * A typed reference to another public resource. The referenced row is included only when the caller can read it.
+ * A reference to another resource.
  */
 export type PublicResourceRef = {
     type: 'document' | 'payment_request' | 'payment' | 'transaction' | 'approval';
@@ -18,9 +20,9 @@ export type PublicResourceRef = {
 };
 
 /**
- * The closed set of stable, typed error codes returned at the `/v1` boundary. (The internal catalog is numeric; these public string codes live only inside the public-API envelope.)
+ * Error code for programmatic handling.
  */
-export type ErrorCode = 'unauthenticated' | 'invalid_token' | 'missing_authorization' | 'token_revoked' | 'permission_revoked' | 'scope_exceeded' | 'forbidden' | 'feature_not_available' | 'upgrade_required' | 'capacity_exceeded' | 'approval_required' | 'resource_locked' | 'temporarily_unavailable' | 'role_ceiling_exceeded' | 'api_access_disabled' | 'not_found' | 'document_target_not_found' | 'validation' | 'cursor_invalid' | 'expand_invalid' | 'invalid_date_range' | 'webhook_https_required' | 'document_invalid_target_kind' | 'range_too_large' | 'account_path_ambiguous' | 'account_code_ambiguous' | 'budget_compute_stale' | 'idempotency_conflict' | 'already_assigned' | 'status_unreachable_for_source' | 'po_invalid_status' | 'webhook_url_invalid_ssrf' | 'legacy_fringe_unsupported' | 'field_read_only' | 'scenario_too_large' | 'source_not_postable' | 'webhook_url_blocked' | 'document_assign_forbidden' | 'budget_too_large' | 'batch_too_large' | 'rate_limited' | 'signing_key_not_configured' | 'internal_error' | 'budget_compute_timeout';
+export type ErrorCode = 'unauthenticated' | 'invalid_token' | 'missing_authorization' | 'token_revoked' | 'permission_revoked' | 'scope_exceeded' | 'forbidden' | 'feature_not_available' | 'upgrade_required' | 'capacity_exceeded' | 'approval_required' | 'resource_locked' | 'temporarily_unavailable' | 'role_ceiling_exceeded' | 'api_access_disabled' | 'not_found' | 'document_target_not_found' | 'validation' | 'cursor_invalid' | 'expand_invalid' | 'invalid_date_range' | 'webhook_https_required' | 'range_too_large' | 'account_path_ambiguous' | 'account_code_ambiguous' | 'budget_compute_stale' | 'idempotency_conflict' | 'already_linked' | 'status_unreachable_for_source' | 'po_invalid_status' | 'webhook_url_invalid_ssrf' | 'phase_copy_unsupported' | 'field_read_only' | 'scenario_too_large' | 'source_not_postable' | 'webhook_url_blocked' | 'budget_too_large' | 'bulk_too_large' | 'rate_limited' | 'signing_key_not_configured' | 'internal_error' | 'budget_compute_timeout';
 
 /**
  * The uniform error envelope. Only errors carry `success: false`; success responses are the bare resource or a `{ data, nextCursor? }` collection.
@@ -32,35 +34,35 @@ export type Error = {
     success: false;
     code: ErrorCode;
     /**
-     * A human-readable, self-diagnosable description of the failure.
+     * Human-readable description of the failure.
      */
     message: string;
     /**
-     * The id of the request that failed, quote it in support tickets and correlate with usage logs.
+     * Request ID for support and troubleshooting.
      */
     requestId: string;
     /**
-     * Present on validation / mass-assignment failures: a map of input field name to a list of error messages for that field.
+     * Validation messages keyed by input field.
      */
     fieldErrors?: {
         [key: string]: Array<string>;
     };
     /**
-     * Present on `permission_revoked` (403): the permission ability the caller is missing, expressed as `action:subject` (e.g. `update:Transaction`), so the failure is self-diagnosable.
+     * Permission required for the action, such as `update:Transaction`.
      */
     requiredAbility?: string;
     /**
-     * Present on `rate_limited` (429): seconds to wait before retrying (mirrors the `Retry-After` header).
+     * Seconds to wait before retrying.
      */
     retryAfter?: number;
     /**
-     * Present when product access denied the operation. Route remediation by the typed reason, not by HTTP status alone.
+     * Product-access details when the operation is unavailable.
      */
     accessDecision?: ProductAccessDecision;
 };
 
 /**
- * Redacted product-access denial evidence. Internal workspace, principal, resource, idempotency, catalog, and subscription evidence is never exposed.
+ * Explains why a product feature is unavailable and how to resolve it.
  */
 export type ProductAccessDecision = {
     operationId: string;
@@ -81,11 +83,11 @@ export type ProductAccessDecision = {
 };
 
 /**
- * A monetary amount as an integer count of the currency's minor units (e.g. cents) plus an explicit ISO-4217 currency. Never a float.
+ * An amount in integer minor units and its ISO-4217 currency.
  */
 export type Money = {
     /**
-     * Amount in the currency's smallest unit (e.g. cents). May be negative.
+     * Amount in the currency's smallest unit, such as cents. May be negative.
      */
     amount: number;
     /**
@@ -95,190 +97,217 @@ export type Money = {
 };
 
 /**
- * The canonical cursor field carried flat on every collection envelope. Opaque; pass it back as `cursor` to fetch the next page. `null` (or absent) on the last page. Encodes the mint-time filter + sort; replaying it against a changed filter/sort returns `400 cursor_invalid`.
+ * Cursor for the next page. Pass it as `cursor` with the same filters and sort. Null on the last page.
  */
 export type NextCursor = string | null;
 
 /**
- * The public budget-phase column type. This is the vocabulary. The internal value set is mapped at the API boundary (`estimate→regular`, `rollup→variance`, `actual→actual`, `committed→committed`) and never leaks into a response.
+ * The phase type.
  */
 export type PhaseType = 'estimate' | 'actual' | 'rollup' | 'committed';
 
 /**
- * The the row kind (the `type` column on a budget line). Accounts are NOT a separate table, an `account` row is a budget line with `kind=account`.
+ * The budget line type.
  */
-export type BudgetLineKind = 'account' | 'line' | 'subtotal' | 'fringe' | 'markup' | 'credit' | 'banner';
+export type BudgetLineType = 'account' | 'line' | 'subtotal' | 'fringe' | 'markup' | 'credit' | 'banner';
 
 /**
- * The narrowed kind that appears on a node in the computed whole-tree response. The computed response collapses the stored row kind to these four.
+ * The budget line types included in a budget document.
  */
-export type ComputedLineKind = 'account' | 'line' | 'credit' | 'fringe';
+export type ComputedLineType = 'account' | 'line' | 'credit' | 'fringe';
 
 /**
- * Allowed `expand` keys for budget-line reads (comma-separated, depth ≤ 2). `contact` is a relation expand; `account` projects classifier fields already inline on the row; `phases` adds the computed value matrix; `phaseData` adds raw editable estimate phase data keyed by phase id; `sourceItem` dereferences the `sourceId` to its library origin (or an explicit tombstone, never null). An unknown or too-deep key returns `400 expand_invalid`. Legacy parity note: the legacy `lines.notes` expand is intentionally NOT ported, the note is now a plain-text `line.notes` field always present inline on the line, so there is nothing to expand (the rich-text `NoteData` / `/budget/note` resource is gone, see `BudgetLine.notes`).
+ * A related resource to include with a budget line. Pass multiple values as a comma-separated list. The maximum depth is 2.
  */
-export type BudgetLineExpand = 'phases' | 'phaseData' | 'contact' | 'account' | 'sourceItem';
+export type BudgetLineExpand = 'phaseTotals' | 'phaseData' | 'contact';
 
 /**
- * How a multi-value `tags` filter composes. `any` = OR (default), `all` = AND, `none` = exclude any tagged row.
+ * Contact details included with a budget line.
+ */
+export type BudgetLineContactRef = {
+    id: Id;
+    displayName: string;
+    name: string | null;
+    company: string | null;
+    email: string | null;
+    type: string | null;
+};
+
+/**
+ * How multiple tag filters are combined. `any` matches at least one tag, `all` matches every tag, and `none` excludes matching tags.
  */
 export type TagMode = 'any' | 'all' | 'none';
 
 /**
- * One contributing fringe within a computed PhaseValues, itemized for transparency.
+ * One fringe included in a phase total.
  */
 export type FringeBreakdownEntry = {
-    id?: Id;
+    id: Id;
     /**
-     * Fringe label as it appears in the Library / on screen.
+     * The fringe name.
      */
-    name?: string;
+    name: string;
     /**
-     * This fringe's contribution to the cell, in workspace-base minor units.
+     * The fringe amount in the workspace currency's minor units.
      */
-    amount?: number;
+    amount: number;
 };
 
 /**
- * The computed value matrix for one phase of one row (or the rolled-up subtotal on an account row). All amounts are integers in the workspace **base** currency's minor units; each contributing line is converted to base via its exchange rate before summing, so a computed value is never a mix of currencies. `combined` is the source of truth (`combined === amount`); clients must never re-sum.
+ * Totals for one budget line and phase. Amounts use the workspace currency's minor units. `amount` and `combined` are equal.
  */
 export type PhaseValues = {
     /**
-     * Base amount (pre-overtime, pre-fringe), minor units of the base currency.
+     * The amount before overtime and fringes, in minor units.
      */
     base: number;
     /**
-     * Overtime amount, minor units of the base currency.
+     * The overtime amount in minor units.
      */
     overtime: number;
     /**
-     * Total fringe amount, minor units of the base currency.
+     * The total fringe amount in minor units.
      */
     fringe: number;
     /**
-     * Itemized contributing fringes that sum to `fringe`.
+     * The fringes included in `fringe`.
      */
     fringeBreakdown: Array<FringeBreakdownEntry>;
     /**
-     * The computed amount for the node. `combined` mirrors this; it is the source of truth.
+     * The total amount in minor units.
      */
     amount: number;
     /**
-     * base + overtime + fringe, post-credit; the authoritative total for the cell. Always equal to `amount`. Never re-summed client-side, never a stored fallback.
+     * The total after overtime, fringes, and credits. Equal to `amount`.
      */
     combined: number;
     /**
-     * The workspace base ISO-4217 currency the computed value is normalized to.
+     * The workspace currency as an ISO 4217 code.
      */
     currency: string;
 };
 
 /**
- * A budget phase, the column dimension of the budget matrix.
+ * A phase column in the budget.
  */
 export type BudgetPhase = {
     id: Id;
     type: PhaseType;
     /**
-     * Phase name as shown on screen.
+     * The phase name.
      */
     name: string;
     /**
-     * Optional short alias for the phase column header.
+     * A short name for the phase column.
      */
     alias?: string | null;
     /**
-     * Display color token for the phase column (never a hex literal in the UI).
+     * The phase color.
      */
     color?: string | null;
     /**
-     * Stable display order among phases.
+     * The phase's display order.
      */
     sort: number;
     /**
-     * Whether the phase column is hidden in the UI.
+     * Whether the phase is hidden.
      */
     isHidden: boolean;
+    /**
+     * Decimal places shown for phase amounts. Null uses the currency default.
+     */
+    displayDecimals?: number | null;
+    /**
+     * The phase currency. Used by estimate, actual, and rollup phases.
+     */
+    baseCurrencyId?: Id | null;
+    actualDateStart?: string | null;
+    actualDateEnd?: string | null;
+    actualStatuses?: Array<string> | null;
+    /**
+     * Sources included in an actual phase. Manual transactions use `manual`.
+     */
+    actualSourceTypes?: Array<string> | null;
+    actualCurrencies?: Array<string> | null;
+    actualContactId?: Id | null;
+    actualTagIds?: Array<Id>;
+    actualBudgetLineIds?: Array<Id> | null;
+    estimateTagIds?: Array<Id>;
+    overtimeFactors?: Array<'qty' | 'x'>;
+    committedDateStart?: string | null;
+    committedDateEnd?: string | null;
+    committedContactId?: Id | null;
+    committedPhaseIds?: Array<Id>;
+    committedPoStatuses?: Array<'approved' | 'paymentRequested' | 'paymentRejected' | 'paymentProcessing'>;
+    /**
+     * The formula for a rollup phase.
+     */
+    rollupFormula?: string | null;
+    rollupDisplayMode?: 'value' | 'percent' | 'bars' | 'margin' | null;
 };
 
 /**
- * A stored budget row. `code` is the (non-unique, possibly empty) account number; `path` is the coded account path used for friendly lookups. The internal `address` is never returned. Expand-only relations (`contact`, `account`, `phases`, `phaseData`, `sourceItem`) appear only when requested via `expand`.
+ * A budget line. Related data appears when requested with `expand`.
  */
 export type BudgetLine = {
     id: Id;
     /**
-     * Account number (the friendly `accountId` classifier). Non-unique, may be empty.
+     * The account number. It does not need to be unique.
      */
-    code?: string | null;
+    accountId?: string | null;
     /**
-     * Coded account path for friendly lookups (e.g. `1100/1110`). Never the address.
+     * The account path, such as `1100/1110`.
      */
     path?: string | null;
-    kind: BudgetLineKind;
+    type: BudgetLineType;
     /**
-     * Line description (the on-screen line name).
+     * The line description.
      */
-    name: string;
-    parentId: Id;
+    description: string;
+    parentId: Id | null;
     /**
-     * Depth in the account tree (root account = 0). Present on tree reads.
+     * The line's depth in the account tree. Root accounts have depth 0.
      */
     depth?: number;
     /**
-     * Stable display order among siblings.
+     * The display order among lines with the same parent.
      */
     sort: number;
-    contactId?: Id;
+    contactId?: Id | null;
     /**
-     * Display color token for the row.
+     * The line color.
      */
     lineColor?: string | null;
     emoji?: string | null;
     /**
-     * Free-text note on the line, a single plain-text string. Legacy parity note: the legacy budget-line note was a rich `NoteData` object (TipTap `json`/`html`/`text`) managed through dedicated `/budget/note` endpoints; that shape and those endpoints are intentionally NOT ported. Notes are plain text on `line.notes`, read and written inline on the line itself, there is no separate note resource and no rich-text payload.
+     * A plain-text note on the line.
      */
     notes?: string | null;
     /**
-     * Tag ids attached to this line.
+     * The IDs of tags on this line.
      */
     tagIds?: Array<Id>;
     /**
-     * For `subtotal` rows, sum all rows above rather than the immediate group.
+     * For a `subtotal` line, whether to include every preceding line.
      */
     subtotalSumAllAbove?: boolean;
     subtotalIsBold?: boolean;
     /**
-     * For `markup` rows, the account filter the markup applies to.
+     * For a `markup` line, the accounts included in the markup.
      */
     markupAccountFilter?: string | null;
     /**
-     * Identifies the **workspace** library item this row was copied from (e.g. a credit source). Null when the row has no workspace-library origin. Dereference with `expand=sourceItem`.
+     * The contact. Included with `expand=contact`.
      */
-    sourceId?: Id | null;
+    contact?: BudgetLineContactRef | null;
     /**
-     * Identifies the **Saturation-derived** credit's incentive *version* (not the program) this row was copied from. Source tracking uses two fields by origin: `sourceId` for workspace copies, `sourceIncentiveVersionId` (+ `sourceType`) for Saturation-derived credits. Null when the row has no incentive origin.
+     * Totals keyed by phase ID. Included with `expand=phaseTotals`.
      */
-    sourceIncentiveVersionId?: Id | null;
-    /**
-     * The origin class that disambiguates `sourceId` vs `sourceIncentiveVersionId` for a row (e.g. an incentive-derived credit). Null when the row has no library origin.
-     */
-    sourceType?: string | null;
-    /**
-     * Present only with `expand=contact`. The full contact (permission-projected).
-     */
-    contact?: Contact;
-    /**
-     * Present only with `expand=sourceItem`. The live library item `sourceId` points to, or an explicit tombstone `{ id, deleted: true }` when the source was removed, never null.
-     */
-    sourceItem?: unknown;
-    /**
-     * Present only with `expand=phases`. The per-phase computed value matrix for this line, keyed by phase id.
-     */
-    values?: {
+    phaseTotals?: {
         [key: string]: PhaseValues;
     };
     /**
-     * Present only with `expand=phaseData`. Raw editable estimate phase data keyed by phase id.
+     * Editable phase data keyed by phase ID. Included with `expand=phaseData`.
      */
     phaseData?: {
         [key: string]: BudgetDocumentLinePhaseData;
@@ -286,18 +315,18 @@ export type BudgetLine = {
 };
 
 /**
- * Create a budget line. Allow-list only, server mints `id`, the internal address reference, and all timestamps; naming any server-owned field returns `422 field_read_only`.
+ * Details for a new budget line.
  */
 export type BudgetLineCreate = {
     /**
-     * Line description.
+     * The line description.
      */
-    name: string;
-    kind?: BudgetLineKind;
+    description: string;
+    type?: BudgetLineType;
     /**
-     * Account number to set on the row (optional; non-unique).
+     * The account number. It does not need to be unique.
      */
-    code?: string;
+    accountId?: string;
     parentId?: Id;
     contactId?: Id;
     lineColor?: string;
@@ -316,12 +345,12 @@ export type BudgetLineCreate = {
 };
 
 /**
- * Patch a budget line. Allow-list mirrors the provider's writable set. Naming a server-owned or flow-derived field (`address`, `budgetId`, `path`, `depth`, `createdAt`, `updatedAt`, `soft-delete timestamp`) returns `422 field_read_only` listing the offenders, never a silent strip.
+ * Changes to a budget line.
  */
 export type BudgetLineUpdate = {
-    name?: string;
-    kind?: BudgetLineKind;
-    code?: string;
+    description?: string;
+    type?: BudgetLineType;
+    accountId?: string;
     parentId?: Id;
     contactId?: Id | null;
     lineColor?: string | null;
@@ -340,7 +369,7 @@ export type BudgetLineUpdate = {
 };
 
 /**
- * Raw editable phase-data value. Numbers stay numbers; formulas and variable references stay exact strings; missing value is null.
+ * A phase value. Formulas and variable references remain strings. A missing value is null.
  */
 export type BudgetDocumentPhaseDataValue = number | string | null;
 
@@ -350,17 +379,17 @@ export type BudgetDocumentOvertime = {
     hours?: number | null;
     baseHours?: number | null;
     /**
-     * Raw overtime multiplier detail.
+     * Overtime multipliers.
      */
     multipliers?: unknown;
     /**
-     * Canonical overtime V2 detail, when present.
+     * Overtime details.
      */
     detail?: unknown;
 } | null;
 
 /**
- * Editable estimate phase data for one line and phase. Notes and agent summaries are intentionally excluded.
+ * Editable data for one budget line and phase.
  */
 export type BudgetDocumentLinePhaseData = {
     rate: BudgetDocumentPhaseDataValue;
@@ -373,13 +402,13 @@ export type BudgetDocumentLinePhaseData = {
     startDate: string | null;
     endDate: string | null;
     fringeIds: Array<Id>;
-    fringeTagIds: Array<Id>;
+    fringeGroupIds: Array<Id>;
     currencyId: Id | null;
     overtime: BudgetDocumentOvertime;
 };
 
 /**
- * Public write body for one editable line/phase data cell. Omitted fields are left unchanged on upsert.
+ * Changes to one budget line and phase. Omitted fields remain unchanged.
  */
 export type BudgetLinePhaseDataWrite = {
     rate?: BudgetDocumentPhaseDataValue;
@@ -391,7 +420,7 @@ export type BudgetLinePhaseDataWrite = {
     startDate?: string | null;
     endDate?: string | null;
     fringeIds?: Array<Id> | null;
-    fringeTagIds?: Array<Id> | null;
+    fringeGroupIds?: Array<Id> | null;
     currencyId?: Id | null;
     overtime?: BudgetDocumentOvertime;
 };
@@ -404,15 +433,15 @@ export type BudgetLinePhaseDataUpsertResponse = {
     phaseData: BudgetDocumentLinePhaseData;
 };
 
-export type BudgetLineBatchCreate = {
+export type BudgetLineBulkCreate = {
     lines: Array<BudgetLineCreate>;
 };
 
-export type BudgetLineBatchCreateResponse = {
+export type BudgetLineBulkCreateResponse = {
     data: Array<BudgetLine>;
 };
 
-export type BudgetLinePhaseDataBatchUpsert = {
+export type BudgetLinePhaseDataBulkUpsert = {
     items: Array<{
         lineId: Id;
         phaseId: Id;
@@ -420,56 +449,12 @@ export type BudgetLinePhaseDataBatchUpsert = {
     }>;
 };
 
-export type BudgetLinePhaseDataBatchUpsertResponse = {
+export type BudgetLinePhaseDataBulkUpsertResponse = {
     data: Array<BudgetLinePhaseDataUpsertResponse>;
 };
 
 /**
- * A derived account view, a budget line where `kind=account`. Accounts are not a separate table; this is a projection for browsing the chart of accounts.
- */
-export type BudgetAccount = {
-    id: Id;
-    /**
-     * Account number (the `accountId` classifier). Non-unique, may be empty.
-     */
-    code?: string | null;
-    /**
-     * Account name.
-     */
-    name?: string;
-    parentId: Id;
-    /**
-     * Coded account path.
-     */
-    path?: string | null;
-    depth?: number;
-};
-
-/**
- * A positional cell value, read via explicit `account` + `column` params. This is a computed read like `/budget/totals`: `value` is the authoritative value as of `computedAt` (may be slightly stale, not real-time), and the response carries `Cache-Control` + opaque `ETag` headers for conditional GET. Echoes the resolved coordinates plus the value.
- */
-export type BudgetCell = {
-    /**
-     * The resolved account path/code the cell sits on (echoes the request param).
-     */
-    account: string;
-    /**
-     * The value column read (echoes the request param).
-     */
-    column: string;
-    lineId?: Id;
-    /**
-     * ISO-8601 timestamp at which this cell value was computed. The value reflects state within the cache TTL window, not a real-time guarantee. Mirrors the `computedAt` contract of `/budget`, `/budget/totals`, `/budget/rollup`, `/budget/variance`.
-     */
-    computedAt: string;
-    /**
-     * The computed value matrix for the cell.
-     */
-    value: PhaseValues;
-};
-
-/**
- * The computed value matrix for one phase in the budget document. All amounts are integers in workspace-base minor units; `amount` is the total. The legacy `combined` alias is intentionally omitted from this document shape.
+ * Totals for one phase. Amounts use the workspace currency's minor units.
  */
 export type BudgetDocumentPhaseValues = {
     base: number;
@@ -481,25 +466,25 @@ export type BudgetDocumentPhaseValues = {
 };
 
 /**
- * Echo of the selector dimensions applied to the budget document.
+ * The filters applied to the budget document.
  */
 export type BudgetDocumentSelection = {
     path?: string;
-    accountCode?: string;
+    accountId?: string;
     phase?: string;
 };
 
 /**
- * One flat line in the budget document. `values` are computed; `phaseData` contains raw editable estimate fields keyed by phase id.
+ * A budget line with totals and editable phase data.
  */
 export type BudgetDocumentLine = {
     id: Id;
-    code?: string | null;
-    name: string;
+    accountId?: string | null;
+    description: string;
     parentId: Id | null;
     path?: string | null;
     depth: number;
-    kind: ComputedLineKind;
+    type: ComputedLineType;
     values: {
         [key: string]: BudgetDocumentPhaseValues;
     };
@@ -509,45 +494,41 @@ export type BudgetDocumentLine = {
 };
 
 /**
- * The full public budget document, combining visible phases, computed totals, flat lines, and editable phase data in one response.
+ * The budget's visible phases, totals, lines, and editable phase data.
  */
 export type BudgetDocument = {
     /**
-     * The budget id (`bud_…`).
+     * The budget ID.
      */
     id: Id;
     computedAt: string;
-    /**
-     * ISO-8601 timestamp after the raw phase-data rows were read.
-     */
-    phaseDataReadAt: string;
     selection: BudgetDocumentSelection;
     phases: Array<BudgetPhase>;
     /**
-     * Root or selected-subtree totals keyed by visible phase id.
+     * Totals keyed by visible phase ID.
      */
     totals: {
         [key: string]: BudgetDocumentPhaseValues;
     };
     /**
-     * Flat array of selected rows; rebuild the tree from `parentId`.
+     * Budget lines in flat order. Use `parentId` to build the tree.
      */
     lines: Array<BudgetDocumentLine>;
 };
 
 /**
- * Computed grand totals (or, with supported filters, the computed slice total) as of `computedAt`. Supported filters are `phase`, `accountId`, and `path`. The filtered rollup is computed server-side; never summed client-side.
+ * Budget totals at `computedAt`, optionally filtered by phase or account.
  */
 export type BudgetTotals = {
     computedAt: string;
     /**
-     * Per-phase totals for the requested slice, keyed by phase id.
+     * Totals keyed by phase ID.
      */
     totals: {
         [key: string]: PhaseValues;
     };
     /**
-     * Echo of the applied filter slice (present when any filter was supplied), so the computed number is self-describing.
+     * The filters applied to these totals.
      */
     filter?: {
         phase?: string;
@@ -557,321 +538,257 @@ export type BudgetTotals = {
 };
 
 /**
- * Computed rollup for a single phase, as of `computedAt`.
+ * The type of entity linked to a document. A document can have one link of each kind.
  */
-export type BudgetRollup = {
-    computedAt: string;
-    /**
-     * The phase the rollup is for.
-     */
-    phase: BudgetPhase;
-    /**
-     * The computed rollup value for the phase.
-     */
-    values: PhaseValues;
-};
+export type DocumentTargetKind = 'project' | 'contact' | 'transaction' | 'payment' | 'purchaseOrder' | 'budgetLine' | 'paymentRequest';
 
 /**
- * Computed variance between two phases (`to` minus `from`), as of `computedAt`. `delta` is the difference per value field in workspace-base minor units.
+ * A target callers can link directly. Payment-request links are managed by approvals.
  */
-export type BudgetVariance = {
-    computedAt: string;
-    /**
-     * Values of the `from` phase.
-     */
-    from: PhaseValues;
-    /**
-     * Values of the `to` phase.
-     */
-    to: PhaseValues;
-    /**
-     * Per-field difference (`to` − `from`), computed.
-     */
-    delta: PhaseValues;
-};
+export type DocumentWritableTargetKind = 'project' | 'contact' | 'transaction' | 'payment' | 'purchaseOrder' | 'budgetLine';
 
 /**
- * The kind of entity a document can be assigned to. v1 is single-target-per-kind (one reference per kind on the document). `contact` is workspace-scoped (contacts have no project), the rest are project-scoped.
- */
-export type DocumentTargetKind = 'transaction' | 'purchaseOrder' | 'contact' | 'project';
-
-/**
- * Document processing status. A new document is `PENDING` or `PROCESSING` until extraction finishes. `READY` means its content can be queried. `FAILED` means extraction did not finish. This field is read-only and set by Saturation.
+ * The document's extraction status. `ready` means extracted data is available.
  */
 export type DocumentStatus = 'pending' | 'processing' | 'ready' | 'failed';
 
 /**
- * The coarse content category inferred during extraction.
+ * The document category found during extraction.
  */
 export type DocumentCoarseType = 'financial' | 'tax' | 'legal' | 'insurance' | 'production' | 'other';
 
 /**
- * A single expand key valid on document responses. Pass as a comma list via `expand` (depth ≤ 2); an unknown key returns `400 expand_invalid`. Expanded relations are permission-projected.
- */
-export type DocumentExpand = 'assignments' | 'transaction' | 'contact' | 'purchaseOrder' | 'folder';
-
-/**
- * A typed reference to the entity a document is (or should be) assigned to. The raw internal domain `address` is never used on the public surface, targets are always `{ kind, id }`.
+ * An entity linked to a document.
  */
 export type DocumentTargetRef = {
     kind: DocumentTargetKind;
     /**
-     * The target entity's canonical id, matching `kind` (`txn_…`, `lin_…`, `po_…`, `con_…`, `prj_…`).
+     * The linked entity's ID. Its prefix must match `kind`.
      */
     id: Id;
+    /**
+     * The phase for a budget-line link.
+     */
+    phaseId?: Id | null;
 };
 
 /**
- * A document. Dropped once, then assigned to typed targets. Server-owned fields (`workspaceId`, `uploaderId`, `status`, `contentHash`, timestamps) are read-only; the per-kind assignment reference are surfaced as the typed `assignments` array, not as fields. The internal workspaceId / `soft-delete timestamp` are never exposed.
+ * An uploaded document and its links.
  */
 export type Document = {
     /**
-     * Canonical document id (`doc_…`).
+     * The document ID.
      */
     id: Id;
     /**
-     * The document's display name (file name). Writable via `PATCH`.
+     * The document's display name.
      */
     name: string;
     /**
-     * The stored file's MIME type.
+     * The file's MIME type.
      */
     mimeType: string;
     /**
-     * The stored file's size in bytes.
+     * The file size in bytes.
      */
     size: number;
     status: DocumentStatus;
     /**
-     * The workspace this document belongs to (`ws_…`). Server-owned, read-only.
+     * The workspace ID.
      */
     workspaceId: Id;
     /**
-     * Number of pages, once extraction has determined it. Null until `READY`.
+     * The number of pages, or null until extraction finishes.
      */
     pageCount?: number | null;
     /**
-     * Fine-grained classification inferred during extraction (e.g. `invoice`, `receipt`).
+     * The document classification, such as `invoice` or `receipt`.
      */
     classification?: string | null;
     /**
-     * Coarse content category. Null until extraction has classified the document.
+     * The document category, or null until classification finishes.
      */
     coarseType?: DocumentCoarseType | null;
     /**
-     * Whether extraction flagged the document as containing sensitive information.
+     * Whether the document may contain sensitive information.
      */
     hasSensitiveInfo?: boolean | null;
     /**
-     * Optional free-text description. Writable via `PATCH`.
+     * The document description.
      */
     description?: string | null;
     /**
-     * How the document entered the workspace (e.g. `api`, `agent`, `upload`). Read-only.
+     * How the document was added, such as `api`, `agent`, or `upload`.
      */
     source?: string | null;
     /**
-     * The folder this document lives in (`fld_…`), or null at the workspace root. Writable via `PATCH`.
+     * The folder ID, or null for the workspace root.
      */
     folderId?: Id | null;
     /**
-     * The project this document is scoped to (`prj_…`). Derived from a project-scoped assign target; null for workspace-only (e.g. contact-attached) documents.
+     * The project ID, or null for a workspace document.
      */
     projectId?: Id | null;
     /**
-     * Content hash of the stored file (dedupe / caching). Read-only.
+     * A hash of the file contents.
      */
     contentHash?: string | null;
     /**
-     * Every entity this document is currently assigned to, derived from the document's non-null per-kind reference (single-reference v1: at most one per kind).
+     * The entities linked to this document.
      */
-    assignments: Array<DocumentTargetRef>;
+    links: Array<DocumentTargetRef>;
     /**
-     * ISO-8601 creation timestamp.
+     * When the document was created.
      */
     createdAt: string;
     /**
-     * ISO-8601 last-modified timestamp.
+     * When the document was last updated.
      */
     updatedAt: string;
 };
 
 /**
- * One structured field extracted from a document, paired with the platform's confidence in the value so a consumer can threshold low-confidence reads.
+ * A field extracted from a document.
  */
 export type DocumentExtractedField = {
     /**
-     * The extracted value, serialized as a string (money values are decimal strings; dates are ISO-8601). Null when the field was detected as a key but no value could be read.
+     * The extracted value. Money uses decimal strings and dates use ISO 8601. Null means no value was found.
      */
     value: string | null;
     /**
-     * Extraction confidence in `[0,1]`, or null when the platform does not score this field.
+     * Confidence from 0 to 1, or null when unavailable.
      */
     confidence?: number | null;
 };
 
 /**
- * One line item extracted from a document (e.g. an invoice row). Money is integer minor units + currency, like everywhere else.
+ * A line item extracted from a document.
  */
 export type DocumentExtractedLineItem = {
     description?: string | null;
     /**
-     * The line amount as money, when extracted.
+     * The extracted line amount.
      */
     amount?: Money | null;
     /**
-     * Extraction confidence in `[0,1]` for this line.
+     * Confidence from 0 to 1, or null when unavailable.
      */
     confidence?: number | null;
 };
 
 /**
- * The structured fields extracted from a document, the replacement for the legacy per-attachment parsed-document payload. Available only once the document's `status` is `READY`. Read-only; the platform owns extraction. `fields` is a flat, open map of named extracted values (the named keys vary by `classification`, e.g. an invoice carries `invoiceNumber`/`vendorName`/`total`), each a `DocumentExtractedField` with a confidence score.
+ * Data extracted from a document. Available when the document status is `ready`.
  */
 export type DocumentExtraction = {
     /**
-     * The document this extraction belongs to (`doc_…`).
+     * The document ID.
      */
     documentId: Id;
     status: DocumentStatus;
     /**
-     * Fine-grained classification that determines which `fields` keys are present (e.g. `invoice`, `receipt`).
+     * The document classification, such as `invoice` or `receipt`.
      */
     classification?: string | null;
     /**
-     * Coarse content category (mirrors `Document.coarseType`).
+     * The document category.
      */
     coarseType?: DocumentCoarseType | null;
     /**
-     * ISO-8601 timestamp extraction completed, or null if not yet available.
+     * When extraction finished, or null while unavailable.
      */
     extractedAt?: string | null;
     /**
-     * Flat map of extracted field name to its value + confidence. The set of keys depends on `classification`; unknown keys are allowed (open map) so new classifications never break the contract.
+     * Extracted values and confidence scores keyed by field name. Keys vary by classification.
      */
     fields: {
         [key: string]: DocumentExtractedField;
     };
     /**
-     * Line items extracted from the document, when applicable (e.g. invoice rows). Absent for documents with no itemized content.
+     * Extracted line items, when available.
      */
     lineItems?: Array<DocumentExtractedLineItem>;
 };
 
 /**
- * A paginated page of documents.
+ * A page of documents.
  */
 export type DocumentCollection = {
     data: Array<Document>;
     nextCursor?: NextCursor;
     /**
-     * Total matching items; present only when `withCount=true` was requested.
+     * Total results when `withCount=true`.
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * Whether the page ended before `limit` because some results were unavailable.
      */
     truncated?: boolean;
 };
 
 /**
- * Alias of `DocumentCollection` (the canonical paginated document page). Retained as a stable name for reverse-read responses on host resources (e.g. the contact-documents read) that reference `DocumentList`.
+ * Links a document to an entity.
  */
-export type DocumentList = DocumentCollection;
-
-/**
- * The set of typed targets a document is currently assigned to (single-reference v1). Not paginated, bounded by the number of target kinds.
- */
-export type DocumentAssignmentsCollection = {
-    data: Array<DocumentTargetRef>;
-};
-
-/**
- * Client-supplied metadata for a drop. Sent as the `metadata` part of a `multipart/form-data` upload alongside the `file` part. Server-owned fields (`status`, `workspaceId`, `uploaderId`, `contentHash`, timestamps) are NOT accepted, supplying one returns `422 field_read_only`.
- */
-export type DocumentCreateMetadata = {
+export type DocumentLinkRequest = {
+    targetId: Id;
     /**
-     * Display name. Defaults to the uploaded file's name when omitted.
+     * The phase for a budget-line link.
      */
-    name?: string;
+    phaseId?: Id | null;
     /**
-     * Optional free-text description.
-     */
-    description?: string;
-    /**
-     * Folder to drop into (`fld_…`). Omit for the workspace root.
-     */
-    folderId?: Id;
-    /**
-     * Optional target(s) to assign atomically with the drop. Accepts a single `{ kind, id }` or an array. In v1 every target must be a DISTINCT kind (one reference per kind); multiple same-kind targets return `400 validation`. If any target fails validation / permission / tenant checks, the whole request fails 4xx and NO document (and no orphan blob) is created.
-     */
-    assignTo?: DocumentTargetRef | Array<DocumentTargetRef>;
-};
-
-/**
- * The `multipart/form-data` drop body. `file` is the raw bytes; `metadata` is a JSON part serialized as `DocumentCreateMetadata`.
- */
-export type DocumentCreateRequest = {
-    /**
-     * The document bytes to upload.
-     */
-    file: Blob | File;
-    metadata?: DocumentCreateMetadata;
-};
-
-/**
- * Rename / move / re-describe a document. Only client-writable fields are accepted; naming a server-owned field (e.g. `status`, `workspaceId`, `contentHash`) returns `422 field_read_only`. Assignments are changed via `/assign` and `/unassign`, never here.
- */
-export type DocumentUpdateRequest = {
-    /**
-     * New display name.
-     */
-    name?: string;
-    /**
-     * New description (null to clear).
-     */
-    description?: string | null;
-    /**
-     * Move to this folder (`fld_…`), or null to move to the workspace root.
-     */
-    folderId?: Id | null;
-};
-
-/**
- * Assign a dropped document to a typed target. Idempotent when re-assigning to the SAME id (200 no-op). If that kind's reference is already set to a DIFFERENT id, returns `409 already_assigned` unless `replace: true` (an explicit move).
- */
-export type DocumentAssignRequest = {
-    target: DocumentTargetRef;
-    /**
-     * When `true`, an existing same-kind assignment to a different id is replaced (an explicit move) instead of returning `409 already_assigned`.
+     * Replace the existing link of this kind.
      */
     replace?: boolean;
 };
 
 /**
- * Remove a document's assignment to a typed target. Idempotent, a `200` no-op when the document is not assigned to that target.
+ * A multipart upload with a file and optional JSON-serialized metadata.
  */
-export type DocumentUnassignRequest = {
-    target: DocumentTargetRef;
+export type DocumentCreateRequest = {
+    /**
+     * The file to upload.
+     */
+    file: Blob | File;
+    /**
+     * JSON-serialized `DocumentCreateMetadata`.
+     */
+    metadata?: string;
 };
 
 /**
- * Pack visibility. `PUBLIC` packs are Saturation-published (guild packs, no owning workspace); `PRIVATE` packs are owned by one workspace; `SHARED` is reserved. A `PRIVATE` pack owned by another workspace is invisible (reads return `404 not_found`).
+ * Changes a document's name, description, or folder.
+ */
+export type DocumentUpdateRequest = {
+    /**
+     * The new display name.
+     */
+    name?: string;
+    /**
+     * The new description, or null to clear it.
+     */
+    description?: string | null;
+    /**
+     * The new folder ID, or null for the workspace root.
+     */
+    folderId?: Id | null;
+};
+
+/**
+ * Who can access the pack. Public packs are available to every workspace; private packs belong to one workspace.
  */
 export type PackVisibility = 'public' | 'private' | 'shared';
 
 /**
- * Tag colour as a Tailwind palette key (not a hex literal), or `null` for the neutral default. One of the 19 allowed keys.
+ * Display color for a tag, or `null` for the default color.
  */
 export type TagColor = 'slate' | 'gray' | 'zinc' | 'red' | 'orange' | 'amber' | 'yellow' | 'lime' | 'green' | 'emerald' | 'teal' | 'cyan' | 'sky' | 'blue' | 'indigo' | 'violet' | 'purple' | 'pink' | 'rose' | null;
 
 /**
- * Origin of a project copy. `workspace` = copied from a workspace template (tracked by `sourceId`); `saturation` = derived from a Saturation incentive version (tracked by `sourceIncentiveVersionId`). Incentive copies are surfaced as "incentives".
+ * Where the project Library item came from.
  */
 export type SourceType = 'workspace' | 'saturation';
 
 /**
- * Returned by `expand=sourceItem` when the source library item/version was deleted. Source tracking is never `null`: a removed source resolves to this explicit tombstone so a reader can distinguish "source deleted" from "no source". Reflects that the source was deleted rather than that no source exists.
+ * Identifies a deleted Library source when `expand=source` is requested.
  */
 export type SourceTombstone = {
     id: Id;
@@ -879,32 +796,27 @@ export type SourceTombstone = {
 };
 
 /**
- * Allowed `expand` keys on project copies.
+ * Related data to include with a project Library item.
  */
-export type LibraryExpand = 'sourceItem';
+export type LibraryExpand = 'source';
 
 /**
- * Allowed `expand` keys on a project incentive.
+ * Related data to include with a project incentive.
  */
-export type ProjectIncentiveExpand = 'sourceItem' | 'components';
+export type ProjectIncentiveExpand = 'source';
 
 /**
- * Allowed `expand` key on a workspace-source rate pack. `items` inlines the pack's rate items (permission-projected).
+ * Related data to include with a rate pack.
  */
 export type RatePackExpand = 'items';
 
 /**
- * Allowed `expand` key on a workspace-source incentive pack. `programs` inlines the pack's programs.
+ * Related data to include with an incentive pack.
  */
 export type IncentivePackExpand = 'programs';
 
 /**
- * Allowed `expand` key on a project-installed rate pack. `installedPack` inlines the source pack ref.
- */
-export type ProjectRatePackExpand = 'installedPack';
-
-/**
- * The pack's current (latest) version. Version history stays internal.
+ * Current rate pack version.
  */
 export type RatePackVersionRef = {
     id?: Id;
@@ -916,7 +828,7 @@ export type RatePackVersionRef = {
 };
 
 /**
- * A rate pack visible to the workspace (`PUBLIC` or workspace-owned). Carries enablement state and the current version. Effective-dating / version history is not a public surface.
+ * A public or workspace-owned rate pack.
  */
 export type RatePack = {
     id: Id;
@@ -928,28 +840,28 @@ export type RatePack = {
     tags?: Array<string>;
     visibility: PackVisibility;
     /**
-     * True when this workspace owns the (PRIVATE) pack.
+     * Whether the workspace owns the pack.
      */
     isOwned: boolean;
     /**
-     * A superseded pack. Distinct from `soft-delete timestamp`: an enabled/installed deprecated pack still resolves and is surfaced flagged `true`; newly enabling/installing one is rejected (`400 validation`).
+     * Whether the pack is deprecated. Deprecated packs cannot be newly enabled or added.
      */
     deprecated: boolean;
     /**
-     * True when a live workspace-enable link exists.
+     * Whether the pack is enabled for the workspace.
      */
     enabled: boolean;
     enabledAt?: string | null;
     enabledBy?: Id | null;
     latestVersion?: RatePackVersionRef;
     /**
-     * Present only when `expand=items`. permission-projected.
+     * Accessible rate pack items. Included with `expand=items`.
      */
     items?: Array<RatePackItem>;
 };
 
 /**
- * Author a PRIVATE workspace-owned rate pack. Auto-enabled for the creator. Server-owned fields (`id`, `slug`, `visibility`, `isOwned`, `enabled*`, `deprecated`, `latestVersion`, `soft-delete timestamp`) are not writable; sending one returns `422 field_read_only`.
+ * Fields accepted when creating a workspace rate pack. The new pack is enabled automatically.
  */
 export type RatePackCreate = {
     name: string;
@@ -959,7 +871,7 @@ export type RatePackCreate = {
 };
 
 /**
- * Patch an owned rate pack. Only owned packs are patchable (else `404 not_found`).
+ * Fields accepted when updating a workspace-owned rate pack.
  */
 export type RatePackUpdate = {
     name?: string;
@@ -969,7 +881,7 @@ export type RatePackUpdate = {
 };
 
 /**
- * A single rate line in a pack's current version.
+ * A rate in the current pack version.
  */
 export type RatePackItem = {
     id: Id;
@@ -977,10 +889,6 @@ export type RatePackItem = {
     description?: string | null;
     rate: Money;
     unit: string;
-    /**
-     * ISO-4217 currency code for the line's rate.
-     */
-    currency: string;
     quantity?: number | null;
     multiplier?: number | null;
     group?: string | null;
@@ -989,24 +897,16 @@ export type RatePackItem = {
     effectiveDate?: string | null;
     labels?: Array<string>;
     displayTags?: Array<string>;
-    searchAliases?: Array<string>;
-    facets?: {
-        [key: string]: unknown;
-    };
-    sourceRefs?: Array<string>;
-    qualityFlags?: Array<string>;
-    rateBasis?: string | null;
     version?: RatePackVersionRef;
 };
 
 /**
- * Add an item to an owned pack (auto-creates v1 if the pack has no version). `searchText` and `itemCount` are server-recomputed and not writable.
+ * Fields accepted when adding a rate pack item.
  */
 export type RatePackItemCreate = {
     title: string;
     rate: Money;
     unit: string;
-    currency?: string;
     description?: string;
     quantity?: number;
     multiplier?: number;
@@ -1016,23 +916,15 @@ export type RatePackItemCreate = {
     effectiveDate?: string;
     labels?: Array<string>;
     displayTags?: Array<string>;
-    searchAliases?: Array<string>;
-    facets?: {
-        [key: string]: unknown;
-    };
-    sourceRefs?: Array<string>;
-    qualityFlags?: Array<string>;
-    rateBasis?: string;
 };
 
 /**
- * Patch an item. `searchText`/`itemCount` are server-recomputed.
+ * Fields accepted when updating a rate pack item. Only supplied fields change.
  */
 export type RatePackItemUpdate = {
     title?: string;
     rate?: Money;
     unit?: string;
-    currency?: string;
     description?: string | null;
     quantity?: number | null;
     multiplier?: number | null;
@@ -1041,18 +933,10 @@ export type RatePackItemUpdate = {
     local?: string | null;
     effectiveDate?: string | null;
     labels?: Array<string>;
-    displayTags?: Array<string>;
-    searchAliases?: Array<string>;
-    facets?: {
-        [key: string]: unknown;
-    };
-    sourceRefs?: Array<string>;
-    qualityFlags?: Array<string>;
-    rateBasis?: string | null;
 };
 
 /**
- * A rate pack installed into a project. `expand=installedPack` inlines the pack ref.
+ * A rate pack added to a project.
  */
 export type ProjectRatePack = {
     id: Id;
@@ -1061,13 +945,13 @@ export type ProjectRatePack = {
     installedBy?: Id | null;
     deprecated?: boolean;
     /**
-     * Present only when `expand=installedPack`.
+     * Rate pack details. Included with `expand=installedPack`.
      */
     installedPack?: RatePack | SourceTombstone;
 };
 
 /**
- * An incentive pack. Enable-only at the workspace scope (no project install link exists). Programs are surfaced via `/{packId}/programs`.
+ * A collection of incentive programs available to the workspace.
  */
 export type IncentivePack = {
     id: Id;
@@ -1076,7 +960,7 @@ export type IncentivePack = {
     description?: string | null;
     category?: string | null;
     /**
-     * Jurisdiction the incentive applies to (e.g. country / state / province).
+     * Country, state, or province where the incentive applies.
      */
     jurisdiction: string;
     visibility: PackVisibility;
@@ -1085,13 +969,21 @@ export type IncentivePack = {
     enabled: boolean;
     enabledAt?: string | null;
     /**
-     * Present only when `expand=programs`.
+     * Incentive programs. Included with `expand=programs`.
      */
     programs?: Array<IncentiveProgram>;
 };
 
 /**
- * A program (rule) inside an incentive pack, the unit a project adds to become a project incentive. Only `published` programs/versions are addable.
+ * The current published version of an incentive program.
+ */
+export type IncentiveProgramVersion = {
+    id: Id;
+    effectiveDate: string;
+};
+
+/**
+ * An incentive program that can be added to a project when published.
  */
 export type IncentiveProgram = {
     id: Id;
@@ -1099,36 +991,43 @@ export type IncentiveProgram = {
     description?: string | null;
     jurisdiction?: string | null;
     /**
-     * e.g. `tax-credit`, `rebate`, `grant`.
+     * Type of incentive.
      */
-    incentiveType: string;
+    incentiveType: 'tax_credit' | 'rebate' | 'grant';
     /**
-     * e.g. `transferable`, `refundable`, `non-refundable`.
+     * How the incentive is paid or transferred.
      */
-    incentiveStructure?: string | null;
-    status: 'draft' | 'published' | 'archived';
+    incentiveStructure: 'tax_credit_refundable' | 'tax_credit_transferable' | 'tax_credit_nonrefundable' | 'cash_rebate' | 'grant';
     /**
-     * The current published version's id, the value to pass as `versionId` on add.
+     * Headline rate as a percentage. For example, `30` means 30%.
      */
-    currentVersionId?: Id | null;
+    rate: number;
+    /**
+     * Fee deducted from the incentive, as a percentage.
+     */
+    discountPercent: number;
+    status: 'published' | 'blocked' | 'deprecated';
+    /**
+     * Current published version, or `null` when none is available.
+     */
+    currentVersion: IncentiveProgramVersion | null;
 };
 
 /**
- * A project incentive. The source is tracked by `sourceIncentiveVersionId` with `sourceType: saturation` (`sourceId` is null for these). `expand=sourceItem` resolves the version; `expand=components` inlines its component rows.
+ * An incentive added to a project.
  */
 export type ProjectIncentive = {
     id: Id;
     name: string;
-    description?: string | null;
     jurisdiction?: string | null;
     incentiveType?: string | null;
     sourceType: SourceType;
     /**
-     * Null for saturation-derived incentives (use `sourceIncentiveVersionId`).
+     * Workspace Library source ID, when applicable.
      */
     sourceId?: Id | null;
     /**
-     * The incentive version this project incentive was derived from.
+     * Incentive version used to create this project incentive.
      */
     sourceIncentiveVersionId?: Id | null;
     /**
@@ -1136,51 +1035,33 @@ export type ProjectIncentive = {
      */
     isApplied: boolean;
     /**
-     * Account number used for topsheet tracking.
+     * Budget account number for the incentive.
      */
     accountNumber?: string | null;
     /**
-     * Credit rate percentage (30 = 30%).
+     * Credit rate as a percentage. For example, `30` means 30%.
      */
     rate?: number | null;
     /**
-     * Overall ceiling on the total credit, in integer MINOR units like every money value on this contract (a $1,500,000 cap reads 150000000; whole-currency amounts only). Null = no cap.
+     * Maximum credit in minor currency units, or `null` for no limit.
      */
     appliedCreditCap?: number | null;
     /**
-     * Broker fee percentage deducted from the capped credit.
+     * Broker fee deducted from the credit, as a percentage.
      */
     discountPercent?: number | null;
     /**
-     * Manual tier pin (null = auto-select the band from qualified spend).
+     * Selected incentive tier, or `null` to choose the tier from qualified spend.
      */
     tierOverrideKey?: string | null;
     /**
-     * The computed incentive amount, when applied.
+     * Incentive program or deleted source. Included with `expand=source`.
      */
-    amount?: Money | null;
-    /**
-     * Present only when `expand=sourceItem`. The live incentive version/program, or a tombstone if the source was deleted, never `null`.
-     */
-    sourceItem?: IncentiveProgram | SourceTombstone;
-    /**
-     * Present only when `expand=components`.
-     */
-    components?: Array<IncentiveComponent>;
+    source?: IncentiveProgram | SourceTombstone;
 };
 
 /**
- * A component row of a project incentive.
- */
-export type IncentiveComponent = {
-    id: Id;
-    label: string;
-    amount?: Money | null;
-    rate?: number | null;
-};
-
-/**
- * Add an incentive program (its current published version) into the project. Idempotent per project and incentive version. Rejected (`400 validation`) when the version/program/pack is not `published`, the pack is `deprecated`, or the pack is neither workspace-enabled nor workspace-owned.
+ * Selects the published incentive program to add to a project.
  */
 export type ProjectIncentiveAdd = {
     /**
@@ -1188,13 +1069,13 @@ export type ProjectIncentiveAdd = {
      */
     programId: Id;
     /**
-     * Optional explicit published version. Defaults to the program's current published version when omitted.
+     * Published version to add. Defaults to the current published version.
      */
     versionId?: Id;
 };
 
 /**
- * Patch a project incentive at UI parity: apply / un-apply plus the parameter fields the product edits (rate, cap, discount, jurisdiction, type, account number, tier pin). Source tracking is read-only. `appliedCreditCap` is integer MINOR units like all contract money (a $1,500,000 cap is 150000000; whole-currency amounts only - multiples of 100); null clears it. `rate` and `discountPercent` are percentages (30 = 30%).
+ * Fields accepted when updating a project incentive. Money uses minor currency units; `rate` and `discountPercent` use percentages.
  */
 export type ProjectIncentiveUpdate = {
     name?: string;
@@ -1209,162 +1090,180 @@ export type ProjectIncentiveUpdate = {
 };
 
 /**
- * A workspace fringe template (the source; `projectId` is null).
+ * A fringe in the workspace Library.
  */
-export type FringeTemplate = {
+export type Fringe = {
     id: Id;
     name: string;
+    description: string | null;
+    calculationType: 'percent' | 'flat' | 'total';
     /**
-     * Fringe rate as a fraction (e.g. 0.0765), or null.
+     * Percentage for percent fringes, or the amount for flat and total fringes. For example, `7.65` means 7.65%.
      */
     rate?: number | null;
-    cap?: Money | null;
-    sort?: number | null;
+    cutoff?: number | null;
+    fringeGroupIds: Array<Id>;
+    color: string | null;
 };
 
 /**
- * Create/patch a workspace fringe template. Server-owned fields (`id`, `projectId`, `sourceId`, `soft-delete timestamp`) are not writable; sending one returns `422 field_read_only`.
+ * Fields accepted when creating or updating a workspace fringe.
  */
-export type FringeTemplateWrite = {
+export type FringeWrite = {
     name?: string;
+    description?: string | null;
+    calculationType?: 'percent' | 'flat' | 'total';
     rate?: number | null;
-    cap?: Money | null;
-    sort?: number;
+    cutoff?: number | null;
+    fringeGroupIds?: Array<Id>;
+    color?: string | null;
 };
 
 /**
- * A project fringe copy. Carries `sourceId` (the template it was copied from) with `sourceType: workspace`. Editing it diverges the copy while keeping the link to its source.
+ * A fringe added to a project from the workspace Library.
  */
-export type FringeCopy = {
+export type ProjectFringe = {
     id: Id;
     name: string;
+    description: string | null;
+    calculationType: 'percent' | 'flat' | 'total';
     rate?: number | null;
-    cap?: Money | null;
-    sort?: number | null;
+    cutoff?: number | null;
+    fringeGroupIds: Array<Id>;
+    color: string | null;
     sourceType: SourceType;
     /**
-     * The workspace template this copy derives from.
+     * Workspace fringe used to create this project fringe.
      */
     sourceId?: Id | null;
     /**
-     * Present only when `expand=sourceItem`: the live template, or a tombstone if deleted, never `null`.
+     * Workspace fringe or deleted source. Included with `expand=source`.
      */
-    sourceItem?: FringeTemplate | SourceTombstone;
+    source?: Fringe | SourceTombstone;
 };
 
 /**
- * A workspace global template (source).
+ * A global in the workspace Library.
  */
-export type GlobalTemplate = {
+export type Global = {
     id: Id;
-    name: string;
-    value?: number | null;
+    symbol: string | null;
+    description: string | null;
+    formula: string | null;
     unit?: string | null;
-    sort?: number | null;
+    customUnitId?: Id | null;
+    phaseOverrides?: {
+        [key: string]: string;
+    } | null;
 };
 
 /**
- * Create/patch a workspace global template. Server-owned fields are not writable.
+ * Fields accepted when creating or updating a workspace global.
  */
-export type GlobalTemplateWrite = {
-    name?: string;
-    value?: number | null;
+export type GlobalWrite = {
+    symbol?: string | null;
+    description?: string | null;
+    formula?: string | null;
     unit?: string | null;
-    sort?: number;
+    customUnitId?: Id | null;
 };
 
 /**
- * A project global copy. Carries `sourceId` source tracking.
+ * A global added to a project from the workspace Library.
  */
-export type GlobalCopy = {
+export type ProjectGlobal = {
     id: Id;
-    name: string;
-    value?: number | null;
+    symbol: string | null;
+    description: string | null;
+    formula: string | null;
     unit?: string | null;
-    sort?: number | null;
+    customUnitId?: Id | null;
+    phaseOverrides?: {
+        [key: string]: string;
+    } | null;
     sourceType: SourceType;
     sourceId?: Id | null;
-    sourceItem?: GlobalTemplate | SourceTombstone;
+    source?: Global | SourceTombstone;
 };
 
 /**
- * A workspace currency template (source; an FX/exchange-rate entry).
+ * A currency and exchange rate in the workspace Library.
  */
-export type CurrencyTemplate = {
+export type Currency = {
     id: Id;
     /**
-     * ISO-4217 currency code.
+     * ISO 4217 currency code.
      */
     code: string;
     name?: string | null;
+    symbol?: string | null;
     /**
-     * Exchange rate relative to the project's base currency.
+     * USD value of one unit of this currency.
      */
-    rate?: number | null;
-    sort?: number | null;
+    rateToUSD?: number | null;
 };
 
 /**
- * Create/patch a workspace currency template. Server-owned fields are not writable.
+ * Fields accepted when creating or updating a workspace currency.
  */
-export type CurrencyTemplateWrite = {
+export type CurrencyWrite = {
     code?: string;
     name?: string | null;
+    symbol?: string | null;
     /**
-     * USD per ONE unit of this currency (rate_to_usd): EUR ~1.17, JPY ~0.0064. A rate quoted as units-per-USD ("23.1 CZK to the dollar") must be INVERTED before writing (23.1 CZK/USD -> 0.0433).
+     * USD value of one unit of this currency. For example, use `1.17` for EUR when one EUR equals 1.17 USD.
      */
-    rate?: number | null;
-    sort?: number;
+    rateToUSD?: number | null;
 };
 
 /**
- * A project currency copy. Carries `sourceId` source tracking.
+ * A currency added to a project from the workspace Library.
  */
-export type CurrencyCopy = {
+export type ProjectCurrency = {
     id: Id;
     code: string;
     name?: string | null;
-    rate?: number | null;
-    sort?: number | null;
+    symbol?: string | null;
+    /**
+     * USD value of one unit of this currency.
+     */
+    rateToUSD?: number | null;
     sourceType: SourceType;
     sourceId?: Id | null;
-    sourceItem?: CurrencyTemplate | SourceTombstone;
+    source?: Currency | SourceTombstone;
 };
 
 /**
- * A workspace fringe-tag template (groups fringes). Uses the same `projectId` / `sourceId` pattern as the other templates.
+ * A Fringe Group in the workspace Library.
  */
-export type FringeTagTemplate = {
+export type FringeGroup = {
     id: Id;
     name: string;
     color?: TagColor;
-    sort?: number | null;
 };
 
 /**
- * Create/patch a workspace fringe-tag template. Server-owned fields are not writable.
+ * Fields accepted when creating or updating a workspace Fringe Group.
  */
-export type FringeTagTemplateWrite = {
+export type FringeGroupWrite = {
     name?: string;
     color?: TagColor;
-    sort?: number;
 };
 
 /**
- * A project fringe-tag copy. Carries `sourceId` source tracking.
+ * A Fringe Group added to a project from the workspace Library.
  */
-export type FringeTagCopy = {
+export type ProjectFringeGroup = {
     id: Id;
     name: string;
     color?: TagColor;
-    sort?: number | null;
     sourceType: SourceType;
     sourceId?: Id | null;
-    sourceItem?: FringeTagTemplate | SourceTombstone;
+    source?: FringeGroup | SourceTombstone;
 };
 
 /**
- * A workspace tag. It has no `projectId` or `sourceId`. A project gets tags via an association (see project tags), never a project copy.
+ * A tag in the workspace Library.
  */
 export type Tag = {
     id: Id;
@@ -1372,7 +1271,7 @@ export type Tag = {
     color?: TagColor;
     description?: string | null;
     /**
-     * Optional stable key used to dedupe / match a tag's eligibility role.
+     * Key used to match the tag to an eligibility rule.
      */
     eligibilityKey?: string | null;
     sort?: number | null;
@@ -1381,87 +1280,71 @@ export type Tag = {
 };
 
 /**
- * Create a workspace tag. Idempotent on `id` if one is supplied (else server-assigned). `createdAt`/`updatedAt` are server-owned.
+ * Fields accepted when creating a workspace tag.
  */
 export type TagCreate = {
     name: string;
     color?: TagColor;
     description?: string;
     eligibilityKey?: string;
-    sort?: number;
 };
 
 /**
- * Patch a workspace tag.
+ * Fields accepted when updating a workspace tag. Only supplied fields change.
  */
 export type TagUpdate = {
     name?: string;
     color?: TagColor;
     description?: string | null;
     eligibilityKey?: string | null;
-    sort?: number;
 };
 
 /**
- * Attach a workspace tag to a project (creates or reactivates the association). If the tag id does not exist, supply `tag` to create the workspace tag first. There is no `/detach` in v1: the association is auto-reconciled from line/transaction tag assignments, so a manual detach would be silently re-created.
- */
-export type ProjectTagAttach = {
-    tag?: TagCreate;
-};
-
-/**
- * A unit. Built-ins (`builtin: true`) are the 17 read-only `UnitType` values and carry only `value`. Custom units (`builtin: false`) are workspace-owned and carry `id`/`label`.
+ * A unit in the Library. `isCustom` identifies workspace units; built-in units are read-only.
  */
 export type Unit = {
-    builtin: boolean;
     /**
-     * The built-in unit value (present when `builtin: true`).
+     * Unit ID.
      */
-    value?: 'Allow' | 'Day' | 'HalfDay' | 'Each' | 'Episodes' | 'Fare' | 'Flat' | 'Foot' | 'Hour' | 'Minute' | 'Month' | 'Night' | 'Percent' | 'Person' | 'SQFT' | 'Unit' | 'Week';
-    /**
-     * Present on custom units only.
-     */
-    id?: Id;
-    /**
-     * Present on custom units only.
-     */
-    label?: string;
+    id: string;
+    label: string;
+    pluralLabel: string | null;
+    category: 'time' | 'quantity' | 'flat';
+    hoursPerUnit: number | null;
+    color: string | null;
     description?: string | null;
+    isCustom: boolean;
     /**
-     * Present on custom units only.
+     * Creation time for a workspace unit.
      */
     createdAt?: string;
     /**
-     * Present on custom units only.
+     * Last update time for a workspace unit.
      */
     updatedAt?: string;
 };
 
 /**
- * A workspace custom unit (writable). Built-in units are never writable.
+ * Fields accepted when creating a workspace unit.
  */
-export type CustomUnit = {
-    id: Id;
+export type UnitCreate = {
     label: string;
-    description?: string | null;
-    builtin: false;
-    createdAt: string;
-    updatedAt: string;
-};
-
-/**
- * Create a workspace custom unit. `id`/timestamps are server-owned.
- */
-export type CustomUnitCreate = {
-    label: string;
+    pluralLabel?: string | null;
+    category?: 'time' | 'quantity' | 'flat';
+    hoursPerUnit?: number | null;
+    color?: string | null;
     description?: string;
 };
 
 /**
- * Patch a workspace custom unit.
+ * Fields accepted when updating a workspace unit. Only supplied fields change.
  */
-export type CustomUnitUpdate = {
+export type UnitUpdate = {
     label?: string;
+    pluralLabel?: string | null;
+    category?: 'time' | 'quantity' | 'flat';
+    hoursPerUnit?: number | null;
+    color?: string | null;
     description?: string | null;
 };
 
@@ -1473,7 +1356,7 @@ export type RatePackCollection = {
      */
     count?: number;
     /**
-     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
+     * Whether some matching items were omitted from the response.
      */
     truncated?: boolean;
 };
@@ -1486,7 +1369,7 @@ export type RatePackItemCollection = {
      */
     count?: number;
     /**
-     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
+     * Whether some matching items were omitted from the response.
      */
     truncated?: boolean;
 };
@@ -1499,7 +1382,7 @@ export type IncentivePackCollection = {
      */
     count?: number;
     /**
-     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
+     * Whether some matching items were omitted from the response.
      */
     truncated?: boolean;
 };
@@ -1512,7 +1395,7 @@ export type IncentiveProgramCollection = {
      */
     count?: number;
     /**
-     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
+     * Whether some matching items were omitted from the response.
      */
     truncated?: boolean;
 };
@@ -1525,7 +1408,7 @@ export type ProjectRatePackCollection = {
      */
     count?: number;
     /**
-     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
+     * Whether some matching items were omitted from the response.
      */
     truncated?: boolean;
 };
@@ -1538,111 +1421,111 @@ export type ProjectIncentiveCollection = {
      */
     count?: number;
     /**
-     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
+     * Whether some matching items were omitted from the response.
      */
     truncated?: boolean;
 };
 
-export type FringeTemplateCollection = {
-    data: Array<FringeTemplate>;
+export type FringeCollection = {
+    data: Array<Fringe>;
     nextCursor?: NextCursor;
     /**
      * Total matching items; present only when `withCount=true` was requested.
      */
     count?: number;
     /**
-     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
+     * Whether some matching items were omitted from the response.
      */
     truncated?: boolean;
 };
 
-export type FringeCopyCollection = {
-    data: Array<FringeCopy>;
+export type ProjectFringeCollection = {
+    data: Array<ProjectFringe>;
     nextCursor?: NextCursor;
     /**
      * Total matching items; present only when `withCount=true` was requested.
      */
     count?: number;
     /**
-     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
+     * Whether some matching items were omitted from the response.
      */
     truncated?: boolean;
 };
 
-export type GlobalTemplateCollection = {
-    data: Array<GlobalTemplate>;
+export type GlobalCollection = {
+    data: Array<Global>;
     nextCursor?: NextCursor;
     /**
      * Total matching items; present only when `withCount=true` was requested.
      */
     count?: number;
     /**
-     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
+     * Whether some matching items were omitted from the response.
      */
     truncated?: boolean;
 };
 
-export type GlobalCopyCollection = {
-    data: Array<GlobalCopy>;
+export type ProjectGlobalCollection = {
+    data: Array<ProjectGlobal>;
     nextCursor?: NextCursor;
     /**
      * Total matching items; present only when `withCount=true` was requested.
      */
     count?: number;
     /**
-     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
+     * Whether some matching items were omitted from the response.
      */
     truncated?: boolean;
 };
 
-export type CurrencyTemplateCollection = {
-    data: Array<CurrencyTemplate>;
+export type CurrencyCollection = {
+    data: Array<Currency>;
     nextCursor?: NextCursor;
     /**
      * Total matching items; present only when `withCount=true` was requested.
      */
     count?: number;
     /**
-     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
+     * Whether some matching items were omitted from the response.
      */
     truncated?: boolean;
 };
 
-export type CurrencyCopyCollection = {
-    data: Array<CurrencyCopy>;
+export type ProjectCurrencyCollection = {
+    data: Array<ProjectCurrency>;
     nextCursor?: NextCursor;
     /**
      * Total matching items; present only when `withCount=true` was requested.
      */
     count?: number;
     /**
-     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
+     * Whether some matching items were omitted from the response.
      */
     truncated?: boolean;
 };
 
-export type FringeTagTemplateCollection = {
-    data: Array<FringeTagTemplate>;
+export type FringeGroupCollection = {
+    data: Array<FringeGroup>;
     nextCursor?: NextCursor;
     /**
      * Total matching items; present only when `withCount=true` was requested.
      */
     count?: number;
     /**
-     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
+     * Whether some matching items were omitted from the response.
      */
     truncated?: boolean;
 };
 
-export type FringeTagCopyCollection = {
-    data: Array<FringeTagCopy>;
+export type ProjectFringeGroupCollection = {
+    data: Array<ProjectFringeGroup>;
     nextCursor?: NextCursor;
     /**
      * Total matching items; present only when `withCount=true` was requested.
      */
     count?: number;
     /**
-     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
+     * Whether some matching items were omitted from the response.
      */
     truncated?: boolean;
 };
@@ -1655,33 +1538,20 @@ export type TagCollection = {
      */
     count?: number;
     /**
-     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
+     * Whether some matching items were omitted from the response.
      */
     truncated?: boolean;
 };
 
 /**
- * Built-in + custom units. Not paginated (the set is small).
+ * Built-in and workspace units.
  */
 export type UnitCollection = {
     data: Array<Unit>;
 };
 
-export type CustomUnitCollection = {
-    data: Array<CustomUnit>;
-    nextCursor?: NextCursor;
-    /**
-     * Total matching items; present only when `withCount=true` was requested.
-     */
-    count?: number;
-    /**
-     * True when permission filtering or expansion limits returned fewer than `limit` items for this page.
-     */
-    truncated?: boolean;
-};
-
 /**
- * The workspace-enable link (idempotent, deterministic id).
+ * A rate pack enabled for the workspace.
  */
 export type RatePackEnableLink = {
     id: Id;
@@ -1690,7 +1560,7 @@ export type RatePackEnableLink = {
 };
 
 /**
- * The workspace-enable link for an incentive pack.
+ * An incentive pack enabled for the workspace.
  */
 export type IncentivePackEnableLink = {
     id: Id;
@@ -1699,17 +1569,45 @@ export type IncentivePackEnableLink = {
 };
 
 /**
- * Project status. `active` is a committed, working project; `staged` is a draft not yet committed (created by an import or onboarding flow); `archived` is closed but retained. Marked extensible so a future status value does not break clients.
+ * Project status.
  */
-export type ProjectStatus = 'active' | 'staged' | 'archived';
+export type ProjectStatus = 'active' | 'archived';
+
+export type ProjectAccess = {
+    state: 'available';
+    effectivePlanId: string;
+} | {
+    state: 'locked';
+    effectivePlanId: string;
+    reason: 'project_limit' | 'subscription_restricted' | 'contract_restricted';
+    remediation: 'upgrade' | 'recover_payment' | 'reactivate_subscription' | 'contact_sales';
+};
+
+export type ProjectTag = {
+    id: Id;
+    name: string;
+    /**
+     * Color used for the tag in Saturation.
+     */
+    color: string;
+};
+
+export type ProjectCreator = {
+    id: Id;
+    name: string;
+    /**
+     * Profile image URL.
+     */
+    image: string | null;
+};
 
 /**
- * A project, the unit a budget, transactions, documents and the project-project Library hang off. Addressable by canonical `id` (`prj_…`) or by `slug` (the human handle, unique per workspace).
+ * A production project with its budget, transactions, documents, and Library items.
  */
 export type Project = {
     id: Id;
     /**
-     * The project's human handle (unique per workspace), accepted in the path as `/projects/{slugOrId}`. Mirrors the project handle shown in the UI.
+     * The project's human handle, unique per workspace.
      */
     slug: string;
     /**
@@ -1717,52 +1615,123 @@ export type Project = {
      */
     name: string;
     /**
-     * Optional emoji shown next to the project in the UI.
+     * Emoji shown with the project.
      */
     emoji?: string | null;
     /**
-     * Optional cover image URL.
+     * Cover image URL.
      */
     image?: string | null;
     status: ProjectStatus;
     /**
-     * A short, generated 1-2 sentence description of the project.
+     * A short project summary.
      */
     summary?: string | null;
     /**
-     * The space (folder) this project belongs to, or `null` if ungrouped.
+     * Space containing the project, or `null` when ungrouped.
      */
     spaceId?: Id | null;
     /**
-     * ISO-8601 creation timestamp (serialized from the internal epoch).
+     * Production format, such as Feature film or Commercial.
+     */
+    projectType?: string | null;
+    tags?: Array<ProjectTag>;
+    /**
+     * Person who created the project.
+     */
+    createdBy?: ProjectCreator | null;
+    /**
+     * ISO 8601 creation time.
      */
     createdAt: string;
     /**
-     * ISO-8601 last-modified timestamp.
+     * ISO 8601 last update time.
      */
     updatedAt: string;
+    access?: ProjectAccess;
+};
+
+export type ProjectDefaultBudget = {
+    budgetId: Id;
+    estimatePhaseId: Id;
+};
+
+export type ProjectCreated = {
+    id: Id;
+    /**
+     * The project's human handle, unique per workspace.
+     */
+    slug: string;
+    /**
+     * Display name.
+     */
+    name: string;
+    /**
+     * Emoji shown with the project.
+     */
+    emoji?: string | null;
+    /**
+     * Cover image URL.
+     */
+    image?: string | null;
+    status: ProjectStatus;
+    /**
+     * A short project summary.
+     */
+    summary?: string | null;
+    /**
+     * Space containing the project, or `null` when ungrouped.
+     */
+    spaceId?: Id | null;
+    /**
+     * Production format, such as Feature film or Commercial.
+     */
+    projectType?: string | null;
+    tags?: Array<ProjectTag>;
+    /**
+     * Person who created the project.
+     */
+    createdBy?: ProjectCreator | null;
+    /**
+     * ISO 8601 creation time.
+     */
+    createdAt: string;
+    /**
+     * ISO 8601 last update time.
+     */
+    updatedAt: string;
+    access?: ProjectAccess;
+    defaultBudget: ProjectDefaultBudget;
 };
 
 /**
- * Create a project. Server-owned fields (`id`, `workspaceId`, `status`, timestamps) are never client-writable; sending one returns `422 field_read_only`.
+ * Fields accepted when creating a project.
  */
 export type ProjectCreate = {
     name: string;
     /**
-     * Optional human handle (unique per workspace). Generated from `name` when omitted.
+     * Unique project handle. Generated from `name` when omitted.
      */
     slug?: string;
     emoji?: string | null;
     image?: string | null;
     summary?: string | null;
     /**
-     * Optional space to file the project under.
+     * Space containing the project.
      */
     spaceId?: Id | null;
+    /**
+     * Production format, such as Feature film or Commercial.
+     */
+    projectType?: string | null;
+    /**
+     * Project tag IDs to assign. Duplicate IDs are ignored.
+     */
+    tagIds?: Array<Id>;
 };
 
 /**
- * Patch a project (partial; only the supplied fields change). `status` accepts only `active`/`archived` here; `staged` is set by import and onboarding flows and is not client-settable.
+ * Fields accepted when updating a project. Only supplied fields change. `status` accepts `active` or `archived`.
  */
 export type ProjectUpdate = {
     name?: string;
@@ -1772,6 +1741,14 @@ export type ProjectUpdate = {
     summary?: string | null;
     spaceId?: Id | null;
     status?: 'active' | 'archived';
+    /**
+     * Project type shown in Saturation.
+     */
+    projectType?: string | null;
+    /**
+     * Replaces the project's tags. Send an empty array to remove all tags.
+     */
+    tagIds?: Array<Id>;
 };
 
 /**
@@ -1785,13 +1762,13 @@ export type ProjectList = {
      */
     count?: number;
     /**
-     * True when permission filtering or an expand returned fewer rows than `limit`.
+     * Whether some matching items were omitted from the response.
      */
     truncated?: boolean;
 };
 
 /**
- * A space, a folder that groups projects (optionally nested under a parent space). Addressable by canonical `id` (`spc_…`).
+ * A folder that groups projects and can sit inside another space.
  */
 export type Space = {
     id: Id;
@@ -1806,31 +1783,31 @@ export type Space = {
      */
     parentId?: Id | null;
     /**
-     * Whether the space is archived (closed but retained).
+     * Whether the space is archived.
      */
-    archived?: boolean;
+    archived: boolean;
     createdAt: string;
     updatedAt: string;
 };
 
 /**
- * Create a space. `id`, `workspaceId` and timestamps are server-owned.
+ * Fields accepted when creating a space.
  */
 export type SpaceCreate = {
     name: string;
     /**
-     * Optional human handle (unique per workspace); generated from `name` when omitted.
+     * Unique space handle. Generated from `name` when omitted.
      */
     slug?: string;
     image?: string | null;
     /**
-     * Optional parent space for nesting.
+     * Parent space, or `null` for a top-level space.
      */
     parentId?: Id | null;
 };
 
 /**
- * Patch a space (partial).
+ * Fields accepted when updating a space. Only supplied fields change.
  */
 export type SpaceUpdate = {
     name?: string;
@@ -1851,32 +1828,61 @@ export type SpaceList = {
      */
     count?: number;
     /**
-     * True when permission filtering or an expand returned fewer rows than `limit`.
+     * Whether some matching items were omitted from the response.
      */
     truncated?: boolean;
 };
 
 /**
- * The kind of payee. `vendor` is a supplier organization, distinct from `contractor` (a 1099 person) and `employee` (a W-2 person); the crew/person filters treat contractor and employee as people and vendor as not.
+ * Contact type. Vendors are organizations; contractors and employees are people.
  */
 export type ContactType = 'contractor' | 'employee' | 'company' | 'vendor';
 
 /**
- * A workspace-scoped contact (vendor, crew member or payee). Sensitive tax / bank numbers are never returned, only display-safe last-four hints and the `track1099` flag.
+ * A document shown with a contact.
+ */
+export type ContactDocumentRef = {
+    id: Id;
+    name: string;
+    size: number;
+    mimeType: string;
+    status: string;
+    description: string | null;
+    classification: string | null;
+};
+
+/**
+ * A transaction shown with a contact.
+ */
+export type ContactTransactionRef = {
+    id: Id;
+    description: string | null;
+    amount: number | null;
+    timestamp: string | null;
+    status: string;
+    merchant: string | null;
+    logoUrl: string | null;
+    category: string | null;
+    projectId: Id | null;
+    budgetLineId: Id | null;
+};
+
+/**
+ * A vendor, crew member, or other payee in the workspace.
  */
 export type Contact = {
     id: Id;
     /**
-     * The contact's display title (company name for companies, person name otherwise).
+     * Display name for the contact.
      */
     displayName: string;
     /**
-     * Person / primary name.
+     * Person or primary contact name.
      */
     name?: string | null;
     company?: string | null;
     /**
-     * Role / job title, e.g. "Director of Photography".
+     * Role or job title, such as `Director of Photography`.
      */
     title?: string | null;
     type?: ContactType | null;
@@ -1890,19 +1896,19 @@ export type Contact = {
     instagram?: string | null;
     imdb?: string | null;
     /**
-     * Default day/labour rate for this contact, if set.
+     * Default day or labor rate.
      */
-    defaultRate?: Money | null;
+    rate?: Money | null;
     /**
      * Whether this contact is tracked for 1099 reporting.
      */
     track1099: boolean;
     /**
-     * Last four digits of the tax id (display-safe hint only). The full tax id is never returned by the API.
+     * Last four digits of the tax ID.
      */
     taxIdLast4?: string | null;
     /**
-     * Whether a tax id is on file (derived; the value itself is never exposed).
+     * Whether a tax ID is on file.
      */
     hasTaxId?: boolean;
     /**
@@ -1912,17 +1918,17 @@ export type Contact = {
     createdAt: string;
     updatedAt: string;
     /**
-     * Present only when `expand=documents`. Documents assigned to this contact, filtered by your permissions (may be partial; see the `truncated` flag).
+     * Documents linked to the contact. Included with `expand=documents`.
      */
-    documents?: Array<Id>;
+    documents?: Array<ContactDocumentRef>;
     /**
-     * Present only when `expand=transactions`. Transactions for this contact across the projects you can access, filtered by your permissions.
+     * Accessible transactions for the contact. Included with `expand=transactions`.
      */
-    transactions?: Array<Id>;
+    transactions?: Array<ContactTransactionRef>;
 };
 
 /**
- * Create a contact. Full tax and bank numbers cannot be set through this endpoint; they are extracted from documents. `id`, `workspaceId`, `displayName` (derived) and timestamps are server-owned.
+ * Fields accepted when creating a contact. Tax and bank account numbers are added through documents.
  */
 export type ContactCreate = {
     name: string;
@@ -1935,13 +1941,13 @@ export type ContactCreate = {
     website?: string | null;
     instagram?: string | null;
     imdb?: string | null;
-    defaultRate?: Money | null;
+    rate?: Money | null;
     track1099?: boolean;
     notes?: string | null;
 };
 
 /**
- * Patch a contact (partial).
+ * Fields accepted when updating a contact. Only supplied fields change.
  */
 export type ContactUpdate = {
     name?: string;
@@ -1954,7 +1960,7 @@ export type ContactUpdate = {
     website?: string | null;
     instagram?: string | null;
     imdb?: string | null;
-    defaultRate?: Money | null;
+    rate?: Money | null;
     track1099?: boolean;
     notes?: string | null;
 };
@@ -1970,31 +1976,61 @@ export type ContactList = {
      */
     count?: number;
     /**
-     * True when permission filtering or an expand returned fewer rows than `limit`.
+     * Whether some matching items were omitted from the response.
      */
     truncated?: boolean;
 };
 
 /**
- * The expand values allowed for contacts.
+ * Related contact data to include.
  */
 export type ContactExpand = 'documents' | 'transactions';
 
 /**
- * The kind of entity a comment is anchored to.
+ * Resource type associated with a comment.
  */
 export type CommentTargetKind = 'project' | 'budgetLine' | 'transaction' | 'purchaseOrder' | 'contact' | 'document';
 
 /**
- * The entity the comment is anchored to, given as `{ kind, id }`. The same target shape is used for document assignment.
+ * Resource associated with a comment.
  */
 export type CommentTarget = {
     kind: CommentTargetKind;
     id: Id;
 };
 
+export type CommentAuthor = {
+    id: Id;
+    name: string;
+    avatar: string | null;
+};
+
+export type CommentTag = {
+    id: Id;
+    targetType: string;
+    targetId: Id;
+    label: string;
+    kind: 'mention' | 'anchor';
+};
+
+export type CommentTagWrite = {
+    targetType: string;
+    targetId: Id;
+    label: string;
+    kind?: 'mention' | 'anchor';
+};
+
+export type CommentReaction = {
+    emoji: string;
+    count: number;
+    users: Array<{
+        id: Id;
+        name: string;
+    }>;
+};
+
 /**
- * A comment anchored to an entity within a project. Replies thread under a root comment via `threadId`.
+ * A comment on a project resource. Replies reference the first comment with `threadId`.
  */
 export type Comment = {
     id: Id;
@@ -2004,41 +2040,57 @@ export type Comment = {
      */
     threadId?: Id | null;
     /**
-     * The entity this comment is anchored to, if any.
+     * Resource associated with the comment.
      */
     target?: CommentTarget | null;
-    authorId: Id;
-    authorName?: string | null;
+    author: CommentAuthor;
     /**
      * Markdown comment body.
      */
     content: string;
     /**
-     * Whether the comment / thread is marked resolved.
+     * Whether the comment thread is resolved.
      */
     resolved: boolean;
+    tags: Array<CommentTag>;
+    reactions: Array<CommentReaction>;
+    replyCount: number;
+    readByCurrentUser: boolean;
+    edited: boolean;
     createdAt: string;
     updatedAt: string;
 };
 
 /**
- * Create a comment. `projectId` is taken from the target's project; `authorId`, `authorName` and timestamps are server-owned (the author is the authenticated caller).
+ * Fields accepted when creating a comment.
  */
 export type CommentCreate = {
     content: string;
     target: CommentTarget;
     /**
-     * Set to reply under an existing root comment.
+     * Root comment ID when adding a reply.
      */
     threadId?: Id | null;
+    /**
+     * Mentions and resource links in the comment.
+     */
+    tags?: Array<CommentTagWrite>;
 };
 
 /**
- * Patch a comment, edit the body or toggle resolution. Only the author may edit `content`; re-anchoring (`target`) is not allowed.
+ * Fields accepted when updating a comment. Only the author can change `content`.
  */
 export type CommentUpdate = {
     content?: string;
     resolved?: boolean;
+    /**
+     * Replaces the comment's mentions and resource links.
+     */
+    tags?: Array<CommentTagWrite>;
+    /**
+     * Replaces the current user's reactions. Duplicate emoji are ignored.
+     */
+    reactionEmojis?: Array<string>;
 };
 
 /**
@@ -2052,209 +2104,70 @@ export type CommentList = {
      */
     count?: number;
     /**
-     * True when permission filtering or an expand returned fewer rows than `limit`.
+     * Whether some matching items were omitted from the response.
      */
     truncated?: boolean;
 };
 
 /**
- * The render shape a view resolves into.
- */
-export type ViewFormat = 'table' | 'board' | 'calendar' | 'timeline' | 'gallery';
-
-/**
- * Who can see the view.
- */
-export type ViewVisibility = 'personal' | 'workspace';
-
-/**
- * A saved view, a named, persisted filter + shape bundle over a subject (e.g. transactions or budget lines). A view is the deep, persisted equivalent of inline filters; `GET /views/{viewId}/data` resolves it and inline filters layer on top.
- */
-export type View = {
-    id: Id;
-    projectId: Id;
-    name: string;
-    description?: string | null;
-    /**
-     * The resource the view filters over (e.g. `transactions`, `budgetLines`).
-     */
-    subjectType: string;
-    format: ViewFormat;
-    visibility: ViewVisibility;
-    /**
-     * The persisted deep filter (operators, AND/OR groups, negation) the view replays. Opaque to the client; resolved server-side by `/views/{viewId}/data`.
-     */
-    filter?: {
-        [key: string]: unknown;
-    };
-    createdAt: string;
-    updatedAt: string;
-};
-
-/**
- * A page of saved views for the project.
- */
-export type ViewList = {
-    data: Array<View>;
-    nextCursor?: NextCursor;
-    /**
-     * Total matching items; present only when `withCount=true` was requested.
-     */
-    count?: number;
-    /**
-     * True when permission filtering or an expand returned fewer rows than `limit`.
-     */
-    truncated?: boolean;
-};
-
-/**
- * The resolved rows of a view, with the view's saved filter applied and any inline `expand` / flat filters layered on top. The row shape matches the view's `subjectType` resource; pagination follows the standard response format.
- */
-export type ViewData = {
-    /**
-     * The resource type of the rows (echoed so the client can type the payload).
-     */
-    subjectType: string;
-    /**
-     * The resolved rows (shape determined by `subjectType`).
-     */
-    data: Array<{
-        [key: string]: unknown;
-    }>;
-    nextCursor?: NextCursor;
-    /**
-     * Total matching items; present only when `withCount=true` was requested.
-     */
-    count?: number;
-    /**
-     * True when permission filtering or an expand returned fewer rows than `limit`.
-     */
-    truncated?: boolean;
-};
-
-/**
- * Liveness / readiness of the public API edge. Unauthenticated. `ok` reflects whether the dedicated database pool is reachable; a degraded edge returns `ok: false` with `503`, never a misleading `200`.
- */
-export type HealthStatus = {
-    /**
-     * `ok` when the edge can reach its dedicated database pool; `degraded` when a dependency check failed (served with HTTP `503`).
-     */
-    status: 'ok' | 'degraded';
-    /**
-     * Server time the check ran (ISO-8601).
-     */
-    time: string;
-    /**
-     * The deployed `/v1` contract version (e.g. `1.0.0`).
-     */
-    version?: string;
-    /**
-     * Git commit SHA of the deployed build, stamped by the deployment pipeline. Absent when no release SHA was stamped (e.g. local dev). The release workflow polls this to verify the public edge has cut over to the promoted commit.
-     */
-    sha?: string;
-};
-
-/**
- * What kind of principal a token acts as. A `user` token inherits a person's live workspace ability; a `service` token acts as a service identity that carries its own live-resolved role and survives staff churn.
+ * Type of identity associated with the token.
  */
 export type PrincipalType = 'user' | 'service';
 
 /**
- * The workspace a token can act on, paired with the principal's current role there. Roles resolve live per request, never a frozen claim. Internal teamId / teamRole are never exposed.
+ * A workspace and role associated with the token.
  */
 export type WorkspaceReach = {
     workspaceId: Id;
+    /**
+     * Workspace name.
+     */
+    workspaceName?: string;
     workspaceRole: WorkspaceRole;
 };
 
 /**
- * The principal's role in a workspace, mirroring the product's role vocabulary. Ordering for any ceiling check is `owner > admin > accountant > edit > comment > view`.
+ * Role in the workspace.
  */
 export type WorkspaceRole = 'owner' | 'admin' | 'accountant' | 'edit' | 'comment' | 'view';
 
 /**
- * The token's own identity and workspace, the first call any integration makes and the Zapier / n8n auth-probe. No path params; works before any workspace is known. Tokens list only their bound workspace. Never leaks teamId / teamRole.
+ * Identity and workspaces associated with the token.
  */
 export type Me = {
     id: Id;
     type: PrincipalType;
     /**
-     * The acting user's email. Present for `user` principals; omitted for `service` principals (which have no email).
+     * Email address. Present for user identities.
      */
     email?: string;
     /**
-     * Display name of the acting principal, the person's name for a `user` token, the service identity's label for a `service` token.
+     * Display name.
      */
     name?: string;
     /**
-     * The token's bound workspace, permission-filtered to the principal's live reach, with the principal's current `workspaceRole`.
+     * Workspaces associated with the token.
      */
     workspaces: Array<WorkspaceReach>;
 };
 
 /**
- * The workspace's current plan tier (mirrors the product's plan names).
- */
-export type WorkspacePlan = 'free' | 'creator' | 'studio' | 'enterprise';
-
-/**
- * A workspace the token can act on, with the principal's current role. The internal workspaceId is renamed to `workspaceId` at the boundary and never leaks; likewise workspaceRole → `workspaceRole`.
- */
-export type Workspace = {
-    id: Id;
-    /**
-     * The workspace's display name.
-     */
-    name: string;
-    /**
-     * URL-friendly workspace handle, where one exists.
-     */
-    slug?: string;
-    workspaceRole: WorkspaceRole;
-    plan?: WorkspacePlan;
-    /**
-     * Whether the public API is enabled for this workspace's plan (`checkFeatureAccess`). When `false`, `/v1` resource calls return `403 feature_not_available`.
-     */
-    apiAccess?: boolean;
-    /**
-     * When the workspace was created (ISO-8601; epoch serialized at the boundary).
-     */
-    createdAt: string;
-};
-
-/**
- * A paginated page of workspaces (cap-100; default 50).
- */
-export type WorkspaceCollection = {
-    data: Array<Workspace>;
-    nextCursor?: NextCursor;
-    /**
-     * Total matching items; present only when `withCount=true` was requested.
-     */
-    count?: number;
-    /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
-     */
-    truncated?: boolean;
-};
-
-/**
- * Where a request stands now. `unknown` means the server could not classify the stored status and will not guess: it is not a lifecycle state and no request transitions into it. Treat it as "ask the workspace", never as a decision. Clients switching exhaustively must handle it.
+ * Current payment-request status. `unknown` means the status is unavailable.
  */
 export type PaymentRequestStatus = 'submitted' | 'pending' | 'approved' | 'paid' | 'rejected' | 'canceled' | 'unknown';
 
 /**
- * Where a payment stands now.
+ * Current payment status.
  */
 export type PaymentStatus = 'requested' | 'needs_approval' | 'scheduled' | 'sending' | 'settled' | 'returned' | 'failed' | 'rejected' | 'canceled';
 
 /**
- * A linked record to include with a payment request.
+ * Related record available through `expand`.
  */
 export type PaymentRequestExpand = 'contact' | 'purchaseOrder' | 'document' | 'payment' | 'transactions' | 'budgetLine';
 
 /**
- * A linked record to include with a payment.
+ * Related record available through `expand`.
  */
 export type PaymentExpand = 'request' | 'purchaseOrder' | 'transactions' | 'contact' | 'budgetLine' | 'document';
 
@@ -2271,7 +2184,7 @@ export type PaymentPurchaseOrderLink = {
     id: Id;
     projectId: string | null;
     number: string | null;
-    title: string | null;
+    name: string | null;
     status: string;
 };
 
@@ -2302,7 +2215,7 @@ export type PaymentTransactionLink = {
 };
 
 /**
- * A request to pay a person or company. It is separate from the payment that follows.
+ * A request to pay a person or company.
  */
 export type PaymentRequestBase = {
     id: Id;
@@ -2326,7 +2239,7 @@ export type PaymentRequestBase = {
 };
 
 /**
- * One payment from request through settlement.
+ * A payment and its current status.
  */
 export type PaymentBase = {
     id: Id;
@@ -2358,7 +2271,25 @@ export type PaymentBase = {
     updatedAt: string;
 };
 
-export type PaymentRequest = PaymentRequestBase & {
+export type PaymentRequest = {
+    id: Id;
+    workspaceId: Id;
+    projectId: string | null;
+    purchaseOrderId: string | null;
+    contactId: string | null;
+    budgetLineId: string | null;
+    amount: Money;
+    description: string | null;
+    memo: string | null;
+    dueDate: string | null;
+    method: string | null;
+    status: PaymentRequestStatus;
+    submittedAt: string;
+    approvedAt: string | null;
+    rejectedAt: string | null;
+    completedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
     contact?: PaymentContactLink | null;
     purchaseOrder?: PaymentPurchaseOrderLink | null;
     document?: PaymentDocumentLink | null;
@@ -2367,7 +2298,34 @@ export type PaymentRequest = PaymentRequestBase & {
     budgetLine?: PaymentBudgetLineLink | null;
 };
 
-export type Payment = PaymentBase & {
+export type Payment = {
+    id: Id;
+    workspaceId: Id;
+    projectId: string | null;
+    paymentRequestId: string | null;
+    purchaseOrderId: string | null;
+    contactId: string | null;
+    budgetLineId: string | null;
+    status: PaymentStatus;
+    amount: Money;
+    destinationAmount: Money | null;
+    rail: string | null;
+    description: string | null;
+    memo: string | null;
+    notes: string | null;
+    scheduledFor: string | null;
+    expectedArrivalAt: string | null;
+    destination: {
+        bankName: string | null;
+        accountType: string | null;
+        accountLast4: string | null;
+        network: string | null;
+    } | null;
+    cancellationRequested: boolean;
+    needsSupport: boolean;
+    failureReason: string | null;
+    createdAt: string;
+    updatedAt: string;
     request?: PaymentRequestBase | null;
     purchaseOrder?: PaymentPurchaseOrderLink | null;
     transactions?: Array<PaymentTransactionLink>;
@@ -2408,170 +2366,238 @@ export type PaymentList = {
 };
 
 /**
- * The current purchase-order status. Clients read this field and use the named actions to change it.
+ * Current purchase order status.
  */
 export type PurchaseOrderStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'actualizing' | 'paid' | 'void';
 
 /**
- * A live PO condition using the same names shown in the product Activity column.
+ * Activity shown in the purchase order Activity column.
  */
 export type PurchaseOrderActivityType = 'invoice_requested' | 'invoice_received' | 'invoice_rejected' | 'payment_requested' | 'payment_approval_pending' | 'payment_approved' | 'payment_processing' | 'payment_sent' | 'payment_failed' | 'payment_returned' | 'actualized_needs_review' | 'split_needs_review' | 'transaction_match_needs_review';
 
 export type PurchaseOrderActivitySeverity = 'neutral' | 'info' | 'warning' | 'danger' | 'success';
 
 /**
- * A single allowed `expand` key for a purchase order (the parameter takes a comma list of these, dotted nesting depth ≤ 2). An unknown key returns `400 expand_invalid`.
+ * Related records available through `expand`. Unknown keys return `400 expand_invalid`.
  */
 export type PurchaseOrderExpand = 'items' | 'contact' | 'transactions' | 'documents' | 'paymentRequests' | 'payments' | 'budgetLine' | 'activity' | 'summary';
 
 /**
- * Allowed sort fields for the purchase-order collection (appends `,id`).
+ * Fields available for sorting purchase orders.
  */
-export type PurchaseOrderSort = 'number' | 'title' | 'date' | 'serviceStartAt' | 'serviceEndAt' | 'status' | 'sort' | 'createdAt' | 'updatedAt';
+export type PurchaseOrderSort = 'number' | 'name' | 'dueDate' | 'serviceStartAt' | 'serviceEndAt' | 'status' | 'sort' | 'createdAt' | 'updatedAt';
 
 /**
- * A purchase order. `projectId` is `null` when it is not assigned to a project. `status` is read-only and changes through named actions.
+ * Vendor details included with a purchase order.
+ */
+export type PurchaseOrderContactRef = {
+    id: Id;
+    displayName: string;
+    name: string | null;
+    company: string | null;
+    email: string | null;
+    type: string | null;
+};
+
+/**
+ * Transaction details included with a purchase order.
+ */
+export type PurchaseOrderTransactionRef = {
+    id: Id;
+    projectId: Id | null;
+    purchaseOrderId: Id;
+    amount: number | null;
+    description: string | null;
+    timestamp: string | null;
+    status: string;
+    type: string | null;
+    contactId: Id | null;
+    budgetLineId: Id | null;
+};
+
+/**
+ * Document details included with a purchase order.
+ */
+export type PurchaseOrderDocumentRef = {
+    id: Id;
+    name: string;
+    mimeType: string;
+    status: string;
+    size: number;
+    classification: string | null;
+};
+
+/**
+ * Budget line details included with a purchase order.
+ */
+export type PurchaseOrderBudgetLineRef = {
+    id: Id;
+    accountId: string | null;
+    type: string;
+    description: string | null;
+    parentId: Id | null;
+    sort: string | null;
+    contactId: Id | null;
+    lineColor: string | null;
+    emoji: string | null;
+    notes: string | null;
+};
+
+/**
+ * A purchase order in Saturation.
  */
 export type PurchaseOrder = {
     id: Id;
     workspaceId: Id;
     /**
-     * The project (`prj_…`) this PO is assigned to, or `null` when it is an unassigned workspace-level purchase order.
+     * Assigned project ID, or `null` when unassigned.
      */
-    projectId?: Id | null;
+    projectId: Id | null;
     /**
-     * Human-facing PO number (e.g. `PO-0042`). Free text; filterable by exact match.
+     * Purchase order number, such as `PO-0042`.
      */
     number?: string | null;
     /**
-     * Short PO title. This is the field that `q` search matches against.
+     * Purchase order name.
      */
-    title?: string | null;
+    name?: string | null;
     status: PurchaseOrderStatus;
     /**
-     * The vendor contact (`con_…`). Setting it marks the contact as a vendor for this PO.
+     * Vendor contact ID.
      */
     contactId?: string | null;
     /**
-     * The budget line (`bud_…`) this PO is charged against.
+     * Budget line ID.
      */
     budgetLineId?: string | null;
     /**
-     * PO date (ISO-8601 `YYYY-MM-DD`).
+     * Payment due date.
      */
-    date?: string | null;
+    dueDate?: string | null;
     /**
-     * First service date for this PO (ISO-8601 `YYYY-MM-DD`).
+     * First service date.
      */
     serviceStartAt?: string | null;
     /**
-     * Last service date for this PO (ISO-8601 `YYYY-MM-DD`).
+     * Last service date.
      */
     serviceEndAt?: string | null;
     /**
-     * Free-text notes.
+     * Notes about the purchase order.
      */
     notes?: string | null;
     /**
-     * Client-controlled display ordering key within the project.
+     * Display order within the project.
      */
     sort?: number | null;
     /**
-     * The principal that created the PO (`usr_…`). Server-owned, read-only.
+     * Purchase order currency.
+     */
+    currency: string;
+    /**
+     * Rate from the purchase order currency to the workspace currency.
+     */
+    exchangeRate: number | null;
+    /**
+     * Where the exchange rate came from.
+     */
+    exchangeRateSource: string | null;
+    /**
+     * ID of the user who created the purchase order.
      */
     createdById?: string | null;
     /**
-     * Sum of item amounts in the PO currency. Read-only.
+     * Sum of item amounts in the purchase order currency.
      */
-    total?: Money;
+    amount: Money;
     /**
-     * ISO-8601 creation timestamp.
+     * Time the purchase order was created.
      */
     createdAt: string;
     /**
-     * ISO-8601 last-update timestamp.
+     * Time the purchase order was last updated.
      */
     updatedAt: string;
     /**
-     * Present only when `expand=items`. The PO line items.
+     * Purchase order items. Included with `expand=items`.
      */
     items?: Array<PurchaseOrderItem>;
     /**
-     * Present only when `expand=contact`. Includes the vendor when you can read it.
+     * Vendor contact. Included with `expand=contact`.
      */
-    contact?: Contact | null;
+    contact?: PurchaseOrderContactRef | null;
     /**
-     * Present only when `expand=transactions`. Includes linked transactions you can read.
+     * Linked transactions. Included with `expand=transactions`.
      */
-    transactions?: Array<Transaction>;
+    transactions?: Array<PurchaseOrderTransactionRef>;
     /**
-     * Present only when `expand=documents`. Includes assigned documents you can read.
+     * Related documents. Included with `expand=documents`.
      */
-    documents?: Array<Document>;
+    documents?: Array<PurchaseOrderDocumentRef>;
     /**
-     * Present only when `expand=paymentRequests`. Includes linked payment requests you can read.
+     * Related payment requests. Included with `expand=paymentRequests`.
      */
     paymentRequests?: Array<PaymentRequestBase>;
     /**
-     * Present only when `expand=payments`. Includes linked sent payments you can read.
+     * Related payments. Included with `expand=payments`.
      */
     payments?: Array<PaymentBase>;
     /**
-     * Present only when `expand=budgetLine`. The charged budget line.
+     * Budget line charged by the purchase order. Included with `expand=budgetLine`.
      */
-    budgetLine?: BudgetLine | null;
+    budgetLine?: PurchaseOrderBudgetLineRef | null;
     /**
-     * Present only when `expand=activity`. Current live conditions using the same vocabulary as the product Activity column.
+     * Current Activity column details. Included with `expand=activity`.
      */
     activity?: PurchaseOrderActivitySummary | null;
     /**
-     * Financial summary. Included on a single-PO read and available on lists with `expand=summary`.
+     * Purchase order totals. Included on detail responses or with `expand=summary`.
      */
     summary?: PurchaseOrderSummary | null;
 };
 
 /**
- * A single purchase-order line item.
+ * An item in a purchase order.
  */
 export type PurchaseOrderItem = {
     id: Id;
     purchaseOrderId: Id;
     /**
-     * 1-based line number within the PO.
+     * Line number shown in the itemization.
      */
-    lineNumber?: number | null;
+    lineNumber?: string | null;
     /**
-     * Line description.
+     * Item description.
      */
     description?: string | null;
     /**
-     * Budget line (`bud_…`) this item is charged against.
+     * Budget line ID.
      */
     budgetLineId?: string | null;
     /**
-     * Quantity.
+     * Quantity or formula.
      */
-    qty?: number | null;
+    qty?: string | null;
     /**
-     * Unit of measure (e.g. `day`, `week`, `each`).
+     * Unit, such as `day`, `week`, or `each`.
      */
     unit?: string | null;
     /**
-     * Per-unit rate in minor units of the project currency.
+     * Rate or formula.
      */
-    rate?: number | null;
+    rate?: string | null;
     /**
-     * Extended line amount in minor units (`qty × rate`, server-validated).
+     * Item total in minor currency units.
      */
     amount?: number | null;
     /**
-     * Display ordering key within the PO.
+     * Display order within the purchase order.
      */
-    sort?: number | null;
+    sort: string;
 };
 
 /**
- * One live condition shown in the purchase-order Activity column.
+ * One entry in the purchase order Activity column.
  */
 export type PurchaseOrderActivityItem = {
     type: PurchaseOrderActivityType;
@@ -2582,45 +2608,15 @@ export type PurchaseOrderActivityItem = {
 };
 
 /**
- * A short Activity summary for list and detail responses. This is not history.
+ * Current purchase order activity.
  */
 export type PurchaseOrderActivitySummary = {
     primaryActivity: PurchaseOrderActivityItem | null;
     items: Array<PurchaseOrderActivityItem>;
 };
 
-export type PurchaseOrderActivityEntry = {
-    id: Id;
-    occurredAt: string | null;
-    amount: Money | null;
-    method: string | null;
-    accountLast4: string | null;
-    reason: string | null;
-    fileName: string | null;
-    description: string | null;
-    source: PublicResourceRef;
-};
-
-export type PurchaseOrderActivityDetail = {
-    type: PurchaseOrderActivityType;
-    label: string;
-    severity: PurchaseOrderActivitySeverity;
-    count: number;
-    sourceIds: Array<string>;
-    entries: Array<PurchaseOrderActivityEntry>;
-};
-
 /**
- * Current conditions and the records behind them.
- */
-export type PurchaseOrderActivity = {
-    purchaseOrderId: Id;
-    primaryActivity: PurchaseOrderActivityDetail | null;
-    items: Array<PurchaseOrderActivityDetail>;
-};
-
-/**
- * Current purchase-order amounts in the PO currency.
+ * Purchase order totals in its currency.
  */
 export type PurchaseOrderSummary = {
     purchaseOrderId: Id;
@@ -2637,25 +2633,7 @@ export type PurchaseOrderSummary = {
 };
 
 /**
- * A record that may belong to this purchase order but is not linked.
- */
-export type PurchaseOrderSuggestedMatch = {
-    recordType: 'document';
-    recordId: Id;
-    name: string;
-    amount: Money | null;
-    confidence: 'suggested';
-    reasons: [
-        'purchase_order_number'
-    ];
-};
-
-export type PurchaseOrderSuggestedMatchList = {
-    data: Array<PurchaseOrderSuggestedMatch>;
-};
-
-/**
- * Event types used in purchase-order history.
+ * Purchase order history event type.
  */
 export type PurchaseOrderTimelineEventType = 'created' | 'item_added' | 'submitted_for_approval' | 'approved' | 'rejected' | 'approval_request_canceled' | 'voided' | 'transaction_linked' | 'transaction_unlinked' | 'marked_paid' | 'invoice_requested' | 'invoice_uploaded' | 'attachment_uploaded' | 'document_linked' | 'decision_recorded' | 'decision_undone' | 'status_changed' | 'approval_decision' | 'details_updated';
 
@@ -2681,62 +2659,62 @@ export type PurchaseOrderTimelinePage = {
 };
 
 /**
- * Create a purchase order. The server sets `status='draft'` and `createdById`; naming any server-owned field (`status`, `createdById`, `workspaceId`, or any internal bookkeeping field) returns `422 field_read_only` and changes nothing. Pass `projectId` to assign the PO to a project, or omit it to create a workspace-level (unassigned) purchase order.
+ * Fields for a new draft purchase order.
  */
 export type PurchaseOrderCreate = {
     /**
-     * Optional project (`prj_…` id or slug) to assign the PO to. Omit to create a workspace-level (unassigned) purchase order. A project that does not exist (or is not readable) returns `404 not_found`.
+     * Project ID or slug. Omit to leave the purchase order unassigned.
      */
     projectId?: string;
     /**
-     * Human-facing PO number.
+     * Purchase order number.
      */
     number?: string;
     /**
-     * Short PO title.
+     * Purchase order name.
      */
-    title?: string;
+    name?: string;
     /**
-     * Vendor contact (`con_…`); marks the contact as a vendor for this PO.
+     * Vendor contact ID.
      */
     contactId?: string;
     /**
-     * Budget line (`bud_…`) to charge against.
+     * Budget line ID.
      */
     budgetLineId?: string;
     /**
-     * PO date (ISO-8601 `YYYY-MM-DD`).
+     * Payment due date.
      */
-    date?: string;
+    dueDate?: string;
     /**
-     * First service date for this PO (ISO-8601 `YYYY-MM-DD`).
+     * First service date.
      */
     serviceStartAt?: string;
     /**
-     * Last service date for this PO (ISO-8601 `YYYY-MM-DD`).
+     * Last service date.
      */
     serviceEndAt?: string;
     notes?: string;
     sort?: number;
     /**
-     * Optional line items to create with the PO.
+     * Items to create with the purchase order.
      */
     items?: Array<PurchaseOrderItemWrite>;
 };
 
 /**
- * Partial update of a purchase order. Allowed only while `status` is `draft` or `rejected`; otherwise `409 po_invalid_status`. `status` is server-owned: naming `status`, `workspaceId`, `createdById`, or any internal bookkeeping field returns `422 field_read_only` and changes nothing. `projectId` is settable: a `prj_…` id or slug assigns the PO to that project, and `null` unassigns it back to the workspace level.
+ * Fields to update on a draft or rejected purchase order.
  */
 export type PurchaseOrderUpdate = {
     /**
-     * Assign or unassign the PO. A `prj_…` id or slug assigns it to that project; `null` unassigns it back to the workspace level. A named project that does not exist (or is not readable) returns `404 not_found`.
+     * Project ID or slug. Set to `null` to unassign the purchase order.
      */
     projectId?: string | null;
     number?: string | null;
-    title?: string | null;
+    name?: string | null;
     contactId?: string | null;
     budgetLineId?: string | null;
-    date?: string | null;
+    dueDate?: string | null;
     serviceStartAt?: string | null;
     serviceEndAt?: string | null;
     notes?: string | null;
@@ -2744,27 +2722,20 @@ export type PurchaseOrderUpdate = {
 };
 
 /**
- * Links or unlinks a transaction. Both records must belong to the same workspace. Project or coding differences remain visible for review.
- */
-export type PurchaseOrderLink = {
-    transactionId: Id;
-};
-
-/**
- * Create or update a purchase-order line item. Item writes are allowed only while the parent PO `status ∈ {draft, rejected}`; otherwise `409 po_invalid_status`. `id` and `purchaseOrderId` are server-owned.
+ * Fields for a new or updated purchase order item.
  */
 export type PurchaseOrderItemWrite = {
-    lineNumber?: number | null;
+    lineNumber?: string | null;
     description?: string | null;
     budgetLineId?: string | null;
-    qty?: number | null;
+    qty?: string | null;
     unit?: string | null;
-    rate?: number | null;
+    rate?: string | null;
     /**
-     * Optional. When omitted, the server calculates `qty × rate`. An inconsistent value returns `validation`.
+     * Item total in minor currency units. Defaults to `qty × rate`.
      */
     amount?: number | null;
-    sort?: number | null;
+    sort?: string | null;
 };
 
 /**
@@ -2774,11 +2745,11 @@ export type PurchaseOrderList = {
     data: Array<PurchaseOrder>;
     nextCursor?: NextCursor;
     /**
-     * Total matching items; present only when `withCount=true` was requested.
+     * Total number of matches. Included when `withCount=true`.
      */
     count?: number;
     /**
-     * True when permission filtering or expansion returned fewer than `limit` items for this page.
+     * Whether the page contains fewer results than requested.
      */
     truncated?: boolean;
 };
@@ -2790,53 +2761,53 @@ export type PurchaseOrderItemList = {
     data: Array<PurchaseOrderItem>;
     nextCursor?: NextCursor;
     /**
-     * Total matching items; present only when `withCount=true` was requested.
+     * Total number of matches. Included when `withCount=true`.
      */
     count?: number;
     /**
-     * True when permission filtering or expansion returned fewer than `limit` items for this page.
+     * Whether the page contains fewer results than requested.
      */
     truncated?: boolean;
 };
 
 /**
- * The entity kinds the public Search can match in v1. `rate-pack-item` and `project` are deliberately NOT searchable in v1 and would each require additional work; treat as deferred. Note: `contacts` are workspace-level only (no project association), so a project-scoped token never matches them, see `SearchResponse.searchedTypes`.
+ * Resource types included in search.
  */
 export type SearchKind = 'transactions' | 'documents' | 'contacts' | 'budget-lines' | 'purchase-orders';
 
 /**
- * One ranked, mixed-type search result. Carries just enough to render a Search row and to re-fetch the full object by `{kind, id}`; `score` lets a client threshold weak matches. Every hit has passed the in-query permission / project-visibility filter, so the result set never contains a row the token cannot read.
+ * One search result.
  */
 export type SearchHit = {
     kind: SearchKind;
     /**
-     * Canonical id of the matched entity (`txn_…`, `doc_…`, `con_…`, `bud_…`, `po_…`). Combine with `kind` to fetch the full object from its resource route.
+     * ID of the matched resource.
      */
     id: Id;
     /**
-     * The human title of the matched entity, exactly as it reads in the UI (e.g. a transaction description, a document name, a contact display title, a budget-line account label, a purchase-order title).
+     * Display label for the result.
      */
     label: string;
     /**
-     * The matched text fragment that produced the hit (the field the text similarity fired on). Absent when the matched text is identical to `label`.
+     * Matching text when it differs from `label`.
      */
     snippet?: string;
     /**
-     * Similarity of the match in `[0, 1]` (higher is closer). Results are returned in a stable order: highest score first, with equal scores tiebroken on `(kind, id)`.
+     * Relevance from 0 to 1. Higher values are more relevant.
      */
     score: number;
 };
 
 /**
- * A page of mixed-type Search results. `data` is returned in a stable order: highest score first, with equal scores tiebroken on `(kind, id)`. `searchedTypes` echoes which kinds were actually queried so partial coverage is visible and never a silent empty.
+ * A page of search results ordered by relevance.
  */
 export type SearchResponse = {
     /**
-     * The ranked hits for this page, capped at the request `limit`.
+     * Results for this page.
      */
     data: Array<SearchHit>;
     /**
-     * The canonical cursor for the next page. Encodes the mint-time `q` + `types` + sort; replaying it with a changed `q`/`types` returns `400 cursor_invalid`. Absent/null when there are no more results.
+     * Cursor for the next page. Use it with the same `q` and `types`.
      */
     nextCursor?: NextCursor;
     /**
@@ -2844,297 +2815,342 @@ export type SearchResponse = {
      */
     count?: number;
     /**
-     * `true` when the page returned fewer than `limit` results because the permission / project-visibility filter removed matches you cannot read. Keep paging with `nextCursor`.
-     */
-    truncated?: boolean;
-    /**
-     * The kinds that were actually searched for this request, computed as `requested ∩ supported ∩ authorized`. A requested kind is dropped here (not silently returned empty) when it is not searchable in v1, or when the token's permission scope fully denies it, e.g. a project-scoped token drops `contacts` (workspace-level only, never project-visible). Compare against your requested `types` to detect partial coverage.
+     * Resource types searched for this request.
      */
     searchedTypes: Array<SearchKind>;
 };
 
 /**
- * Where the record came from, a closed enum of the four rails. `journal` is the manual entry that replaces the legacy "actual"; the other three are sourced rails whose core fields the rail owns and the public API treats as read-only.
+ * How the transaction entered Saturation. Financial fields are editable only for `manual` transactions.
  */
-export type TransactionSource = 'journal' | 'plaid' | 'saturation_pay' | 'saturation_credit';
+export type TransactionSource = 'manual' | 'plaid' | 'saturation_pay' | 'saturation_credit';
 
 /**
- * What kind of money movement. The underlying column is open, so a new rail never forces a re-migration; the API publishes it as an **extensible enum**, the canonical PascalCase values below are documented, autocompletable and client-validatable, but an unknown value is still accepted on write and echoed on read (never coerced or rejected). Every writer (Plaid, Sat Pay/Credit banking, Stripe Treasury/Issuing, manual journals) emits this one canonical vocabulary. A `?type=` filter matches a row's stored value verbatim.
+ * Transaction type. The API may return values not listed below.
  */
 export type TransactionType = 'SaturationPCard' | 'ACH' | 'Cash' | 'Check' | 'CreditCard' | 'Deposit' | 'ETransfer' | 'Invoice' | 'Projection' | 'TimeCard' | 'Wire' | 'Withdrawal';
 
 /**
- * The subset of `type` values that may be set on a `journal` create/patch (the human/journal family). Rail-only types (`SaturationPCard`, `Deposit`, `Withdrawal`) arrive via their rail and cannot be journaled. Casing is preserved exactly (PascalCase). Unknown values are rejected on the journal-create body only (input validation), never on stored/returned values elsewhere.
+ * Transaction types available for manual transactions.
  */
-export type TransactionJournalType = 'Invoice' | 'Projection' | 'Cash' | 'Check' | 'Wire' | 'ACH' | 'CreditCard' | 'TimeCard' | 'ETransfer';
+export type TransactionManualType = 'Invoice' | 'Projection' | 'Cash' | 'Check' | 'Wire' | 'ACH' | 'CreditCard' | 'TimeCard' | 'ETransfer';
 
 /**
- * Where the record is in life, a CLOSED 7-value public enum. `posted` means money moved (unifies bank "settled" and expense "paid"). Refunds and disputes are surfaced via the derived `isReversal=true` flag, never as a status. Not every status is reachable for every `source`, see `statusReachability` on the collection and the `status_unreachable_for_source` (409) error.
+ * Current transaction status. Available statuses vary by source.
  */
 export type TransactionStatus = 'unpaid' | 'pending' | 'posted' | 'void' | 'needs_review' | 'projected' | 'rejected';
 
 /**
- * Origin of the `exchangeRate` on a sourced multi-currency row. Published as an extensible enum, the documented members are below, but an unknown value is still accepted and echoed.
+ * Source of the exchange rate. The API may return values not listed below.
  */
 export type ExchangeRateSource = 'bank' | 'api' | 'user';
 
 /**
- * Allowed `expand` keys for transactions (typed allow-list, depth ≤ 2). An unknown or too-deep key returns `400 expand_invalid` (all-or-nothing). Expanded arrays are permission-projected, so empty/partial means "not-readable-or-absent".
+ * Related records available through `expand`. Unknown keys or nesting beyond two levels return `400 expand_invalid`.
  */
-export type TransactionExpandKey = 'contact' | 'documents' | 'itemized' | 'account' | 'purchaseOrder' | 'itemized.account';
+export type TransactionExpandKey = 'contact' | 'documents' | 'items' | 'account' | 'purchaseOrder' | 'items.account';
 
 /**
- * Sortable fields for the transactions list. A non-unique field appends `,id` as the tiebreaker. Default sort is `timestamp` `desc`.
+ * Fields available for sorting. The default is `timestamp` in descending order.
  */
 export type TransactionSortField = 'timestamp' | 'amount' | 'status' | 'type' | 'description' | 'createdAt' | 'updatedAt';
 
 /**
- * An itemized line of a transaction. When a transaction `isItemized`, coding moves from `transaction.budgetLineId` onto these items. Items soft-delete (for unsplit recovery); a deleted item is never returned.
+ * An item in an itemized transaction. Budget coding belongs to each item instead of the transaction.
  */
 export type TransactionItem = {
     /**
-     * Stable item identifier (`txi_…`).
+     * Transaction item ID.
      */
     id: Id;
     /**
-     * Fractional-index line number, server-assigned so itemization order is consistent with auto-itemize.
+     * Line number shown in the itemization.
      */
-    lineNumber: string;
+    lineNumber: string | null;
     /**
-     * Free-text line description.
+     * Item description.
      */
     description?: string | null;
     /**
-     * Budget line this item is coded to (`bud_…`).
+     * Budget line ID.
      */
     budgetLineId?: Id | null;
     /**
-     * Fringe applied to this item, if any.
+     * Applied fringe ID.
      */
     fringeId?: Id | null;
     /**
-     * Quantity (units of `unit`).
+     * Contact for this item.
      */
-    qty?: number | null;
+    contactId?: Id | null;
     /**
-     * Unit label (e.g. `Day`, `Hour`, `Flat`).
+     * Quantity or formula.
+     */
+    qty?: string | null;
+    /**
+     * Unit, such as `Day`, `Hour`, or `Flat`.
      */
     unit?: string | null;
     /**
-     * Per-unit rate as money (minor units + currency).
+     * Custom unit ID.
      */
-    rate?: Money | null;
-    amount: Money;
+    customUnitId?: Id | null;
     /**
-     * TimeCard, line is overtime.
+     * Rate or formula.
      */
-    overtime?: boolean | null;
+    rate?: string | null;
+    amount: Money | null;
     /**
-     * TimeCard, line is taxable.
+     * Overtime amount or formula.
      */
-    taxable?: boolean | null;
+    overtime?: string | null;
     /**
-     * TimeCard, line is non-taxable.
+     * Taxable amount or formula.
      */
-    nonTaxable?: boolean | null;
+    taxable?: string | null;
     /**
-     * Present only when `expand=itemized.account`; the budget account the item's budget line resolves to. permission-projected.
+     * Non-taxable amount or formula.
+     */
+    nonTaxable?: string | null;
+    /**
+     * Budget account for the item. Included with `expand=items.account`.
      */
     account?: TransactionAccountRef | null;
+    /**
+     * Tag IDs assigned to this item.
+     */
+    tagIds: Array<Id>;
+    /**
+     * Tags assigned to this item.
+     */
+    tags: Array<TransactionItemTag>;
+};
+
+export type TransactionItemTag = {
+    id: Id;
+    name: string;
+    color: string | null;
 };
 
 /**
- * Body for creating one transaction item. `lineNumber` is server-assigned.
+ * Fields for a new transaction item.
  */
 export type TransactionItemCreate = {
+    lineNumber?: string;
     description?: string;
     budgetLineId?: Id;
     fringeId?: Id;
-    qty?: number;
+    contactId?: Id;
+    qty?: string;
     unit?: string;
-    rate?: Money;
+    customUnitId?: Id;
+    rate?: string;
     amount: Money;
-    overtime?: boolean;
-    taxable?: boolean;
-    nonTaxable?: boolean;
+    overtime?: string;
+    taxable?: string;
+    nonTaxable?: string;
+    /**
+     * Tag IDs to assign. Duplicate IDs are ignored.
+     */
+    tagIds?: Array<Id>;
 };
 
 /**
- * Partial update of an item. All fields optional; `id`, `lineNumber` and tenant keys are server-owned and rejected with `422 field_read_only` if named.
+ * Fields to update on a transaction item. Read-only fields return `422 field_read_only`.
  */
 export type TransactionItemPatch = {
+    lineNumber?: string | null;
     description?: string | null;
     budgetLineId?: Id | null;
     fringeId?: Id | null;
-    qty?: number | null;
+    contactId?: Id | null;
+    qty?: string | null;
     unit?: string | null;
-    rate?: Money | null;
-    amount?: Money;
-    overtime?: boolean | null;
-    taxable?: boolean | null;
-    nonTaxable?: boolean | null;
+    customUnitId?: Id | null;
+    rate?: string | null;
+    amount?: Money | null;
+    overtime?: string | null;
+    taxable?: string | null;
+    nonTaxable?: string | null;
+    /**
+     * Replaces the item's tags. Send an empty array to remove all tags.
+     */
+    tagIds?: Array<Id>;
 };
 
 /**
- * Lean budget-account reference inlined by `expand=account` / `itemized.account`.
+ * Budget account included through `expand=account` or `expand=items.account`.
  */
 export type TransactionAccountRef = {
     id: Id;
     name?: string;
     /**
-     * Friendly account code, if any.
+     * Account code.
      */
     code?: string | null;
 };
 
 /**
- * The unified financial record (no separate "actuals"). One shape covers manual journals and every sourced rail; the three orthogonal dimensions `source` / `type` / `status` are exposed as three independent fields. Money is always integer minor units + `currency`; timestamps are ISO-8601.
+ * A transaction in Saturation. Money uses minor currency units.
  */
 export type Transaction = {
     /**
-     * Stable transaction identifier (`txn_…`).
+     * Transaction ID.
      */
     id: Id;
     source: TransactionSource;
     /**
-     * Opaque external source link reference for a sourced row (the rail's own id); `null` for journals. Not a joinable resource; the transaction record is itself the source of truth for reads.
+     * Reference supplied by the transaction source.
      */
     sourceId?: string | null;
-    type?: TransactionType | null;
+    type: TransactionType | null;
     status: TransactionStatus;
     /**
-     * DERIVED (no stored column): `true` when the row's internal state is a refund or dispute. Lets a consumer ask for "money-back events" after refund/dispute left the `status` vocabulary.
+     * Whether the transaction is a refund or another reversal.
      */
     isReversal: boolean;
     amount: Money;
     /**
-     * ISO-4217 currency (also carried inside `amount`). Surfaced top-level for convenience and filtering.
-     */
-    currency?: string | null;
-    /**
-     * Sourced multi-currency rows, rate to the workspace base currency.
+     * Exchange rate to the workspace currency.
      */
     exchangeRate?: number | null;
     exchangeRateSource?: ExchangeRateSource | null;
     /**
-     * When the money movement occurred (ISO-8601).
+     * Time the transaction occurred.
      */
     timestamp: string;
     description?: string | null;
     /**
-     * Rail-supplied merchant name (read-only on sourced rows).
+     * Merchant name supplied by the transaction source.
      */
     merchant?: string | null;
     /**
-     * Rail-supplied merchant logo, if any.
+     * Merchant logo URL.
      */
     logoUrl?: string | null;
     /**
-     * Rail-supplied category, if any.
+     * Category supplied by the transaction source.
      */
     category?: string | null;
     /**
-     * Last 4 of the funding instrument on a sourced row (read-only).
+     * Last four characters of the source account or card.
      */
     sourceLast4?: string | null;
     /**
-     * Human label of the source account/card (read-only on sourced rows).
+     * Name of the source account or card.
      */
     sourceName?: string | null;
     /**
-     * Document/check/invoice number.
+     * Document, check, or invoice number.
      */
     number?: string | null;
     /**
-     * Free-text external reference.
+     * External reference.
      */
     ref?: string | null;
     /**
-     * Saturation Pay payment id, when applicable.
+     * Related Saturation Pay payment ID.
      */
     payId?: string | null;
     /**
-     * User notes (always writable, any source).
+     * Notes about the transaction.
      */
     notes?: string | null;
     /**
-     * Assigned contact (vendor/crew/payee).
+     * Assigned contact ID.
      */
     contactId?: Id | null;
     /**
-     * Owning project (`prj_…`), or `null` when the transaction is unassigned (workspace-level). Settable via create/patch to assign, reassign, or unassign the row.
+     * Assigned project ID, or `null` when unassigned.
      */
-    projectId?: Id | null;
+    projectId: Id | null;
     /**
-     * Budget line coding when NOT itemized. When `isItemized=true`, coding lives on `items[]` and this is `null`.
+     * Budget line ID. Itemized transactions store this on each item instead.
      */
     budgetLineId?: Id | null;
     fringeId?: Id | null;
     /**
-     * `true` once the row has items; flips automatically on first item create and back on last item delete.
+     * Whether the transaction has items.
      */
     isItemized: boolean;
     /**
-     * Whether this transaction contributes to a budget's ACTUAL phase. Only `actualized=true` rows count toward actuals. Birth value follows the workspace auto-actualize setting at create time; writable thereafter via PATCH on any source.
+     * Whether the transaction is included in budget actuals.
      */
     actualized: boolean;
     /**
-     * Linked purchase order, if any (`po_…`).
+     * Linked purchase order ID.
      */
     purchaseOrderId?: Id | null;
     createdAt: string;
     updatedAt: string;
     /**
-     * Present when `expand=contact`. Lean contact ref; null if not readable.
+     * Assigned contact. Included with `expand=contact`.
      */
-    contact?: {
-        [key: string]: unknown;
-    } | null;
+    contact?: TransactionContactRef | null;
     /**
-     * Present when `expand=documents`. permission-projected document refs.
+     * Related documents. Included with `expand=documents`.
      */
-    documents?: Array<{
-        [key: string]: unknown;
-    }>;
+    documents?: Array<TransactionDocumentRef>;
     /**
-     * Present when `expand=itemized`. The itemized lines.
+     * Transaction items. Included with `expand=items`.
      */
     items?: Array<TransactionItem>;
     /**
-     * Present when `expand=account`. Lean budget-account ref; null if absent.
+     * Budget account. Included with `expand=account`.
      */
     account?: TransactionAccountRef | null;
     /**
-     * Present when `expand=purchaseOrder`. Lean PO ref; null if none/unreadable.
+     * Linked purchase order. Included with `expand=purchaseOrder`.
      */
-    purchaseOrder?: {
-        [key: string]: unknown;
-    } | null;
+    purchaseOrder?: TransactionPurchaseOrderRef | null;
 };
 
 /**
- * Body for creating a JOURNAL transaction. `source` is forced to `journal`, naming any sourced source returns `422 source_not_postable` (sourced rows arrive via their rail). Server-owned fields (`id`, `sourceId`, `isReversal`, `createdAt`, `updatedAt`, tenant keys) are NOT writable. The chosen `status` is validated against the status × source reachability matrix → `409 status_unreachable_for_source`.
+ * Contact details included with a transaction.
  */
-export type TransactionJournalCreate = {
-    type: TransactionJournalType;
+export type TransactionContactRef = {
+    id: Id;
+    name: string | null;
+};
+
+/**
+ * Document details included with a transaction.
+ */
+export type TransactionDocumentRef = {
+    id: Id;
+    name: string | null;
+};
+
+/**
+ * Purchase order details included with a transaction.
+ */
+export type TransactionPurchaseOrderRef = {
+    id: Id;
+    number: string | null;
+};
+
+/**
+ * Fields for a new manual transaction.
+ */
+export type TransactionManualCreate = {
+    type: TransactionManualType;
     amount: Money;
     /**
-     * ISO-4217 currency (alternative to embedding it in `amount`).
+     * Transaction time. A date without a time is recorded at midnight UTC.
      */
-    currency?: string;
     timestamp: string;
     /**
-     * Defaults to `posted`. Must be reachable for `journal`.
+     * Transaction status. Defaults to `posted`.
      */
     status?: TransactionStatus;
     description?: string;
     /**
-     * Optional project assignment (`prj_…` id or slug). Omit to create a workspace-level (unassigned) transaction; a named project that does not resolve returns `404 not_found`.
+     * Project ID or slug. Omit to leave the transaction unassigned.
      */
     projectId?: Id;
     contactId?: Id;
     /**
-     * Coding (omit when the row will be itemized).
+     * Budget line ID. Omit for an itemized transaction.
      */
     budgetLineId?: Id;
     fringeId?: Id;
@@ -3142,17 +3158,17 @@ export type TransactionJournalCreate = {
     ref?: string;
     notes?: string;
     /**
-     * Optional override of the actualization birth value. Omit and the workspace auto-actualize setting decides; set explicitly to force it.
+     * Whether to include the transaction in budget actuals. Defaults to the workspace setting.
      */
     actualized?: boolean;
 };
 
 /**
- * Partial update. Writability is driven by a `source → {readonly, writable}` allow-list. Assignment fields (`projectId`, `contactId`, `budgetLineId`, `fringeId`, `notes`, `number`, `ref`, `actualized`) are writable on ANY source. `projectId` is an assignment field - a `prj_…` id or slug moves the transaction to that project, and `null` unassigns it back to the workspace level. Core fields (`amount`, `currency`, `timestamp`, `type`, `status`, `merchant`, `sourceLast4`, `sourceName`) are writable ONLY on `journal`; naming one on a sourced row returns `422 field_read_only`. Server-owned fields (`id`, `source`, `sourceId`, `isReversal`, `isItemized`, `createdAt`, `updatedAt`) are never writable. A `status` change is checked against the reachability matrix.
+ * Fields to update on a transaction. Financial fields are editable only on manual transactions.
  */
 export type TransactionPatch = {
     /**
-     * Assign, reassign, or unassign the transaction. A `prj_…` id or slug moves it to that project; `null` unassigns it back to the workspace level. Writable on any source.
+     * Project ID or slug. Set to `null` to unassign the transaction.
      */
     projectId?: Id | null;
     contactId?: Id | null;
@@ -3162,7 +3178,9 @@ export type TransactionPatch = {
     number?: string | null;
     ref?: string | null;
     amount?: Money;
-    currency?: string;
+    /**
+     * Transaction time. A date without a time is recorded at midnight UTC.
+     */
     timestamp?: string;
     type?: TransactionType;
     status?: TransactionStatus;
@@ -3171,33 +3189,33 @@ export type TransactionPatch = {
     sourceLast4?: string | null;
     sourceName?: string | null;
     /**
-     * Whether this transaction contributes to a budget's ACTUAL phase. Writable on any source.
+     * Whether the transaction is included in budget actuals.
      */
     actualized?: boolean;
 };
 
 /**
- * Bulk JOURNAL import. Each entry is a `TransactionJournalCreate`; `source` is forced to `journal` on every row. Over the per-request cap → `413 batch_too_large`. Pair with an `Idempotency-Key` header for safe retries.
+ * Up to 500 manual transactions to create in one request.
  */
-export type TransactionBatchCreate = {
+export type TransactionBulkCreate = {
     /**
-     * The journal transactions to create. Cap is 500 per request.
+     * Manual transactions to create.
      */
-    transactions: Array<TransactionJournalCreate>;
+    transactions: Array<TransactionManualCreate>;
 };
 
 /**
- * A paginated page of transactions plus disclosure metadata.
+ * A page of transactions.
  */
 export type TransactionCollection = {
     data: Array<Transaction>;
     nextCursor?: NextCursor;
     /**
-     * Total matching rows; present only when `withCount=true`.
+     * Total number of matches. Included when `withCount=true`.
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * Whether the page contains fewer results than requested.
      */
     truncated?: boolean;
     statusReachability?: StatusReachabilityMatrix;
@@ -3210,17 +3228,17 @@ export type TransactionItemCollection = {
     data: Array<TransactionItem>;
     nextCursor?: NextCursor;
     /**
-     * Total matching rows; present only when `withCount=true`.
+     * Total number of matches. Included when `withCount=true`.
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * Whether the page contains fewer results than requested.
      */
     truncated?: boolean;
 };
 
 /**
- * Aggregate count + summed amount for a filter set (permission/project-scoped, honoring the same filter vocabulary as the list). `amount` is money in minor units; sum a single `currency` filter for a meaningful total across mixed-currency ledgers.
+ * Number and total amount of matching transactions.
  */
 export type TransactionStats = {
     /**
@@ -3231,295 +3249,29 @@ export type TransactionStats = {
 };
 
 /**
- * The distinct `type` values the token can actually see (permission/project-filtered, never the raw workspace-wide set), for building dropdowns. Casing is preserved per family.
- */
-export type TransactionTypes = {
-    /**
-     * Distinct visible `type` values.
-     */
-    data: Array<TransactionType>;
-};
-
-/**
- * The status x source reachability matrix the API owns and enforces. Maps each `source` to the subset of the 7 statuses it can legitimately reach. Setting an unreachable status on create/patch returns `409 status_unreachable_for_source` with the allowed set echoed in the error. Published so integrators can pre-validate.
+ * Transaction statuses available for each source.
  */
 export type StatusReachabilityMatrix = {
     [key: string]: Array<TransactionStatus>;
 };
 
 /**
- * The activity origin: `api` = public-API requests, `agent` = agent runs, `document` = document extraction. Lets you view API and agent usage together or split them out.
+ * Event types available for webhook subscriptions.
  */
-export type UsageSource = 'api' | 'agent' | 'document';
+export type WebhookEvent = 'transaction.created' | 'transaction.updated' | 'budget.changed' | 'purchaseOrder.created' | 'purchaseOrder.pending' | 'purchaseOrder.approved' | 'purchaseOrder.rejected' | 'purchaseOrder.actualizing' | 'purchaseOrder.paid' | 'purchaseOrder.void' | 'document.created' | 'document.linked' | 'document.unlinked' | 'document.deleted' | 'incentive.added' | 'pack.installed' | 'pack.uninstalled';
 
 /**
- * The rollup dimension. `operation` = per templated operation/route, `token` = per API token, `agent` = per agent, `source` = per `api|agent|document`, `day`/`hour` = per time bucket. Drives both the grouping and the `key` shape of each returned row.
+ * Event recorded for a delivery. `ping` is used by test deliveries.
  */
-export type UsageGroupBy = 'operation' | 'token' | 'agent' | 'source' | 'day' | 'hour';
+export type WebhookDeliveryEvent = 'transaction.created' | 'transaction.updated' | 'budget.changed' | 'purchaseOrder.created' | 'purchaseOrder.pending' | 'purchaseOrder.approved' | 'purchaseOrder.rejected' | 'purchaseOrder.actualizing' | 'purchaseOrder.paid' | 'purchaseOrder.void' | 'document.created' | 'document.linked' | 'document.unlinked' | 'document.deleted' | 'incentive.added' | 'pack.installed' | 'pack.uninstalled' | 'ping';
 
 /**
- * The time-bucket width of a rollup row's `bucket`. `hour` is available for short windows; `day` for longer ones. Present on every row so the client knows the bucket's span.
- */
-export type UsageBucketGranularity = 'hour' | 'day';
-
-/**
- * The pricing class an event falls under. Most API classes price to zero; only AI-backed operations incur credits. The value is an open string; the documented v1 members are listed. Used both as the `?operationClass` filter and as a row dimension.
- */
-export type UsageOperationClass = string;
-
-/**
- * The kind of usage-credit entry. The usage/credits view reports `consumed` settlement debits (negative `amount`); `grant` / `purchase` rows are the positive top-ups the balance nets against. `adjustment` is a manual correction.
- */
-export type UsageCreditEntryKind = 'consumed' | 'grant' | 'purchase' | 'adjustment';
-
-/**
- * One pre-aggregated usage row (never a single usage event). The shape is uniform across `groupBy` values; the active dimension is echoed in `key` / `keyKind` so the same array renders any grouping. Counts, latency, error rate, and rate-limit hits are request metrics; `credits` is the settled usage-credit total.
- */
-export type UsageRollupRow = {
-    /**
-     * The workspace the rollup belongs to (`ws_…`).
-     */
-    workspaceId: Id;
-    /**
-     * The project this row is attributed to (`prj_…`), present on project-scoped rows and when grouping retains project attribution. Absent for workspace-wide rows.
-     */
-    projectId?: Id;
-    keyKind: UsageGroupBy;
-    /**
-     * The active grouping dimension's value: a templated operation (`GET /v1/.../budget/lines`) for `operation`, a `tok_…` id for `token`, an agent id for `agent`, an `api|agent|document` for `source`, or an ISO-8601 bucket start for `day`/`hour`.
-     */
-    key: string;
-    /**
-     * A human-friendly label for `key` when one exists (e.g. a token's name). Absent when `key` is already self-describing.
-     */
-    keyLabel?: string;
-    source: UsageSource;
-    /**
-     * The metering namespace this row aggregates, when split by operation class.
-     */
-    operationClass?: UsageOperationClass;
-    /**
-     * ISO-8601 start of the row's time bucket (epoch values serialized at the boundary).
-     */
-    bucket: string;
-    bucketGranularity: UsageBucketGranularity;
-    /**
-     * Number of recorded events in this row.
-     */
-    count: number;
-    /**
-     * Median request latency in milliseconds for this row. A performance metric, not a billing value; absent for rows whose source has no per-request latency (e.g. some agent rows).
-     */
-    latencyP50?: number;
-    /**
-     * 95th-percentile request latency in milliseconds for this row. A performance metric, not a billing value.
-     */
-    latencyP95?: number;
-    /**
-     * Fraction of events in this row that returned a non-2xx status, `0`, `1`. Drives the error-trend chart.
-     */
-    errorRate: number;
-    /**
-     * Number of `429` responses in this row. Drives the rate-limit-trend chart.
-     */
-    rateLimitHits: number;
-    /**
-     * Settled **usage credits** for this row. `0` for most reads and writes; only AI-backed operations incur credits.
-     */
-    credits: number;
-};
-
-/**
- * A page of usage rollup rows for the requested window and grouping, plus the resolved query window and pagination fields. All rows are limited to what the caller has permission to see.
- */
-export type UsageRollupResponse = {
-    /**
-     * The rollup rows for this page.
-     */
-    data: Array<UsageRollupRow>;
-    window: UsageWindow;
-    groupBy: UsageGroupBy;
-    nextCursor?: NextCursor;
-    /**
-     * Total matching rollup rows for the window; present only when `withCount=true`.
-     */
-    count?: number;
-    /**
-     * True when permission filtering reduced the page below `limit`.
-     */
-    truncated?: boolean;
-};
-
-/**
- * The resolved time window the rollups cover, echoes the effective `from`/`to` after defaulting and validation, so a client that omitted them knows what it got. The window is capped (see `range_too_large`).
- */
-export type UsageWindow = {
-    /**
-     * Inclusive start of the window (ISO-8601).
-     */
-    from: string;
-    /**
-     * Exclusive end of the window (ISO-8601).
-     */
-    to: string;
-};
-
-/**
- * One **usage-credit** entry for the window, from the usage-credit ledger. This is the authoritative billing record. Balance is computed by summing ledger amounts, not stored as a separate row.
- */
-export type UsageCreditRow = {
-    /**
-     * The workspace the debit belongs to (`ws_…`).
-     */
-    workspaceId: Id;
-    entryKind: UsageCreditEntryKind;
-    /**
-     * Usage-credit delta for this settlement row, in whole usage credits. Negative for a `consumed` debit. Usage credits are a billing unit count, not a `Money` value.
-     */
-    amount: number;
-    /**
-     * The usage-credit balance immediately after this entry, when available. Informational; the authoritative balance is the sum of all settled ledger amounts.
-     */
-    balanceAfter?: number;
-    source: UsageSource;
-    /**
-     * The idempotency key for this entry, formed as `{periodStart}:{operationClass}`, so a re-run updates the same entry instead of double-charging.
-     */
-    sourceId?: string;
-    operationClass?: UsageOperationClass;
-    /**
-     * Aggregation metadata for this settlement row (period / operationClass / source), echoed for reconciliation. Opaque map.
-     */
-    featureContext?: {
-        [key: string]: unknown;
-    };
-    /**
-     * When the settlement debit was written (ISO-8601; epoch serialized at the boundary).
-     */
-    createdAt: string;
-};
-
-/**
- * The usage-credit burn for the window: the individual entries plus a summed total and the resulting balance, from the usage-credit ledger.
- */
-export type UsageCreditsResponse = {
-    /**
-     * The settlement rows in the window, newest first.
-     */
-    data: Array<UsageCreditRow>;
-    window: UsageWindow;
-    /**
-     * Net usage credits over the window, the sum of settled ledger amounts across the returned rows (negative = net burn). The authoritative billing total.
-     */
-    totalCredits: number;
-    /**
-     * The workspace's current usage-credit balance, computed as the sum of all settled ledger amounts (never a stored balance row).
-     */
-    balance?: number;
-    nextCursor?: NextCursor;
-    /**
-     * Total matching settlement rows for the window; present only when `withCount=true`.
-     */
-    count?: number;
-    /**
-     * True when permission filtering reduced the page below `limit`.
-     */
-    truncated?: boolean;
-};
-
-/**
- * One per-operation breakdown row: a templated operation/route with its volume, latency, error/rate-limit trend and settled usage credits. Like `UsageRollupRow` but always keyed by operation and always carrying its `operationClass` and `source`.
- */
-export type UsageOperationRow = {
-    /**
-     * The templated operation/route, never the populated path, so account codes stay out of logs and cardinality stays bounded.
-     */
-    operation: string;
-    operationClass: UsageOperationClass;
-    source: UsageSource;
-    /**
-     * Number of recorded events for this operation in the window.
-     */
-    count: number;
-    /**
-     * Median latency in milliseconds. A performance metric, not a billing value.
-     */
-    latencyP50?: number;
-    /**
-     * 95th-percentile latency in milliseconds. A performance metric, not a billing value.
-     */
-    latencyP95?: number;
-    /**
-     * Fraction of non-2xx responses, `0`, `1`.
-     */
-    errorRate: number;
-    /**
-     * Number of `429` responses for this operation.
-     */
-    rateLimitHits: number;
-    /**
-     * Settled **usage credits** for this operation.
-     */
-    credits: number;
-};
-
-/**
- * The per-operation usage breakdown for the window, limited to what the caller has permission to see.
- */
-export type UsageOperationsResponse = {
-    /**
-     * The per-operation rows for this page, highest volume first.
-     */
-    data: Array<UsageOperationRow>;
-    window: UsageWindow;
-    nextCursor?: NextCursor;
-    /**
-     * Total matching rollup rows for the window; present only when `withCount=true`.
-     */
-    count?: number;
-    /**
-     * True when permission filtering reduced the page below `limit`.
-     */
-    truncated?: boolean;
-};
-
-/**
- * Events available for webhook subscriptions. Purchase-order events use the status the order entered. Only listed events are delivered.
- */
-export type WebhookEvent = 'transaction.created' | 'transaction.updated' | 'budget.changed' | 'purchaseOrder.created' | 'purchaseOrder.pending' | 'purchaseOrder.approved' | 'purchaseOrder.rejected' | 'purchaseOrder.actualizing' | 'purchaseOrder.paid' | 'purchaseOrder.void' | 'document.created' | 'document.assigned' | 'document.unassigned' | 'document.deleted' | 'incentive.added' | 'pack.installed' | 'pack.uninstalled';
-
-/**
- * Deliver the record type and id. Fetch the record to read its current fields.
- */
-export type WebhookPayloadStyle = 'thin';
-
-/**
- * Outcome of a single delivery attempt. `pending` = queued or mid-retry, not yet terminal. `success` = the endpoint returned a 2xx within the timeout. `failed` = a non-2xx, timeout, or transport error (retried with exponential backoff). `blocked` = the target failed the SSRF guard at delivery time (re-validated even if it passed registration). `dropped` = permission re-resolution at delivery denied the subscription's owning identity, so the event was withheld fail-closed.
+ * Outcome of a delivery. `pending` may be retried. `success`, `failed`, `blocked`, and `dropped` are final.
  */
 export type WebhookDeliveryStatus = 'pending' | 'success' | 'failed' | 'blocked' | 'dropped';
 
 /**
- * Allowed `expand` key for a webhook subscription (typed allow-list; an unknown or too-deep key returns `400 expand_invalid`). `subscriber` inlines the owning identity (user or workspace account) whose current access filters this subscription's events.
- */
-export type WebhookExpand = 'subscriber';
-
-/**
- * The owning identity a subscription is bound to (the `expand=subscriber` target). A subscription dies with this identity and only ever receives events that identity can read.
- */
-export type WebhookSubscriber = {
-    /**
-     * Whether the subscription is owned by a user token or a workspace account.
-     */
-    kind: 'user' | 'serviceIdentity';
-    id: Id;
-    /**
-     * Human-readable label for the owning identity.
-     */
-    displayName?: string;
-};
-
-/**
- * An outbound webhook subscription. Workspace-scoped, optionally narrowed to one project; it delivers the events in `events[]` to `url` over signed, SSRF-guarded HTTPS. The `secret` is returned exactly once, in the create response, and never on any read.
+ * A webhook subscription for a workspace or project.
  */
 export type Webhook = {
     /**
@@ -3527,33 +3279,31 @@ export type Webhook = {
      */
     id: Id;
     /**
-     * HTTPS destination for deliveries. Always validated by the SSRF guard on create and on any URL change; private / loopback / link-local / cloud-metadata / IPv6-mapped / decimal-octal-hex / internal-DNS targets are rejected.
+     * HTTPS destination for deliveries. The host must resolve to a public address.
      */
     url: string;
     /**
-     * The subscribed event types. Closed enum ().
+     * Event types delivered to this endpoint.
      */
     events: Array<WebhookEvent>;
-    payloadStyle: WebhookPayloadStyle;
     /**
      * Whether the subscription currently receives deliveries. Toggled via PATCH; a webhook continues to exist while paused.
      */
     isActive: boolean;
     /**
-     * The workspace the subscription belongs to (`ws_…`). Server-owned; not client-writable.
+     * Workspace ID.
      */
     workspaceId: Id;
     /**
-     * Optional project scope (`prj_…`). When set, the subscription only receives that project's events. Server-owned after create; not changeable via PATCH.
+     * Project ID when the subscription is limited to one project.
      */
     projectId?: Id;
-    subscriber?: WebhookSubscriber;
     /**
-     * ISO-8601 timestamp of the most recent delivery attempt for this subscription, for a quick health glance. Absent until the first delivery (including a `ping`).
+     * Time of the most recent delivery attempt.
      */
     lastDeliveryAt?: string;
     /**
-     * Outcome of the most recent delivery attempt. Absent until the first delivery. Inspect the full history via `GET.../deliveries`.
+     * Outcome of the most recent delivery attempt.
      */
     lastDeliveryStatus?: WebhookDeliveryStatus;
     /**
@@ -3567,21 +3317,61 @@ export type Webhook = {
 };
 
 /**
- * The create response. Identical to `Webhook` but additionally carries the signing `secret` this one time only, store it now; it can never be read again. Rotating the secret means recreating the subscription.
+ * A newly created webhook subscription and its signing secret.
  */
-export type WebhookWithSecret = Webhook & {
+export type WebhookWithSecret = {
     /**
-     * The HMAC signing secret. Returned exactly once, here. Used to verify `X-Saturation-Signature` on every delivery. Never echoed on GET / list / PATCH.
+     * Subscription identifier (`whk_…`).
+     */
+    id: Id;
+    /**
+     * HTTPS destination for deliveries. The host must resolve to a public address.
+     */
+    url: string;
+    /**
+     * Event types delivered to this endpoint.
+     */
+    events: Array<WebhookEvent>;
+    /**
+     * Whether the subscription currently receives deliveries. Toggled via PATCH; a webhook continues to exist while paused.
+     */
+    isActive: boolean;
+    /**
+     * Workspace ID.
+     */
+    workspaceId: Id;
+    /**
+     * Project ID when the subscription is limited to one project.
+     */
+    projectId?: Id;
+    /**
+     * Time of the most recent delivery attempt.
+     */
+    lastDeliveryAt?: string;
+    /**
+     * Outcome of the most recent delivery attempt.
+     */
+    lastDeliveryStatus?: WebhookDeliveryStatus;
+    /**
+     * ISO-8601 creation timestamp.
+     */
+    createdAt: string;
+    /**
+     * ISO-8601 last-update timestamp.
+     */
+    updatedAt: string;
+    /**
+     * HMAC secret used to verify `X-Saturation-Signature`. Returned only when the subscription is created.
      */
     secret: string;
 };
 
 /**
- * Create-a-subscription request body (Zod allow-list). Server-owned fields (`id`, `workspaceId`, owning identity, `isActive`, `createdAt`, `updatedAt`) are not accepted; naming one returns `422 field_read_only`.
+ * Fields for a new webhook subscription.
  */
 export type WebhookCreate = {
     /**
-     * HTTPS-only destination. Rejected with `400 webhook_https_required` if not HTTPS, and `422 webhook_url_blocked` / `409 webhook_url_invalid_ssrf` if it resolves to a blocked address.
+     * HTTPS destination. The host must resolve to a public address.
      */
     url: string;
     /**
@@ -3589,29 +3379,27 @@ export type WebhookCreate = {
      */
     events: Array<WebhookEvent>;
     /**
-     * Optional signing secret. If omitted, the server generates one and returns it once in the create response.
+     * Signing secret. When omitted, the create response includes a generated secret.
      */
     secret?: string;
-    payloadStyle?: WebhookPayloadStyle;
     /**
-     * Optional project scope (`prj_…`). Set only at create; the subscription then receives just that project's events. Fixed thereafter (not PATCH-able).
+     * Project ID when the subscription should receive events for one project only.
      */
     projectId?: Id;
 };
 
 /**
- * PATCH a subscription (explicit Zod allow-list). Only these fields are writable. Tenant keys (`workspaceId` / `projectId`), the owning identity, and `secret` are server-owned, naming any of them returns `422 field_read_only` (fail-loud, never a silent strip). A `url` change re-runs the SSRF guard.
+ * Writable webhook subscription fields.
  */
 export type WebhookUpdate = {
     /**
-     * New HTTPS destination. Re-validated by the SSRF guard.
+     * New HTTPS destination. The host must resolve to a public address.
      */
     url?: string;
     /**
      * Replacement event set.
      */
     events?: Array<WebhookEvent>;
-    payloadStyle?: WebhookPayloadStyle;
     /**
      * Pause (`false`) or resume (`true`) deliveries.
      */
@@ -3619,42 +3407,41 @@ export type WebhookUpdate = {
 };
 
 /**
- * One delivery attempt of an event to a subscription, recorded for debugging. The `id` is stable across retries of the same delivery; a redelivery gets a new `id`.
+ * One webhook delivery and its retry state.
  */
 export type WebhookDelivery = {
     /**
-     * Delivery identifier (`whd_…`). Stable across retries; used as the dedupe key.
+     * Delivery ID. It remains the same across retries.
      */
     id: Id;
-    event: WebhookEvent;
+    event: WebhookDeliveryEvent;
     status: WebhookDeliveryStatus;
     /**
      * The kind of entity the event concerns (e.g. `transaction`, `budget`, `purchaseOrder`, `document`).
      */
     entityKind: string;
     /**
-     * The id of the entity the event concerns (what the consumer re-fetches).
+     * ID of the resource that changed.
      */
     entityId: Id;
-    payloadStyle: WebhookPayloadStyle;
     /**
-     * The validated, IP-pinned URL the delivery was sent to.
+     * URL used for the delivery.
      */
     requestUrl?: string;
     /**
-     * HTTP status the subscriber returned, when a connection was made. Absent for `blocked` / `dropped`.
+     * HTTP status returned by the endpoint, when available.
      */
     responseStatus?: number;
     /**
-     * 1-based count of delivery attempts made so far (deliveries retry with exponential backoff).
+     * Number of delivery attempts.
      */
     attempts: number;
     /**
-     * ISO-8601 timestamp of the next scheduled retry. Present only while `pending` and more attempts remain; absent once the delivery is terminal (`success` / `failed` / `blocked` / `dropped`).
+     * Time of the next retry. Present only while the delivery is pending.
      */
     nextRetryAt?: string;
     /**
-     * Failure detail for `failed` / `blocked` / `dropped` (e.g. SSRF rejection reason, permission drop, or transport error). Absent on `success`.
+     * Failure details when the delivery did not succeed.
      */
     error?: string;
     /**
@@ -3668,22 +3455,30 @@ export type WebhookDelivery = {
 };
 
 /**
- * The body sent to a subscriber. Fetch the record in `data` to read its current fields. Verify `X-Saturation-Signature` with the timestamp and raw body. Use `X-Saturation-Delivery-Id` to ignore duplicate deliveries.
+ * Webhook request body. Use `data` to fetch the current resource.
  */
 export type WebhookEventPayload = {
     /**
-     * The stable delivery id (`whd_…`); the dedupe key for at-least-once delivery.
+     * Delivery ID for duplicate detection.
      */
     id: Id;
-    event: WebhookEvent;
+    event: WebhookDeliveryEvent;
     /**
      * The workspace the event belongs to (`ws_…`).
      */
     workspaceId: Id;
     /**
-     * Present (and required) for project-scoped event kinds, so the consumer can build the fetch URL.
+     * Workspace name when available.
+     */
+    workspaceName?: string;
+    /**
+     * Project ID for project-scoped events.
      */
     projectId?: Id;
+    /**
+     * Project name when available.
+     */
+    projectName?: string;
     /**
      * ISO-8601 timestamp of the originating change.
      */
@@ -3693,11 +3488,11 @@ export type WebhookEventPayload = {
      */
     data: {
         /**
-         * The entity kind (e.g. `transaction`, `budget`, `purchaseOrder`, `document`).
+         * Type of resource that changed.
          */
         kind: string;
         /**
-         * The entity id to re-fetch.
+         * ID of the resource that changed.
          */
         id: Id;
     };
@@ -3714,7 +3509,7 @@ export type WebhookCollection = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * Whether inaccessible records shortened this page.
      */
     truncated?: boolean;
 };
@@ -3730,13 +3525,13 @@ export type WebhookDeliveryCollection = {
      */
     count?: number;
     /**
-     * True when a permission/expand under-fetch bounded the page short of `limit`.
+     * Whether inaccessible records shortened this page.
      */
     truncated?: boolean;
 };
 
 /**
- * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+ * Project ID or slug.
  */
 export type ProjectId = string;
 
@@ -3746,17 +3541,17 @@ export type ProjectId = string;
 export type Limit = number;
 
 /**
- * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+ * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
  */
 export type Cursor = string;
 
 /**
- * Field to sort by (replaces legacy `sortBy`). A non-unique sort field appends `,id` as the tiebreaker. Allowed fields are typed per resource.
+ * Field to sort by. Allowed fields depend on the resource.
  */
 export type Sort = string;
 
 /**
- * Sort direction (replaces legacy `sortOrder`).
+ * Sort direction.
  */
 export type Order = 'asc' | 'desc';
 
@@ -3771,11 +3566,6 @@ export type TransactionSort = TransactionSortField;
 export type PurchaseOrderSort2 = PurchaseOrderSort;
 
 /**
- * Replay a saved view (`?view={id}`), a named, persisted filter + shape bundle. The view's filter/sort/expand resolve first; any inline query params layer on top to refine. An unknown or unreadable view id returns `404 not_found`.
- */
-export type View2 = Id;
-
-/**
  * Comma list of related data to inline on transactions (depth ≤ 2). Unknown or too-deep key returns `400 expand_invalid`.
  */
 export type TransactionExpand = Array<TransactionExpandKey>;
@@ -3784,11 +3574,6 @@ export type TransactionExpand = Array<TransactionExpandKey>;
  * Comma list of related data to inline on a purchase order (depth ≤ 2). Unknown key returns `400 expand_invalid`.
  */
 export type PurchaseOrderExpand2 = Array<PurchaseOrderExpand>;
-
-/**
- * Comma list of related data to inline on documents (depth ≤ 2). Unknown key returns `400 expand_invalid`.
- */
-export type DocumentExpand2 = Array<DocumentExpand>;
 
 /**
  * Comma list of related data to inline on contacts (depth ≤ 2). Unknown key returns `400 expand_invalid`.
@@ -3821,131 +3606,44 @@ export type RatePackExpand2 = Array<RatePackExpand>;
 export type IncentivePackExpand2 = Array<IncentivePackExpand>;
 
 /**
- * Comma list of related data to inline on a project-installed rate pack. Unknown key returns `400 expand_invalid`.
- */
-export type ProjectRatePackExpand2 = Array<ProjectRatePackExpand>;
-
-/**
- * Comma list of related data to inline on a webhook subscription (depth ≤ 2). Unknown key returns `400 expand_invalid`.
- */
-export type WebhookExpand2 = Array<WebhookExpand>;
-
-/**
- * Comma list of related data to inline on resolved view rows (depth ≤ 2). The valid keys depend on the view's `subjectType`, they are the same per-resource allow-list as the underlying resource (transactions, documents, contacts or budget lines). An unknown or too-deep key for the resolved subject returns `400 expand_invalid`.
- */
-export type ViewDataExpand = Array<string>;
-
-/**
- * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
+ * Include the total number of matching items. Defaults to `false`.
  */
 export type WithCount = boolean;
 
-/**
- * Inclusive start of the window (ISO-8601). Defaults to a recent window when omitted. The window is capped, an over-cap `from`/`to` span returns `400 range_too_large`; an inverted or unparseable range returns `400 invalid_date_range`.
- */
-export type UsageFrom = string;
-
-/**
- * Exclusive end of the window (ISO-8601). Defaults to now when omitted. `from` must be before `to`.
- */
-export type UsageTo = string;
-
-/**
- * The rollup dimension. Defaults to `day`. The active dimension is echoed in each row's `keyKind` / `key`.
- */
-export type UsageGroupBy2 = UsageGroupBy;
-
-/**
- * Filter to a single source (`api | agent | document`). Omit for the combined view across all three.
- */
-export type UsageSource2 = UsageSource;
-
-/**
- * Filter to a single operation class (e.g. `api.read`, `agent.run`).
- */
-export type UsageOperationClass2 = UsageOperationClass;
-
-/**
- * Filter rollups to a single API token (`tok_…`).
- */
-export type UsageTokenId = Id;
-
-export type BudgetGetDocumentData = {
+export type BudgetGetData = {
     body?: never;
     headers?: {
         /**
-         * Conditional GET. Pass a prior `ETag`; an unchanged budget (for the same caller's permission projection) returns `304 Not Modified`. The permission gate is re-run before any `304`, so a foreign-tenant or stale ETag never short-circuits authorization.
+         * A previous `ETag`. Returns `304 Not Modified` when the budget is unchanged.
          */
         'If-None-Match'?: string;
     };
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
     };
     query?: {
         /**
-         * Materialized account path (for example `1100/1110`) naming exactly one root line and its descendants.
+         * Select this account path and its descendants, such as `1100/1110`.
          */
         path?: string;
         /**
-         * Leaf account code naming exactly one root line and its descendants. Duplicate codes return `409 account_code_ambiguous`.
-         */
-        accountCode?: string;
-        /**
-         * Visible phase id, alias, name, or type. Ambiguous selectors return `400 validation`; hidden phases are excluded.
-         */
-        phase?: string;
-        /**
-         * Rejected on `GET /budget`; use `accountCode`.
-         *
-         * @deprecated
+         * Select this account number and its descendants. An account number used by multiple lines returns `409 account_code_ambiguous`.
          */
         accountId?: string;
         /**
-         * Rejected on `GET /budget`; tag-filtered documents are deferred.
-         *
-         * @deprecated
+         * Select a visible phase by ID, alias, name, or type. An ambiguous value returns `400 validation`.
          */
-        tags?: string;
-        /**
-         * Rejected on `GET /budget`; tag-filtered documents are deferred.
-         *
-         * @deprecated
-         */
-        tagMode?: TagMode;
-        /**
-         * Rejected on `GET /budget`; date-windowed documents are deferred.
-         *
-         * @deprecated
-         */
-        dateFrom?: string;
-        /**
-         * Rejected on `GET /budget`; date-windowed documents are deferred.
-         *
-         * @deprecated
-         */
-        dateTo?: string;
-        /**
-         * Rejected on `GET /budget`; hidden phases are intentionally excluded.
-         *
-         * @deprecated
-         */
-        includeHiddenPhases?: boolean;
-        /**
-         * Rejected on budget document reads; the document is already fully shaped.
-         *
-         * @deprecated
-         */
-        expand?: string;
+        phase?: string;
     };
     url: '/projects/{projectId}/budget';
 };
 
-export type BudgetGetDocumentErrors = {
+export type BudgetGetErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -3953,64 +3651,67 @@ export type BudgetGetDocumentErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Payload / result too large, `budget_too_large` or `batch_too_large`.
+     * Payload / result too large, `budget_too_large` or `bulk_too_large`.
      */
     413: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
     /**
-     * Gateway timeout, `budget_compute_timeout`. The budget engine did not return a computed result within the deadline; retry (the result may be cached on the next call).
+     * Budget calculation timed out. The request may be retried.
      */
     504: Error;
 };
 
-export type BudgetGetDocumentError = BudgetGetDocumentErrors[keyof BudgetGetDocumentErrors];
+export type BudgetGetError = BudgetGetErrors[keyof BudgetGetErrors];
 
-export type BudgetGetDocumentResponses = {
+export type BudgetGetResponses = {
     /**
      * The budget document.
      */
     200: BudgetDocument;
 };
 
-export type BudgetGetDocumentResponse = BudgetGetDocumentResponses[keyof BudgetGetDocumentResponses];
+export type BudgetGetResponse = BudgetGetResponses[keyof BudgetGetResponses];
 
 export type BudgetGetTotalsData = {
     body?: never;
     headers?: {
+        /**
+         * A previous `ETag`. Returns `304 Not Modified` when the totals are unchanged.
+         */
         'If-None-Match'?: string;
     };
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
     };
     query?: {
         /**
-         * Narrow to one phase, by phase id or `type` (e.g. `estimate`).
+         * Select a phase by ID or type, such as `estimate`.
          */
         phase?: string;
         /**
-         * Account code classifier, subtree-scopes the slice (a code may sit on many rows).
+         * Select this account number and its descendants.
          */
         accountId?: string;
         /**
-         * Coded account path to subtree-scope the slice (e.g. `1100/1110`).
+         * Select this account path and its descendants, such as `1100/1110`.
          */
         path?: string;
     };
@@ -4019,7 +3720,7 @@ export type BudgetGetTotalsData = {
 
 export type BudgetGetTotalsErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -4027,27 +3728,27 @@ export type BudgetGetTotalsErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Payload / result too large, `budget_too_large` or `batch_too_large`.
+     * Payload / result too large, `budget_too_large` or `bulk_too_large`.
      */
     413: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
     /**
-     * Gateway timeout, `budget_compute_timeout`. The budget engine did not return a computed result within the deadline; retry (the result may be cached on the next call).
+     * Budget calculation timed out. The request may be retried.
      */
     504: Error;
 };
@@ -4056,243 +3757,42 @@ export type BudgetGetTotalsError = BudgetGetTotalsErrors[keyof BudgetGetTotalsEr
 
 export type BudgetGetTotalsResponses = {
     /**
-     * Totals for the (optionally filtered) slice.
+     * The budget totals.
      */
     200: BudgetTotals;
 };
 
 export type BudgetGetTotalsResponse = BudgetGetTotalsResponses[keyof BudgetGetTotalsResponses];
 
-export type BudgetGetRollupData = {
-    body?: never;
-    headers?: {
-        'If-None-Match'?: string;
-    };
-    path: {
-        /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-    };
-    query: {
-        /**
-         * The phase id (or `type`, e.g. `estimate`) to roll up.
-         */
-        phase: string;
-    };
-    url: '/projects/{projectId}/budget/rollup';
-};
-
-export type BudgetGetRollupErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Payload / result too large, `budget_too_large` or `batch_too_large`.
-     */
-    413: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-    /**
-     * Gateway timeout, `budget_compute_timeout`. The budget engine did not return a computed result within the deadline; retry (the result may be cached on the next call).
-     */
-    504: Error;
-};
-
-export type BudgetGetRollupError = BudgetGetRollupErrors[keyof BudgetGetRollupErrors];
-
-export type BudgetGetRollupResponses = {
-    /**
-     * The phase rollup.
-     */
-    200: BudgetRollup;
-};
-
-export type BudgetGetRollupResponse = BudgetGetRollupResponses[keyof BudgetGetRollupResponses];
-
-export type BudgetGetVarianceData = {
-    body?: never;
-    headers?: {
-        'If-None-Match'?: string;
-    };
-    path: {
-        /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-    };
-    query: {
-        /**
-         * The baseline phase id (or `type`).
-         */
-        from: string;
-        /**
-         * The comparison phase id (or `type`).
-         */
-        to: string;
-    };
-    url: '/projects/{projectId}/budget/variance';
-};
-
-export type BudgetGetVarianceErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Payload / result too large, `budget_too_large` or `batch_too_large`.
-     */
-    413: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-    /**
-     * Gateway timeout, `budget_compute_timeout`. The budget engine did not return a computed result within the deadline; retry (the result may be cached on the next call).
-     */
-    504: Error;
-};
-
-export type BudgetGetVarianceError = BudgetGetVarianceErrors[keyof BudgetGetVarianceErrors];
-
-export type BudgetGetVarianceResponses = {
-    /**
-     * The phase-to-phase variance.
-     */
-    200: BudgetVariance;
-};
-
-export type BudgetGetVarianceResponse = BudgetGetVarianceResponses[keyof BudgetGetVarianceResponses];
-
-export type BudgetGetCellData = {
-    body?: never;
-    headers?: {
-        /**
-         * Conditional GET. Pass a prior `ETag`; an unchanged cell (for the same caller's permission projection) returns `304 Not Modified`. The permission gate is re-run before any `304`.
-         */
-        'If-None-Match'?: string;
-    };
-    path: {
-        /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-    };
-    query: {
-        /**
-         * The account path or code the cell sits on (e.g. `1100/1110`). Not an address.
-         */
-        account: string;
-        /**
-         * The value column to read (e.g. a phase id or `type` such as `estimate`).
-         */
-        column: string;
-    };
-    url: '/projects/{projectId}/budget/cells';
-};
-
-export type BudgetGetCellErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
-     */
-    409: Error;
-    /**
-     * Payload / result too large, `budget_too_large` or `batch_too_large`.
-     */
-    413: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-    /**
-     * Gateway timeout, `budget_compute_timeout`. The budget engine did not return a computed result within the deadline; retry (the result may be cached on the next call).
-     */
-    504: Error;
-};
-
-export type BudgetGetCellError = BudgetGetCellErrors[keyof BudgetGetCellErrors];
-
-export type BudgetGetCellResponses = {
-    /**
-     * The cell value, as of `computedAt`.
-     */
-    200: BudgetCell;
-};
-
-export type BudgetGetCellResponse = BudgetGetCellResponses[keyof BudgetGetCellResponses];
-
 export type BudgetListLinesData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
     };
     query?: {
         /**
-         * Account code classifier, returns a SET (a code may sit on many rows). Use `path`/`id` for an exact single-row read.
+         * Only lines with this account number. An account number may match multiple lines.
          */
         accountId?: string;
         /**
-         * Coded account path for an exact single-row read (e.g. `1100/1110`). A coded path matching more than one live row returns `409 account_path_ambiguous`.
+         * Only the line at this account path, such as `1100/1110`. An ambiguous path returns `409 account_path_ambiguous`.
          */
         path?: string;
         /**
-         * Comma-separated tag ids/names; composed per `tagMode`.
+         * Only lines with these comma-separated tag IDs or names.
          */
         tags?: string;
         /**
-         * How `tags` composes (`any` = OR default, `all` = AND, `none` = exclude).
+         * How multiple `tags` values are combined.
          */
         tagMode?: TagMode;
         /**
-         * Filter by the `kind` discriminator (comma-separated for multiple).
+         * Only lines with these comma-separated types.
          */
-        kind?: string;
+        type?: string;
         /**
          * Comma list of related data to inline on budget lines (depth ≤ 2). Unknown or too-deep key returns `400 expand_invalid`.
          */
@@ -4302,11 +3802,11 @@ export type BudgetListLinesData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
+         * Include the total number of matching items. Defaults to `false`.
          */
         withCount?: boolean;
     };
@@ -4315,7 +3815,7 @@ export type BudgetListLinesData = {
 
 export type BudgetListLinesErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -4323,19 +3823,19 @@ export type BudgetListLinesErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -4354,7 +3854,7 @@ export type BudgetListLinesResponses = {
          */
         count?: number;
         /**
-         * True when a permission/expand under-fetch bounded the page short of `limit`.
+         * Whether the page ended before `limit` because some results were unavailable.
          */
         truncated?: boolean;
     };
@@ -4366,13 +3866,13 @@ export type BudgetCreateLineData = {
     body: BudgetLineCreate;
     headers: {
         /**
-         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         * A 16 to 255 character key for safe retries. Reusing the key with a different request returns `409 idempotency_conflict`.
          */
         'Idempotency-Key': string;
     };
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
     };
@@ -4382,7 +3882,7 @@ export type BudgetCreateLineData = {
 
 export type BudgetCreateLineErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -4390,23 +3890,23 @@ export type BudgetCreateLineErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -4422,27 +3922,27 @@ export type BudgetCreateLineResponses = {
 
 export type BudgetCreateLineResponse = BudgetCreateLineResponses[keyof BudgetCreateLineResponses];
 
-export type BudgetCreateLinesBatchData = {
-    body: BudgetLineBatchCreate;
+export type BudgetCreateLinesBulkData = {
+    body: BudgetLineBulkCreate;
     headers: {
         /**
-         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         * A 16 to 255 character key for safe retries. Reusing the key with a different request returns `409 idempotency_conflict`.
          */
         'Idempotency-Key': string;
     };
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
     };
     query?: never;
-    url: '/projects/{projectId}/budget/lines/batch';
+    url: '/projects/{projectId}/budget/lines/bulk';
 };
 
-export type BudgetCreateLinesBatchErrors = {
+export type BudgetCreateLinesBulkErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -4450,59 +3950,59 @@ export type BudgetCreateLinesBatchErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type BudgetCreateLinesBatchError = BudgetCreateLinesBatchErrors[keyof BudgetCreateLinesBatchErrors];
+export type BudgetCreateLinesBulkError = BudgetCreateLinesBulkErrors[keyof BudgetCreateLinesBulkErrors];
 
-export type BudgetCreateLinesBatchResponses = {
+export type BudgetCreateLinesBulkResponses = {
     /**
      * The created budget lines in request order.
      */
-    201: BudgetLineBatchCreateResponse;
+    201: BudgetLineBulkCreateResponse;
 };
 
-export type BudgetCreateLinesBatchResponse = BudgetCreateLinesBatchResponses[keyof BudgetCreateLinesBatchResponses];
+export type BudgetCreateLinesBulkResponse = BudgetCreateLinesBulkResponses[keyof BudgetCreateLinesBulkResponses];
 
-export type BudgetUpsertLinePhaseDataBatchData = {
-    body: BudgetLinePhaseDataBatchUpsert;
+export type BudgetUpdateLinePhaseDataBulkData = {
+    body: BudgetLinePhaseDataBulkUpsert;
     headers: {
         /**
-         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         * A 16 to 255 character key for safe retries. Reusing the key with a different request returns `409 idempotency_conflict`.
          */
         'Idempotency-Key': string;
     };
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
     };
     query?: never;
-    url: '/projects/{projectId}/budget/lines/phase-data/batch';
+    url: '/projects/{projectId}/budget/lines/phase-data/bulk';
 };
 
-export type BudgetUpsertLinePhaseDataBatchErrors = {
+export type BudgetUpdateLinePhaseDataBulkErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -4510,52 +4010,47 @@ export type BudgetUpsertLinePhaseDataBatchErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type BudgetUpsertLinePhaseDataBatchError = BudgetUpsertLinePhaseDataBatchErrors[keyof BudgetUpsertLinePhaseDataBatchErrors];
+export type BudgetUpdateLinePhaseDataBulkError = BudgetUpdateLinePhaseDataBulkErrors[keyof BudgetUpdateLinePhaseDataBulkErrors];
 
-export type BudgetUpsertLinePhaseDataBatchResponses = {
+export type BudgetUpdateLinePhaseDataBulkResponses = {
     /**
-     * The normalized editable phase data after the upsert.
+     * The updated phase data.
      */
-    200: BudgetLinePhaseDataBatchUpsertResponse;
+    200: BudgetLinePhaseDataBulkUpsertResponse;
 };
 
-export type BudgetUpsertLinePhaseDataBatchResponse = BudgetUpsertLinePhaseDataBatchResponses[keyof BudgetUpsertLinePhaseDataBatchResponses];
+export type BudgetUpdateLinePhaseDataBulkResponse = BudgetUpdateLinePhaseDataBulkResponses[keyof BudgetUpdateLinePhaseDataBulkResponses];
 
 export type BudgetDeleteLineData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
         /**
-         * Budget line identifier (`lin_…`).
+         * The budget line ID.
          */
         lineId: Id;
     };
-    query?: {
-        /**
-         * When resurrecting on re-create, `true` re-snapshots from source instead of preserving edits.
-         */
-        reset?: boolean;
-    };
+    query?: never;
     url: '/projects/{projectId}/budget/lines/{lineId}';
 };
 
@@ -4565,15 +4060,15 @@ export type BudgetDeleteLineErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -4582,7 +4077,7 @@ export type BudgetDeleteLineError = BudgetDeleteLineErrors[keyof BudgetDeleteLin
 
 export type BudgetDeleteLineResponses = {
     /**
-     * Soft-deleted. No body.
+     * Budget line deleted.
      */
     204: void;
 };
@@ -4593,11 +4088,11 @@ export type BudgetGetLineData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
         /**
-         * Budget line identifier (`lin_…`).
+         * The budget line ID.
          */
         lineId: Id;
     };
@@ -4612,7 +4107,7 @@ export type BudgetGetLineData = {
 
 export type BudgetGetLineErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -4620,15 +4115,15 @@ export type BudgetGetLineErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -4648,11 +4143,11 @@ export type BudgetUpdateLineData = {
     body: BudgetLineUpdate;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
         /**
-         * Budget line identifier (`lin_…`).
+         * The budget line ID.
          */
         lineId: Id;
     };
@@ -4662,7 +4157,7 @@ export type BudgetUpdateLineData = {
 
 export type BudgetUpdateLineErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -4670,19 +4165,23 @@ export type BudgetUpdateLineErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request conflicts with the current resource state.
+     */
+    409: Error;
+    /**
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -4698,19 +4197,19 @@ export type BudgetUpdateLineResponses = {
 
 export type BudgetUpdateLineResponse = BudgetUpdateLineResponses[keyof BudgetUpdateLineResponses];
 
-export type BudgetUpsertLinePhaseDataData = {
+export type BudgetUpdateLinePhaseDataData = {
     body: BudgetLinePhaseDataUpsert;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
         /**
-         * Budget line identifier (`lin_…`).
+         * The budget line ID.
          */
         lineId: Id;
         /**
-         * Budget phase identifier (`phs_…`).
+         * The phase ID.
          */
         phaseId: Id;
     };
@@ -4718,9 +4217,9 @@ export type BudgetUpsertLinePhaseDataData = {
     url: '/projects/{projectId}/budget/lines/{lineId}/phase-data/{phaseId}';
 };
 
-export type BudgetUpsertLinePhaseDataErrors = {
+export type BudgetUpdateLinePhaseDataErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -4728,35 +4227,35 @@ export type BudgetUpsertLinePhaseDataErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type BudgetUpsertLinePhaseDataError = BudgetUpsertLinePhaseDataErrors[keyof BudgetUpsertLinePhaseDataErrors];
+export type BudgetUpdateLinePhaseDataError = BudgetUpdateLinePhaseDataErrors[keyof BudgetUpdateLinePhaseDataErrors];
 
-export type BudgetUpsertLinePhaseDataResponses = {
+export type BudgetUpdateLinePhaseDataResponses = {
     /**
-     * The normalized editable phase data after the upsert.
+     * The updated phase data.
      */
     200: BudgetLinePhaseDataUpsertResponse;
 };
 
-export type BudgetUpsertLinePhaseDataResponse = BudgetUpsertLinePhaseDataResponses[keyof BudgetUpsertLinePhaseDataResponses];
+export type BudgetUpdateLinePhaseDataResponse = BudgetUpdateLinePhaseDataResponses[keyof BudgetUpdateLinePhaseDataResponses];
 
 export type BudgetListPhasesData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
     };
@@ -4770,15 +4269,15 @@ export type BudgetListPhasesErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -4793,11 +4292,11 @@ export type BudgetListPhasesResponses = {
         data: Array<BudgetPhase>;
         nextCursor?: NextCursor;
         /**
-         * Total matching phases; present only when `withCount=true`.
+         * Total results when `withCount=true`.
          */
         count?: number;
         /**
-         * True when a permission/expand under-fetch bounded the page short of `limit`.
+         * Whether the page ended before `limit` because some results were unavailable.
          */
         truncated?: boolean;
     };
@@ -4812,28 +4311,46 @@ export type BudgetCreatePhaseData = {
         alias?: string;
         color?: string;
         isHidden?: boolean;
+        displayDecimals?: number | null;
+        baseCurrencyId?: string | null;
+        actualDateStart?: string | null;
+        actualDateEnd?: string | null;
+        actualStatuses?: Array<string> | null;
+        actualSourceTypes?: Array<string> | null;
+        actualCurrencies?: Array<string> | null;
+        actualContactId?: string | null;
+        actualTagIds?: Array<string> | null;
+        actualBudgetLineIds?: Array<string> | null;
+        estimateTagIds?: Array<string>;
+        overtimeFactors?: Array<'qty' | 'x'>;
+        committedDateStart?: string | null;
+        committedDateEnd?: string | null;
+        committedContactId?: string | null;
+        committedPhaseIds?: Array<string>;
+        committedPoStatuses?: Array<'approved' | 'paymentRequested' | 'paymentRejected' | 'paymentProcessing'>;
         /**
-         * Create a SCENARIO: an estimate phase derived from an existing estimate phase in the same budget, with that phase's values copied server-side. Both the base and the new phase must be `type: estimate`.
+         * The estimate phase to use as the starting point. Both phases must have `type: estimate`.
          */
         derivedFromPhaseId?: string;
         /**
-         * Copy the base phase's values into the new phase. Only meaningful with `derivedFromPhaseId`; defaults to `true`. Pass `false` for an empty derived phase that still records its lineage.
+         * Whether to copy values from `derivedFromPhaseId`. Defaults to `true`.
          */
         copyValues?: boolean;
         /**
-         * Rollup formula (only legal with `type: rollup`): phase references as `@{<phaseId>}` combined with + and -, e.g. `@{phaseA} - @{phaseB}`. Without a formula a rollup column totals 0.
+         * A formula for a `rollup` phase. Reference phases as `@{phaseId}` and combine them with `+` or `-`. A rollup without a formula totals 0.
          */
         rollupFormula?: string;
+        rollupDisplayMode?: 'value' | 'percent' | 'bars' | 'margin' | null;
     };
     headers: {
         /**
-         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         * A 16 to 255 character key for safe retries. Reusing the key with a different request returns `409 idempotency_conflict`.
          */
         'Idempotency-Key': string;
     };
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
     };
@@ -4843,7 +4360,7 @@ export type BudgetCreatePhaseData = {
 
 export type BudgetCreatePhaseErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -4851,19 +4368,23 @@ export type BudgetCreatePhaseErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request conflicts with the current resource state.
+     */
+    409: Error;
+    /**
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -4883,11 +4404,11 @@ export type BudgetDeletePhaseData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
         /**
-         * Budget phase identifier (`phs_…`).
+         * The phase ID.
          */
         phaseId: Id;
     };
@@ -4901,15 +4422,15 @@ export type BudgetDeletePhaseErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -4918,7 +4439,7 @@ export type BudgetDeletePhaseError = BudgetDeletePhaseErrors[keyof BudgetDeleteP
 
 export type BudgetDeletePhaseResponses = {
     /**
-     * Soft-deleted. No body.
+     * Budget phase deleted.
      */
     204: void;
 };
@@ -4929,11 +4450,11 @@ export type BudgetGetPhaseData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
         /**
-         * Budget phase identifier (`phs_…`).
+         * The phase ID.
          */
         phaseId: Id;
     };
@@ -4947,15 +4468,15 @@ export type BudgetGetPhaseErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -4977,18 +4498,36 @@ export type BudgetUpdatePhaseData = {
         alias?: string;
         color?: string | null;
         isHidden?: boolean;
+        displayDecimals?: number | null;
+        baseCurrencyId?: string | null;
+        actualDateStart?: string | null;
+        actualDateEnd?: string | null;
+        actualStatuses?: Array<string> | null;
+        actualSourceTypes?: Array<string> | null;
+        actualCurrencies?: Array<string> | null;
+        actualContactId?: string | null;
+        actualTagIds?: Array<string> | null;
+        actualBudgetLineIds?: Array<string> | null;
+        estimateTagIds?: Array<string>;
+        overtimeFactors?: Array<'qty' | 'x'>;
+        committedDateStart?: string | null;
+        committedDateEnd?: string | null;
+        committedContactId?: string | null;
+        committedPhaseIds?: Array<string>;
+        committedPoStatuses?: Array<'approved' | 'paymentRequested' | 'paymentRejected' | 'paymentProcessing'>;
         /**
-         * Rollup formula (only legal on a `type: rollup` phase): `@{<phaseId>}` references combined with + and -. Null clears it. Setting it on a non-rollup phase returns `400 validation`.
+         * The formula for a `rollup` phase. Reference phases as `@{phaseId}` and combine them with `+` or `-`. Null clears the formula.
          */
         rollupFormula?: string | null;
+        rollupDisplayMode?: 'value' | 'percent' | 'bars' | 'margin' | null;
     };
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
         /**
-         * Budget phase identifier (`phs_…`).
+         * The phase ID.
          */
         phaseId: Id;
     };
@@ -4998,7 +4537,7 @@ export type BudgetUpdatePhaseData = {
 
 export type BudgetUpdatePhaseErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -5006,19 +4545,19 @@ export type BudgetUpdatePhaseErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -5034,72 +4573,6 @@ export type BudgetUpdatePhaseResponses = {
 
 export type BudgetUpdatePhaseResponse = BudgetUpdatePhaseResponses[keyof BudgetUpdatePhaseResponses];
 
-export type BudgetListAccountsData = {
-    body?: never;
-    path: {
-        /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-    };
-    query?: {
-        /**
-         * Maximum number of items to return on a page. Capped at 100.
-         */
-        limit?: number;
-        /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
-         */
-        cursor?: string;
-    };
-    url: '/projects/{projectId}/budget/accounts';
-};
-
-export type BudgetListAccountsErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type BudgetListAccountsError = BudgetListAccountsErrors[keyof BudgetListAccountsErrors];
-
-export type BudgetListAccountsResponses = {
-    /**
-     * A page of accounts.
-     */
-    200: {
-        data: Array<BudgetAccount>;
-        nextCursor?: NextCursor;
-        /**
-         * Total matching accounts; present only when `withCount=true`.
-         */
-        count?: number;
-        /**
-         * True when a permission/expand under-fetch bounded the page short of `limit`.
-         */
-        truncated?: boolean;
-    };
-};
-
-export type BudgetListAccountsResponse = BudgetListAccountsResponses[keyof BudgetListAccountsResponses];
-
 export type DocumentsListData = {
     body?: never;
     path?: never;
@@ -5109,59 +4582,51 @@ export type DocumentsListData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
-         * Field to sort by (replaces legacy `sortBy`). A non-unique sort field appends `,id` as the tiebreaker. Allowed fields are typed per resource.
+         * Field to sort by. Allowed fields depend on the resource.
          */
         sort?: string;
         /**
-         * Sort direction (replaces legacy `sortOrder`).
+         * Sort direction.
          */
         order?: 'asc' | 'desc';
         /**
-         * Comma list of related data to inline on documents (depth ≤ 2). Unknown key returns `400 expand_invalid`.
-         */
-        expand?: Array<DocumentExpand>;
-        /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
+         * Include the total number of matching items. Defaults to `false`.
          */
         withCount?: boolean;
         /**
-         * Replay a saved view (`?view={id}`), a named, persisted filter + shape bundle. The view's filter/sort/expand resolve first; any inline query params layer on top to refine. An unknown or unreadable view id returns `404 not_found`.
-         */
-        view?: Id;
-        /**
-         * Restrict to documents in this folder (`fld_…`).
+         * Only documents in this folder.
          */
         folder?: Id;
         /**
-         * Restrict to documents assigned to a specific target, expressed as `kind:id` (e.g. `transaction:txn_8f2a1c9e`).
+         * Only documents linked to this target. Use `kind:id`, such as `transaction:txn_8f2a1c9e`.
          */
-        assignedTo?: string;
+        linkedTo?: string;
         /**
-         * When `true`, restrict to documents with no entity assignment (no reference set).
+         * When `true`, only documents with no links.
          */
         unassigned?: boolean;
         /**
-         * Restrict to documents scoped to this project (`prj_…`).
+         * Only documents in this project.
          */
         project?: Id;
         /**
-         * Restrict to documents in this processing status.
+         * Only documents with this processing status.
          */
         status?: DocumentStatus;
         /**
-         * Restrict to documents with this fine-grained classification.
+         * Only documents with this classification.
          */
         classification?: string;
         /**
-         * Restrict to documents of this coarse content category.
+         * Only documents in this category.
          */
         coarseType?: DocumentCoarseType;
         /**
-         * Search over document name / description.
+         * Search document names and descriptions.
          */
         q?: string;
     };
@@ -5170,7 +4635,7 @@ export type DocumentsListData = {
 
 export type DocumentsListErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -5178,15 +4643,15 @@ export type DocumentsListErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -5195,29 +4660,29 @@ export type DocumentsListError = DocumentsListErrors[keyof DocumentsListErrors];
 
 export type DocumentsListResponses = {
     /**
-     * A paginated page of documents.
+     * A page of documents.
      */
     200: DocumentCollection;
 };
 
 export type DocumentsListResponse = DocumentsListResponses[keyof DocumentsListResponses];
 
-export type DocumentsDropData = {
+export type DocumentsUploadData = {
     body: DocumentCreateRequest;
-    headers?: {
+    headers: {
         /**
-         * Optional client-generated key for safe retries of this billable drop. Replaying the same key with a different body returns `409 idempotency_conflict`.
+         * A 16 to 255 character key for safe retries. Reusing the key with different content returns `409 idempotency_conflict`.
          */
-        'Idempotency-Key'?: string;
+        'Idempotency-Key': string;
     };
     path?: never;
     query?: never;
     url: '/documents';
 };
 
-export type DocumentsDropErrors = {
+export type DocumentsUploadErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -5225,43 +4690,43 @@ export type DocumentsDropErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type DocumentsDropError = DocumentsDropErrors[keyof DocumentsDropErrors];
+export type DocumentsUploadError = DocumentsUploadErrors[keyof DocumentsUploadErrors];
 
-export type DocumentsDropResponses = {
+export type DocumentsUploadResponses = {
     /**
-     * The created document, including any assignments made atomically with the drop.
+     * The created document and its links.
      */
     201: Document;
 };
 
-export type DocumentsDropResponse = DocumentsDropResponses[keyof DocumentsDropResponses];
+export type DocumentsUploadResponse = DocumentsUploadResponses[keyof DocumentsUploadResponses];
 
 export type DocumentsDeleteData = {
     body?: never;
     path: {
         /**
-         * Document id (`doc_…`).
+         * The document ID.
          */
         documentId: Id;
     };
@@ -5275,15 +4740,15 @@ export type DocumentsDeleteErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -5292,7 +4757,7 @@ export type DocumentsDeleteError = DocumentsDeleteErrors[keyof DocumentsDeleteEr
 
 export type DocumentsDeleteResponses = {
     /**
-     * Deleted. No body.
+     * Document deleted.
      */
     204: void;
 };
@@ -5303,22 +4768,17 @@ export type DocumentsGetData = {
     body?: never;
     path: {
         /**
-         * Document id (`doc_…`).
+         * The document ID.
          */
         documentId: Id;
     };
-    query?: {
-        /**
-         * Comma list of related data to inline on documents (depth ≤ 2). Unknown key returns `400 expand_invalid`.
-         */
-        expand?: Array<DocumentExpand>;
-    };
+    query?: never;
     url: '/documents/{documentId}';
 };
 
 export type DocumentsGetErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -5326,15 +4786,15 @@ export type DocumentsGetErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -5354,7 +4814,7 @@ export type DocumentsUpdateData = {
     body: DocumentUpdateRequest;
     path: {
         /**
-         * Document id (`doc_…`).
+         * The document ID.
          */
         documentId: Id;
     };
@@ -5364,7 +4824,7 @@ export type DocumentsUpdateData = {
 
 export type DocumentsUpdateErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -5372,19 +4832,19 @@ export type DocumentsUpdateErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -5404,7 +4864,7 @@ export type DocumentsGetContentData = {
     body?: never;
     path: {
         /**
-         * Document id (`doc_…`).
+         * The document ID.
          */
         documentId: Id;
     };
@@ -5418,15 +4878,15 @@ export type DocumentsGetContentErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -5435,18 +4895,126 @@ export type DocumentsGetContentError = DocumentsGetContentErrors[keyof Documents
 
 export type DocumentsGetContentResponses = {
     /**
-     * The raw document bytes.
+     * The document file.
      */
     200: Blob | File;
 };
 
 export type DocumentsGetContentResponse = DocumentsGetContentResponses[keyof DocumentsGetContentResponses];
 
+export type DocumentsUnlinkData = {
+    body?: never;
+    path: {
+        /**
+         * The document ID.
+         */
+        documentId: Id;
+        /**
+         * The type of target to link.
+         */
+        kind: DocumentWritableTargetKind;
+    };
+    query?: never;
+    url: '/documents/{documentId}/links/{kind}';
+};
+
+export type DocumentsUnlinkErrors = {
+    /**
+     * The request is invalid.
+     */
+    400: Error;
+    /**
+     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
+     */
+    401: Error;
+    /**
+     * Forbidden. The token does not allow this action.
+     */
+    403: Error;
+    /**
+     * Not found or unavailable to the token.
+     */
+    404: Error;
+    /**
+     * Rate limited. See `Retry-After` before retrying.
+     */
+    429: Error;
+};
+
+export type DocumentsUnlinkError = DocumentsUnlinkErrors[keyof DocumentsUnlinkErrors];
+
+export type DocumentsUnlinkResponses = {
+    /**
+     * The document with updated links.
+     */
+    200: Document;
+};
+
+export type DocumentsUnlinkResponse = DocumentsUnlinkResponses[keyof DocumentsUnlinkResponses];
+
+export type DocumentsLinkData = {
+    body: DocumentLinkRequest;
+    path: {
+        /**
+         * The document ID.
+         */
+        documentId: Id;
+        /**
+         * The type of target to link.
+         */
+        kind: DocumentWritableTargetKind;
+    };
+    query?: never;
+    url: '/documents/{documentId}/links/{kind}';
+};
+
+export type DocumentsLinkErrors = {
+    /**
+     * The request is invalid.
+     */
+    400: Error;
+    /**
+     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
+     */
+    401: Error;
+    /**
+     * Forbidden. The token does not allow this action.
+     */
+    403: Error;
+    /**
+     * Not found or unavailable to the token.
+     */
+    404: Error;
+    /**
+     * The request conflicts with the current resource state.
+     */
+    409: Error;
+    /**
+     * The request names a read-only field or cannot be processed.
+     */
+    422: Error;
+    /**
+     * Rate limited. See `Retry-After` before retrying.
+     */
+    429: Error;
+};
+
+export type DocumentsLinkError = DocumentsLinkErrors[keyof DocumentsLinkErrors];
+
+export type DocumentsLinkResponses = {
+    /**
+     * The document with updated links.
+     */
+    200: Document;
+};
+
+export type DocumentsLinkResponse = DocumentsLinkResponses[keyof DocumentsLinkResponses];
+
 export type DocumentsGetExtractionData = {
     body?: never;
     path: {
         /**
-         * Document id (`doc_…`).
+         * The document ID.
          */
         documentId: Id;
     };
@@ -5460,15 +5028,15 @@ export type DocumentsGetExtractionErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -5477,442 +5045,12 @@ export type DocumentsGetExtractionError = DocumentsGetExtractionErrors[keyof Doc
 
 export type DocumentsGetExtractionResponses = {
     /**
-     * The document's structured extraction.
+     * The extracted document data.
      */
     200: DocumentExtraction;
 };
 
 export type DocumentsGetExtractionResponse = DocumentsGetExtractionResponses[keyof DocumentsGetExtractionResponses];
-
-export type DocumentsAssignData = {
-    body: DocumentAssignRequest;
-    path: {
-        /**
-         * Document id (`doc_…`).
-         */
-        documentId: Id;
-    };
-    query?: never;
-    url: '/documents/{documentId}/assign';
-};
-
-export type DocumentsAssignErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
-     */
-    409: Error;
-    /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
-     */
-    422: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type DocumentsAssignError = DocumentsAssignErrors[keyof DocumentsAssignErrors];
-
-export type DocumentsAssignResponses = {
-    /**
-     * The document with its updated assignments.
-     */
-    200: Document;
-};
-
-export type DocumentsAssignResponse = DocumentsAssignResponses[keyof DocumentsAssignResponses];
-
-export type DocumentsUnassignData = {
-    body: DocumentUnassignRequest;
-    path: {
-        /**
-         * Document id (`doc_…`).
-         */
-        documentId: Id;
-    };
-    query?: never;
-    url: '/documents/{documentId}/unassign';
-};
-
-export type DocumentsUnassignErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type DocumentsUnassignError = DocumentsUnassignErrors[keyof DocumentsUnassignErrors];
-
-export type DocumentsUnassignResponses = {
-    /**
-     * The document with its updated assignments.
-     */
-    200: Document;
-};
-
-export type DocumentsUnassignResponse = DocumentsUnassignResponses[keyof DocumentsUnassignResponses];
-
-export type DocumentsListAssignmentsData = {
-    body?: never;
-    path: {
-        /**
-         * Document id (`doc_…`).
-         */
-        documentId: Id;
-    };
-    query?: never;
-    url: '/documents/{documentId}/assignments';
-};
-
-export type DocumentsListAssignmentsErrors = {
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type DocumentsListAssignmentsError = DocumentsListAssignmentsErrors[keyof DocumentsListAssignmentsErrors];
-
-export type DocumentsListAssignmentsResponses = {
-    /**
-     * The document's current assignments.
-     */
-    200: DocumentAssignmentsCollection;
-};
-
-export type DocumentsListAssignmentsResponse = DocumentsListAssignmentsResponses[keyof DocumentsListAssignmentsResponses];
-
-export type DocumentsListByProjectData = {
-    body?: never;
-    path: {
-        /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-    };
-    query?: {
-        /**
-         * Maximum number of items to return on a page. Capped at 100.
-         */
-        limit?: number;
-        /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
-         */
-        cursor?: string;
-        /**
-         * Field to sort by (replaces legacy `sortBy`). A non-unique sort field appends `,id` as the tiebreaker. Allowed fields are typed per resource.
-         */
-        sort?: string;
-        /**
-         * Sort direction (replaces legacy `sortOrder`).
-         */
-        order?: 'asc' | 'desc';
-        /**
-         * Comma list of related data to inline on documents (depth ≤ 2). Unknown key returns `400 expand_invalid`.
-         */
-        expand?: Array<DocumentExpand>;
-        /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
-         */
-        withCount?: boolean;
-        /**
-         * Replay a saved view (`?view={id}`), a named, persisted filter + shape bundle. The view's filter/sort/expand resolve first; any inline query params layer on top to refine. An unknown or unreadable view id returns `404 not_found`.
-         */
-        view?: Id;
-    };
-    url: '/projects/{projectId}/documents';
-};
-
-export type DocumentsListByProjectErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type DocumentsListByProjectError = DocumentsListByProjectErrors[keyof DocumentsListByProjectErrors];
-
-export type DocumentsListByProjectResponses = {
-    /**
-     * A paginated page of the project's documents.
-     */
-    200: DocumentCollection;
-};
-
-export type DocumentsListByProjectResponse = DocumentsListByProjectResponses[keyof DocumentsListByProjectResponses];
-
-export type DocumentsListByTransactionData = {
-    body?: never;
-    path: {
-        /**
-         * Transaction id (`txn_…`).
-         */
-        txId: Id;
-    };
-    query?: {
-        /**
-         * Maximum number of items to return on a page. Capped at 100.
-         */
-        limit?: number;
-        /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
-         */
-        cursor?: string;
-        /**
-         * Field to sort by (replaces legacy `sortBy`). A non-unique sort field appends `,id` as the tiebreaker. Allowed fields are typed per resource.
-         */
-        sort?: string;
-        /**
-         * Sort direction (replaces legacy `sortOrder`).
-         */
-        order?: 'asc' | 'desc';
-        /**
-         * Comma list of related data to inline on documents (depth ≤ 2). Unknown key returns `400 expand_invalid`.
-         */
-        expand?: Array<DocumentExpand>;
-        /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
-         */
-        withCount?: boolean;
-    };
-    url: '/transactions/{txId}/documents';
-};
-
-export type DocumentsListByTransactionErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type DocumentsListByTransactionError = DocumentsListByTransactionErrors[keyof DocumentsListByTransactionErrors];
-
-export type DocumentsListByTransactionResponses = {
-    /**
-     * A paginated page of the transaction's documents.
-     */
-    200: DocumentCollection;
-};
-
-export type DocumentsListByTransactionResponse = DocumentsListByTransactionResponses[keyof DocumentsListByTransactionResponses];
-
-export type DocumentsListByPurchaseOrderData = {
-    body?: never;
-    path: {
-        /**
-         * Purchase order id (`po_…`).
-         */
-        purchaseOrderId: Id;
-    };
-    query?: {
-        /**
-         * Maximum number of items to return on a page. Capped at 100.
-         */
-        limit?: number;
-        /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
-         */
-        cursor?: string;
-        /**
-         * Field to sort by (replaces legacy `sortBy`). A non-unique sort field appends `,id` as the tiebreaker. Allowed fields are typed per resource.
-         */
-        sort?: string;
-        /**
-         * Sort direction (replaces legacy `sortOrder`).
-         */
-        order?: 'asc' | 'desc';
-        /**
-         * Comma list of related data to inline on documents (depth ≤ 2). Unknown key returns `400 expand_invalid`.
-         */
-        expand?: Array<DocumentExpand>;
-        /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
-         */
-        withCount?: boolean;
-    };
-    url: '/purchase-orders/{purchaseOrderId}/documents';
-};
-
-export type DocumentsListByPurchaseOrderErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type DocumentsListByPurchaseOrderError = DocumentsListByPurchaseOrderErrors[keyof DocumentsListByPurchaseOrderErrors];
-
-export type DocumentsListByPurchaseOrderResponses = {
-    /**
-     * A paginated page of the purchase order's documents.
-     */
-    200: DocumentCollection;
-};
-
-export type DocumentsListByPurchaseOrderResponse = DocumentsListByPurchaseOrderResponses[keyof DocumentsListByPurchaseOrderResponses];
-
-export type DocumentsListByContactData = {
-    body?: never;
-    path: {
-        /**
-         * Contact id (`con_…`).
-         */
-        contactId: Id;
-    };
-    query?: {
-        /**
-         * Maximum number of items to return on a page. Capped at 100.
-         */
-        limit?: number;
-        /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
-         */
-        cursor?: string;
-        /**
-         * Field to sort by (replaces legacy `sortBy`). A non-unique sort field appends `,id` as the tiebreaker. Allowed fields are typed per resource.
-         */
-        sort?: string;
-        /**
-         * Sort direction (replaces legacy `sortOrder`).
-         */
-        order?: 'asc' | 'desc';
-        /**
-         * Comma list of related data to inline on documents (depth ≤ 2). Unknown key returns `400 expand_invalid`.
-         */
-        expand?: Array<DocumentExpand>;
-        /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
-         */
-        withCount?: boolean;
-    };
-    url: '/contacts/{contactId}/documents';
-};
-
-export type DocumentsListByContactErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type DocumentsListByContactError = DocumentsListByContactErrors[keyof DocumentsListByContactErrors];
-
-export type DocumentsListByContactResponses = {
-    /**
-     * A paginated page of the contact's documents.
-     */
-    200: DocumentCollection;
-};
-
-export type DocumentsListByContactResponse = DocumentsListByContactResponses[keyof DocumentsListByContactResponses];
 
 export type LibraryListRatePacksData = {
     body?: never;
@@ -5923,19 +5061,11 @@ export type LibraryListRatePacksData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
-         * Field to sort by (replaces legacy `sortBy`). A non-unique sort field appends `,id` as the tiebreaker. Allowed fields are typed per resource.
-         */
-        sort?: string;
-        /**
-         * Sort direction (replaces legacy `sortOrder`).
-         */
-        order?: 'asc' | 'desc';
-        /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
+         * Include the total number of matching items. Defaults to `false`.
          */
         withCount?: boolean;
         /**
@@ -5943,23 +5073,24 @@ export type LibraryListRatePacksData = {
          */
         expand?: Array<RatePackExpand>;
         /**
-         * Free-text search over pack name / publisher / tags.
+         * Search pack names, publishers, and tags.
          */
         q?: string;
+        /**
+         * Only rate packs in this category.
+         */
         category?: string;
-        visibility?: PackVisibility;
         /**
          * Filter by deprecation state.
          */
         deprecated?: boolean;
-        includeDeleted?: boolean;
     };
-    url: '/library/rates';
+    url: '/library/rate-packs';
 };
 
 export type LibraryListRatePacksErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -5967,15 +5098,19 @@ export type LibraryListRatePacksErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -5995,18 +5130,18 @@ export type LibraryCreateRatePackData = {
     body: RatePackCreate;
     headers: {
         /**
-         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         * Unique request key, 16 to 255 characters. Retrying the same request returns the first response. Missing or invalid keys return `400 validation`; reuse with a different body returns `409 idempotency_conflict`.
          */
         'Idempotency-Key': string;
     };
     path?: never;
     query?: never;
-    url: '/library/rates';
+    url: '/library/rate-packs';
 };
 
 export type LibraryCreateRatePackErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -6014,23 +5149,27 @@ export type LibraryCreateRatePackErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -6052,7 +5191,7 @@ export type LibraryDeleteRatePackData = {
         packId: Id;
     };
     query?: never;
-    url: '/library/rates/{packId}';
+    url: '/library/rate-packs/{packId}';
 };
 
 export type LibraryDeleteRatePackErrors = {
@@ -6061,15 +5200,19 @@ export type LibraryDeleteRatePackErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -6096,7 +5239,7 @@ export type LibraryGetRatePackData = {
          */
         expand?: Array<RatePackExpand>;
     };
-    url: '/library/rates/{packId}';
+    url: '/library/rate-packs/{packId}';
 };
 
 export type LibraryGetRatePackErrors = {
@@ -6105,15 +5248,19 @@ export type LibraryGetRatePackErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -6135,12 +5282,12 @@ export type LibraryUpdateRatePackData = {
         packId: Id;
     };
     query?: never;
-    url: '/library/rates/{packId}';
+    url: '/library/rate-packs/{packId}';
 };
 
 export type LibraryUpdateRatePackErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -6148,19 +5295,23 @@ export type LibraryUpdateRatePackErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -6182,7 +5333,7 @@ export type LibraryDisableRatePackData = {
         packId: Id;
     };
     query?: never;
-    url: '/library/rates/{packId}/enable';
+    url: '/library/rate-packs/{packId}/enablement';
 };
 
 export type LibraryDisableRatePackErrors = {
@@ -6191,15 +5342,19 @@ export type LibraryDisableRatePackErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -6221,12 +5376,12 @@ export type LibraryEnableRatePackData = {
         packId: Id;
     };
     query?: never;
-    url: '/library/rates/{packId}/enable';
+    url: '/library/rate-packs/{packId}/enablement';
 };
 
 export type LibraryEnableRatePackErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -6234,15 +5389,19 @@ export type LibraryEnableRatePackErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -6269,28 +5428,40 @@ export type LibraryListRatePackItemsData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
+         * Include the total number of matching items. Defaults to `false`.
          */
         withCount?: boolean;
         /**
-         * Free-text search over item title / aliases.
+         * Search item titles and aliases.
          */
         q?: string;
+        /**
+         * Only rate pack items in this group.
+         */
         group?: string;
+        /**
+         * Only rate pack items for this agreement.
+         */
         agreement?: string;
+        /**
+         * Only rate pack items for this local.
+         */
         local?: string;
-        effectiveDate?: string;
+        /**
+         * Filter by unit.
+         */
+        unit?: string;
     };
-    url: '/library/rates/{packId}/items';
+    url: '/library/rate-packs/{packId}/items';
 };
 
 export type LibraryListRatePackItemsErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -6298,15 +5469,19 @@ export type LibraryListRatePackItemsErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -6326,7 +5501,7 @@ export type LibraryCreateRatePackItemData = {
     body: RatePackItemCreate;
     headers: {
         /**
-         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         * Unique request key, 16 to 255 characters. Retrying the same request returns the first response. Missing or invalid keys return `400 validation`; reuse with a different body returns `409 idempotency_conflict`.
          */
         'Idempotency-Key': string;
     };
@@ -6334,12 +5509,12 @@ export type LibraryCreateRatePackItemData = {
         packId: Id;
     };
     query?: never;
-    url: '/library/rates/{packId}/items';
+    url: '/library/rate-packs/{packId}/items';
 };
 
 export type LibraryCreateRatePackItemErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -6347,23 +5522,27 @@ export type LibraryCreateRatePackItemErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -6386,7 +5565,7 @@ export type LibraryDeleteRatePackItemData = {
         itemId: Id;
     };
     query?: never;
-    url: '/library/rates/{packId}/items/{itemId}';
+    url: '/library/rate-packs/{packId}/items/{itemId}';
 };
 
 export type LibraryDeleteRatePackItemErrors = {
@@ -6395,15 +5574,19 @@ export type LibraryDeleteRatePackItemErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -6426,12 +5609,12 @@ export type LibraryUpdateRatePackItemData = {
         itemId: Id;
     };
     query?: never;
-    url: '/library/rates/{packId}/items/{itemId}';
+    url: '/library/rate-packs/{packId}/items/{itemId}';
 };
 
 export type LibraryUpdateRatePackItemErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -6439,19 +5622,23 @@ export type LibraryUpdateRatePackItemErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -6476,28 +5663,40 @@ export type LibraryListIncentivePacksData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
+         * Include the total number of matching items. Defaults to `false`.
          */
         withCount?: boolean;
         /**
          * Comma list of related data to inline on a workspace-source incentive pack. Unknown key returns `400 expand_invalid`.
          */
         expand?: Array<IncentivePackExpand>;
+        /**
+         * Search incentive packs by name.
+         */
+        q?: string;
+        /**
+         * Only incentive packs in this category.
+         */
         category?: string;
+        /**
+         * Only incentive packs for this jurisdiction.
+         */
         jurisdiction?: string;
+        /**
+         * Filter by whether the incentive pack is deprecated.
+         */
         deprecated?: boolean;
-        enabled?: boolean;
     };
-    url: '/library/incentives';
+    url: '/library/incentive-packs';
 };
 
 export type LibraryListIncentivePacksErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -6505,15 +5704,19 @@ export type LibraryListIncentivePacksErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -6540,7 +5743,7 @@ export type LibraryGetIncentivePackData = {
          */
         expand?: Array<IncentivePackExpand>;
     };
-    url: '/library/incentives/{packId}';
+    url: '/library/incentive-packs/{packId}';
 };
 
 export type LibraryGetIncentivePackErrors = {
@@ -6549,15 +5752,19 @@ export type LibraryGetIncentivePackErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -6584,20 +5791,24 @@ export type LibraryListIncentiveProgramsData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
+        /**
+         * Only programs for this jurisdiction.
+         */
         jurisdiction?: string;
-        incentiveType?: string;
-        incentiveStructure?: string;
-        status?: 'draft' | 'published' | 'archived';
+        /**
+         * Only programs with this status.
+         */
+        status?: 'published' | 'blocked' | 'deprecated';
     };
-    url: '/library/incentives/{packId}/programs';
+    url: '/library/incentive-packs/{packId}/programs';
 };
 
 export type LibraryListIncentiveProgramsErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -6605,15 +5816,19 @@ export type LibraryListIncentiveProgramsErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -6635,7 +5850,7 @@ export type LibraryDisableIncentivePackData = {
         packId: Id;
     };
     query?: never;
-    url: '/library/incentives/{packId}/enable';
+    url: '/library/incentive-packs/{packId}/enablement';
 };
 
 export type LibraryDisableIncentivePackErrors = {
@@ -6644,15 +5859,19 @@ export type LibraryDisableIncentivePackErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -6674,12 +5893,12 @@ export type LibraryEnableIncentivePackData = {
         packId: Id;
     };
     query?: never;
-    url: '/library/incentives/{packId}/enable';
+    url: '/library/incentive-packs/{packId}/enablement';
 };
 
 export type LibraryEnableIncentivePackErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -6687,15 +5906,19 @@ export type LibraryEnableIncentivePackErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -6711,7 +5934,7 @@ export type LibraryEnableIncentivePackResponses = {
 
 export type LibraryEnableIncentivePackResponse = LibraryEnableIncentivePackResponses[keyof LibraryEnableIncentivePackResponses];
 
-export type LibraryListFringeTemplatesData = {
+export type LibraryListFringesData = {
     body?: never;
     path?: never;
     query?: {
@@ -6720,22 +5943,28 @@ export type LibraryListFringeTemplatesData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
+         * Include the total number of matching items. Defaults to `false`.
          */
         withCount?: boolean;
+        /**
+         * Search fringe names.
+         */
         q?: string;
+        /**
+         * Include deleted fringes.
+         */
         includeDeleted?: boolean;
     };
     url: '/library/fringes';
 };
 
-export type LibraryListFringeTemplatesErrors = {
+export type LibraryListFringesErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -6743,35 +5972,39 @@ export type LibraryListFringeTemplatesErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryListFringeTemplatesError = LibraryListFringeTemplatesErrors[keyof LibraryListFringeTemplatesErrors];
+export type LibraryListFringesError = LibraryListFringesErrors[keyof LibraryListFringesErrors];
 
-export type LibraryListFringeTemplatesResponses = {
+export type LibraryListFringesResponses = {
     /**
-     * A page of fringe templates.
+     * A page of workspace fringes.
      */
-    200: FringeTemplateCollection;
+    200: FringeCollection;
 };
 
-export type LibraryListFringeTemplatesResponse = LibraryListFringeTemplatesResponses[keyof LibraryListFringeTemplatesResponses];
+export type LibraryListFringesResponse = LibraryListFringesResponses[keyof LibraryListFringesResponses];
 
-export type LibraryCreateFringeTemplateData = {
-    body: FringeTemplateWrite;
+export type LibraryCreateFringeData = {
+    body: FringeWrite;
     headers: {
         /**
-         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         * Unique request key, 16 to 255 characters. Retrying the same request returns the first response. Missing or invalid keys return `400 validation`; reuse with a different body returns `409 idempotency_conflict`.
          */
         'Idempotency-Key': string;
     };
@@ -6780,9 +6013,9 @@ export type LibraryCreateFringeTemplateData = {
     url: '/library/fringes';
 };
 
-export type LibraryCreateFringeTemplateErrors = {
+export type LibraryCreateFringeErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -6790,39 +6023,43 @@ export type LibraryCreateFringeTemplateErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryCreateFringeTemplateError = LibraryCreateFringeTemplateErrors[keyof LibraryCreateFringeTemplateErrors];
+export type LibraryCreateFringeError = LibraryCreateFringeErrors[keyof LibraryCreateFringeErrors];
 
-export type LibraryCreateFringeTemplateResponses = {
+export type LibraryCreateFringeResponses = {
     /**
-     * The created template.
+     * The created fringe.
      */
-    201: FringeTemplate;
+    201: Fringe;
 };
 
-export type LibraryCreateFringeTemplateResponse = LibraryCreateFringeTemplateResponses[keyof LibraryCreateFringeTemplateResponses];
+export type LibraryCreateFringeResponse = LibraryCreateFringeResponses[keyof LibraryCreateFringeResponses];
 
-export type LibraryDeleteFringeTemplateData = {
+export type LibraryDeleteFringeData = {
     body?: never;
     path: {
         fringeId: Id;
@@ -6831,37 +6068,41 @@ export type LibraryDeleteFringeTemplateData = {
     url: '/library/fringes/{fringeId}';
 };
 
-export type LibraryDeleteFringeTemplateErrors = {
+export type LibraryDeleteFringeErrors = {
     /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryDeleteFringeTemplateError = LibraryDeleteFringeTemplateErrors[keyof LibraryDeleteFringeTemplateErrors];
+export type LibraryDeleteFringeError = LibraryDeleteFringeErrors[keyof LibraryDeleteFringeErrors];
 
-export type LibraryDeleteFringeTemplateResponses = {
+export type LibraryDeleteFringeResponses = {
     /**
      * Deleted.
      */
     204: void;
 };
 
-export type LibraryDeleteFringeTemplateResponse = LibraryDeleteFringeTemplateResponses[keyof LibraryDeleteFringeTemplateResponses];
+export type LibraryDeleteFringeResponse = LibraryDeleteFringeResponses[keyof LibraryDeleteFringeResponses];
 
-export type LibraryGetFringeTemplateData = {
+export type LibraryGetFringeData = {
     body?: never;
     path: {
         fringeId: Id;
@@ -6870,38 +6111,42 @@ export type LibraryGetFringeTemplateData = {
     url: '/library/fringes/{fringeId}';
 };
 
-export type LibraryGetFringeTemplateErrors = {
+export type LibraryGetFringeErrors = {
     /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryGetFringeTemplateError = LibraryGetFringeTemplateErrors[keyof LibraryGetFringeTemplateErrors];
+export type LibraryGetFringeError = LibraryGetFringeErrors[keyof LibraryGetFringeErrors];
 
-export type LibraryGetFringeTemplateResponses = {
+export type LibraryGetFringeResponses = {
     /**
-     * The fringe template.
+     * The fringe.
      */
-    200: FringeTemplate;
+    200: Fringe;
 };
 
-export type LibraryGetFringeTemplateResponse = LibraryGetFringeTemplateResponses[keyof LibraryGetFringeTemplateResponses];
+export type LibraryGetFringeResponse = LibraryGetFringeResponses[keyof LibraryGetFringeResponses];
 
-export type LibraryUpdateFringeTemplateData = {
-    body: FringeTemplateWrite;
+export type LibraryUpdateFringeData = {
+    body: FringeWrite;
     path: {
         fringeId: Id;
     };
@@ -6909,9 +6154,9 @@ export type LibraryUpdateFringeTemplateData = {
     url: '/library/fringes/{fringeId}';
 };
 
-export type LibraryUpdateFringeTemplateErrors = {
+export type LibraryUpdateFringeErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -6919,35 +6164,39 @@ export type LibraryUpdateFringeTemplateErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryUpdateFringeTemplateError = LibraryUpdateFringeTemplateErrors[keyof LibraryUpdateFringeTemplateErrors];
+export type LibraryUpdateFringeError = LibraryUpdateFringeErrors[keyof LibraryUpdateFringeErrors];
 
-export type LibraryUpdateFringeTemplateResponses = {
+export type LibraryUpdateFringeResponses = {
     /**
-     * The updated template.
+     * The updated fringe.
      */
-    200: FringeTemplate;
+    200: Fringe;
 };
 
-export type LibraryUpdateFringeTemplateResponse = LibraryUpdateFringeTemplateResponses[keyof LibraryUpdateFringeTemplateResponses];
+export type LibraryUpdateFringeResponse = LibraryUpdateFringeResponses[keyof LibraryUpdateFringeResponses];
 
-export type LibraryListGlobalTemplatesData = {
+export type LibraryListGlobalsData = {
     body?: never;
     path?: never;
     query?: {
@@ -6956,22 +6205,28 @@ export type LibraryListGlobalTemplatesData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
+         * Include the total number of matching items. Defaults to `false`.
          */
         withCount?: boolean;
+        /**
+         * Search global names.
+         */
         q?: string;
+        /**
+         * Include deleted globals.
+         */
         includeDeleted?: boolean;
     };
     url: '/library/globals';
 };
 
-export type LibraryListGlobalTemplatesErrors = {
+export type LibraryListGlobalsErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -6979,35 +6234,39 @@ export type LibraryListGlobalTemplatesErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryListGlobalTemplatesError = LibraryListGlobalTemplatesErrors[keyof LibraryListGlobalTemplatesErrors];
+export type LibraryListGlobalsError = LibraryListGlobalsErrors[keyof LibraryListGlobalsErrors];
 
-export type LibraryListGlobalTemplatesResponses = {
+export type LibraryListGlobalsResponses = {
     /**
-     * A page of global templates.
+     * A page of workspace globals.
      */
-    200: GlobalTemplateCollection;
+    200: GlobalCollection;
 };
 
-export type LibraryListGlobalTemplatesResponse = LibraryListGlobalTemplatesResponses[keyof LibraryListGlobalTemplatesResponses];
+export type LibraryListGlobalsResponse = LibraryListGlobalsResponses[keyof LibraryListGlobalsResponses];
 
-export type LibraryCreateGlobalTemplateData = {
-    body: GlobalTemplateWrite;
+export type LibraryCreateGlobalData = {
+    body: GlobalWrite;
     headers: {
         /**
-         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         * Unique request key, 16 to 255 characters. Retrying the same request returns the first response. Missing or invalid keys return `400 validation`; reuse with a different body returns `409 idempotency_conflict`.
          */
         'Idempotency-Key': string;
     };
@@ -7016,9 +6275,9 @@ export type LibraryCreateGlobalTemplateData = {
     url: '/library/globals';
 };
 
-export type LibraryCreateGlobalTemplateErrors = {
+export type LibraryCreateGlobalErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -7026,39 +6285,43 @@ export type LibraryCreateGlobalTemplateErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryCreateGlobalTemplateError = LibraryCreateGlobalTemplateErrors[keyof LibraryCreateGlobalTemplateErrors];
+export type LibraryCreateGlobalError = LibraryCreateGlobalErrors[keyof LibraryCreateGlobalErrors];
 
-export type LibraryCreateGlobalTemplateResponses = {
+export type LibraryCreateGlobalResponses = {
     /**
-     * The created template.
+     * The created global.
      */
-    201: GlobalTemplate;
+    201: Global;
 };
 
-export type LibraryCreateGlobalTemplateResponse = LibraryCreateGlobalTemplateResponses[keyof LibraryCreateGlobalTemplateResponses];
+export type LibraryCreateGlobalResponse = LibraryCreateGlobalResponses[keyof LibraryCreateGlobalResponses];
 
-export type LibraryDeleteGlobalTemplateData = {
+export type LibraryDeleteGlobalData = {
     body?: never;
     path: {
         globalId: Id;
@@ -7067,37 +6330,41 @@ export type LibraryDeleteGlobalTemplateData = {
     url: '/library/globals/{globalId}';
 };
 
-export type LibraryDeleteGlobalTemplateErrors = {
+export type LibraryDeleteGlobalErrors = {
     /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryDeleteGlobalTemplateError = LibraryDeleteGlobalTemplateErrors[keyof LibraryDeleteGlobalTemplateErrors];
+export type LibraryDeleteGlobalError = LibraryDeleteGlobalErrors[keyof LibraryDeleteGlobalErrors];
 
-export type LibraryDeleteGlobalTemplateResponses = {
+export type LibraryDeleteGlobalResponses = {
     /**
      * Deleted.
      */
     204: void;
 };
 
-export type LibraryDeleteGlobalTemplateResponse = LibraryDeleteGlobalTemplateResponses[keyof LibraryDeleteGlobalTemplateResponses];
+export type LibraryDeleteGlobalResponse = LibraryDeleteGlobalResponses[keyof LibraryDeleteGlobalResponses];
 
-export type LibraryGetGlobalTemplateData = {
+export type LibraryGetGlobalData = {
     body?: never;
     path: {
         globalId: Id;
@@ -7106,38 +6373,42 @@ export type LibraryGetGlobalTemplateData = {
     url: '/library/globals/{globalId}';
 };
 
-export type LibraryGetGlobalTemplateErrors = {
+export type LibraryGetGlobalErrors = {
     /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryGetGlobalTemplateError = LibraryGetGlobalTemplateErrors[keyof LibraryGetGlobalTemplateErrors];
+export type LibraryGetGlobalError = LibraryGetGlobalErrors[keyof LibraryGetGlobalErrors];
 
-export type LibraryGetGlobalTemplateResponses = {
+export type LibraryGetGlobalResponses = {
     /**
-     * The global template.
+     * The global.
      */
-    200: GlobalTemplate;
+    200: Global;
 };
 
-export type LibraryGetGlobalTemplateResponse = LibraryGetGlobalTemplateResponses[keyof LibraryGetGlobalTemplateResponses];
+export type LibraryGetGlobalResponse = LibraryGetGlobalResponses[keyof LibraryGetGlobalResponses];
 
-export type LibraryUpdateGlobalTemplateData = {
-    body: GlobalTemplateWrite;
+export type LibraryUpdateGlobalData = {
+    body: GlobalWrite;
     path: {
         globalId: Id;
     };
@@ -7145,9 +6416,9 @@ export type LibraryUpdateGlobalTemplateData = {
     url: '/library/globals/{globalId}';
 };
 
-export type LibraryUpdateGlobalTemplateErrors = {
+export type LibraryUpdateGlobalErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -7155,35 +6426,39 @@ export type LibraryUpdateGlobalTemplateErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryUpdateGlobalTemplateError = LibraryUpdateGlobalTemplateErrors[keyof LibraryUpdateGlobalTemplateErrors];
+export type LibraryUpdateGlobalError = LibraryUpdateGlobalErrors[keyof LibraryUpdateGlobalErrors];
 
-export type LibraryUpdateGlobalTemplateResponses = {
+export type LibraryUpdateGlobalResponses = {
     /**
-     * The updated template.
+     * The updated global.
      */
-    200: GlobalTemplate;
+    200: Global;
 };
 
-export type LibraryUpdateGlobalTemplateResponse = LibraryUpdateGlobalTemplateResponses[keyof LibraryUpdateGlobalTemplateResponses];
+export type LibraryUpdateGlobalResponse = LibraryUpdateGlobalResponses[keyof LibraryUpdateGlobalResponses];
 
-export type LibraryListCurrencyTemplatesData = {
+export type LibraryListCurrenciesData = {
     body?: never;
     path?: never;
     query?: {
@@ -7192,22 +6467,28 @@ export type LibraryListCurrencyTemplatesData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
+         * Include the total number of matching items. Defaults to `false`.
          */
         withCount?: boolean;
+        /**
+         * Search currency names and codes.
+         */
         q?: string;
+        /**
+         * Include deleted currencies.
+         */
         includeDeleted?: boolean;
     };
     url: '/library/currencies';
 };
 
-export type LibraryListCurrencyTemplatesErrors = {
+export type LibraryListCurrenciesErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -7215,35 +6496,39 @@ export type LibraryListCurrencyTemplatesErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryListCurrencyTemplatesError = LibraryListCurrencyTemplatesErrors[keyof LibraryListCurrencyTemplatesErrors];
+export type LibraryListCurrenciesError = LibraryListCurrenciesErrors[keyof LibraryListCurrenciesErrors];
 
-export type LibraryListCurrencyTemplatesResponses = {
+export type LibraryListCurrenciesResponses = {
     /**
-     * A page of currency templates.
+     * A page of workspace currencies.
      */
-    200: CurrencyTemplateCollection;
+    200: CurrencyCollection;
 };
 
-export type LibraryListCurrencyTemplatesResponse = LibraryListCurrencyTemplatesResponses[keyof LibraryListCurrencyTemplatesResponses];
+export type LibraryListCurrenciesResponse = LibraryListCurrenciesResponses[keyof LibraryListCurrenciesResponses];
 
-export type LibraryCreateCurrencyTemplateData = {
-    body: CurrencyTemplateWrite;
+export type LibraryCreateCurrencyData = {
+    body: CurrencyWrite;
     headers: {
         /**
-         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         * Unique request key, 16 to 255 characters. Retrying the same request returns the first response. Missing or invalid keys return `400 validation`; reuse with a different body returns `409 idempotency_conflict`.
          */
         'Idempotency-Key': string;
     };
@@ -7252,9 +6537,9 @@ export type LibraryCreateCurrencyTemplateData = {
     url: '/library/currencies';
 };
 
-export type LibraryCreateCurrencyTemplateErrors = {
+export type LibraryCreateCurrencyErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -7262,39 +6547,43 @@ export type LibraryCreateCurrencyTemplateErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryCreateCurrencyTemplateError = LibraryCreateCurrencyTemplateErrors[keyof LibraryCreateCurrencyTemplateErrors];
+export type LibraryCreateCurrencyError = LibraryCreateCurrencyErrors[keyof LibraryCreateCurrencyErrors];
 
-export type LibraryCreateCurrencyTemplateResponses = {
+export type LibraryCreateCurrencyResponses = {
     /**
-     * The created template.
+     * The created currency.
      */
-    201: CurrencyTemplate;
+    201: Currency;
 };
 
-export type LibraryCreateCurrencyTemplateResponse = LibraryCreateCurrencyTemplateResponses[keyof LibraryCreateCurrencyTemplateResponses];
+export type LibraryCreateCurrencyResponse = LibraryCreateCurrencyResponses[keyof LibraryCreateCurrencyResponses];
 
-export type LibraryDeleteCurrencyTemplateData = {
+export type LibraryDeleteCurrencyData = {
     body?: never;
     path: {
         currencyId: Id;
@@ -7303,37 +6592,41 @@ export type LibraryDeleteCurrencyTemplateData = {
     url: '/library/currencies/{currencyId}';
 };
 
-export type LibraryDeleteCurrencyTemplateErrors = {
+export type LibraryDeleteCurrencyErrors = {
     /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryDeleteCurrencyTemplateError = LibraryDeleteCurrencyTemplateErrors[keyof LibraryDeleteCurrencyTemplateErrors];
+export type LibraryDeleteCurrencyError = LibraryDeleteCurrencyErrors[keyof LibraryDeleteCurrencyErrors];
 
-export type LibraryDeleteCurrencyTemplateResponses = {
+export type LibraryDeleteCurrencyResponses = {
     /**
      * Deleted.
      */
     204: void;
 };
 
-export type LibraryDeleteCurrencyTemplateResponse = LibraryDeleteCurrencyTemplateResponses[keyof LibraryDeleteCurrencyTemplateResponses];
+export type LibraryDeleteCurrencyResponse = LibraryDeleteCurrencyResponses[keyof LibraryDeleteCurrencyResponses];
 
-export type LibraryGetCurrencyTemplateData = {
+export type LibraryGetCurrencyData = {
     body?: never;
     path: {
         currencyId: Id;
@@ -7342,38 +6635,42 @@ export type LibraryGetCurrencyTemplateData = {
     url: '/library/currencies/{currencyId}';
 };
 
-export type LibraryGetCurrencyTemplateErrors = {
+export type LibraryGetCurrencyErrors = {
     /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryGetCurrencyTemplateError = LibraryGetCurrencyTemplateErrors[keyof LibraryGetCurrencyTemplateErrors];
+export type LibraryGetCurrencyError = LibraryGetCurrencyErrors[keyof LibraryGetCurrencyErrors];
 
-export type LibraryGetCurrencyTemplateResponses = {
+export type LibraryGetCurrencyResponses = {
     /**
-     * The currency template.
+     * The currency.
      */
-    200: CurrencyTemplate;
+    200: Currency;
 };
 
-export type LibraryGetCurrencyTemplateResponse = LibraryGetCurrencyTemplateResponses[keyof LibraryGetCurrencyTemplateResponses];
+export type LibraryGetCurrencyResponse = LibraryGetCurrencyResponses[keyof LibraryGetCurrencyResponses];
 
-export type LibraryUpdateCurrencyTemplateData = {
-    body: CurrencyTemplateWrite;
+export type LibraryUpdateCurrencyData = {
+    body: CurrencyWrite;
     path: {
         currencyId: Id;
     };
@@ -7381,9 +6678,9 @@ export type LibraryUpdateCurrencyTemplateData = {
     url: '/library/currencies/{currencyId}';
 };
 
-export type LibraryUpdateCurrencyTemplateErrors = {
+export type LibraryUpdateCurrencyErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -7391,35 +6688,39 @@ export type LibraryUpdateCurrencyTemplateErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryUpdateCurrencyTemplateError = LibraryUpdateCurrencyTemplateErrors[keyof LibraryUpdateCurrencyTemplateErrors];
+export type LibraryUpdateCurrencyError = LibraryUpdateCurrencyErrors[keyof LibraryUpdateCurrencyErrors];
 
-export type LibraryUpdateCurrencyTemplateResponses = {
+export type LibraryUpdateCurrencyResponses = {
     /**
-     * The updated template.
+     * The updated currency.
      */
-    200: CurrencyTemplate;
+    200: Currency;
 };
 
-export type LibraryUpdateCurrencyTemplateResponse = LibraryUpdateCurrencyTemplateResponses[keyof LibraryUpdateCurrencyTemplateResponses];
+export type LibraryUpdateCurrencyResponse = LibraryUpdateCurrencyResponses[keyof LibraryUpdateCurrencyResponses];
 
-export type LibraryListFringeTagTemplatesData = {
+export type LibraryListFringeGroupsData = {
     body?: never;
     path?: never;
     query?: {
@@ -7428,22 +6729,28 @@ export type LibraryListFringeTagTemplatesData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
+         * Include the total number of matching items. Defaults to `false`.
          */
         withCount?: boolean;
+        /**
+         * Search fringe group names.
+         */
         q?: string;
+        /**
+         * Include deleted fringe groups.
+         */
         includeDeleted?: boolean;
     };
-    url: '/library/fringe-tags';
+    url: '/library/fringe-groups';
 };
 
-export type LibraryListFringeTagTemplatesErrors = {
+export type LibraryListFringeGroupsErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -7451,46 +6758,50 @@ export type LibraryListFringeTagTemplatesErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryListFringeTagTemplatesError = LibraryListFringeTagTemplatesErrors[keyof LibraryListFringeTagTemplatesErrors];
+export type LibraryListFringeGroupsError = LibraryListFringeGroupsErrors[keyof LibraryListFringeGroupsErrors];
 
-export type LibraryListFringeTagTemplatesResponses = {
+export type LibraryListFringeGroupsResponses = {
     /**
-     * A page of fringe-tag templates.
+     * A page of workspace fringe groups.
      */
-    200: FringeTagTemplateCollection;
+    200: FringeGroupCollection;
 };
 
-export type LibraryListFringeTagTemplatesResponse = LibraryListFringeTagTemplatesResponses[keyof LibraryListFringeTagTemplatesResponses];
+export type LibraryListFringeGroupsResponse = LibraryListFringeGroupsResponses[keyof LibraryListFringeGroupsResponses];
 
-export type LibraryCreateFringeTagTemplateData = {
-    body: FringeTagTemplateWrite;
+export type LibraryCreateFringeGroupData = {
+    body: FringeGroupWrite;
     headers: {
         /**
-         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         * Unique request key, 16 to 255 characters. Retrying the same request returns the first response. Missing or invalid keys return `400 validation`; reuse with a different body returns `409 idempotency_conflict`.
          */
         'Idempotency-Key': string;
     };
     path?: never;
     query?: never;
-    url: '/library/fringe-tags';
+    url: '/library/fringe-groups';
 };
 
-export type LibraryCreateFringeTagTemplateErrors = {
+export type LibraryCreateFringeGroupErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -7498,128 +6809,140 @@ export type LibraryCreateFringeTagTemplateErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryCreateFringeTagTemplateError = LibraryCreateFringeTagTemplateErrors[keyof LibraryCreateFringeTagTemplateErrors];
+export type LibraryCreateFringeGroupError = LibraryCreateFringeGroupErrors[keyof LibraryCreateFringeGroupErrors];
 
-export type LibraryCreateFringeTagTemplateResponses = {
+export type LibraryCreateFringeGroupResponses = {
     /**
-     * The created template.
+     * The created fringe group.
      */
-    201: FringeTagTemplate;
+    201: FringeGroup;
 };
 
-export type LibraryCreateFringeTagTemplateResponse = LibraryCreateFringeTagTemplateResponses[keyof LibraryCreateFringeTagTemplateResponses];
+export type LibraryCreateFringeGroupResponse = LibraryCreateFringeGroupResponses[keyof LibraryCreateFringeGroupResponses];
 
-export type LibraryDeleteFringeTagTemplateData = {
+export type LibraryDeleteFringeGroupData = {
     body?: never;
     path: {
-        fringeTagId: Id;
+        fringeGroupId: Id;
     };
     query?: never;
-    url: '/library/fringe-tags/{fringeTagId}';
+    url: '/library/fringe-groups/{fringeGroupId}';
 };
 
-export type LibraryDeleteFringeTagTemplateErrors = {
+export type LibraryDeleteFringeGroupErrors = {
     /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryDeleteFringeTagTemplateError = LibraryDeleteFringeTagTemplateErrors[keyof LibraryDeleteFringeTagTemplateErrors];
+export type LibraryDeleteFringeGroupError = LibraryDeleteFringeGroupErrors[keyof LibraryDeleteFringeGroupErrors];
 
-export type LibraryDeleteFringeTagTemplateResponses = {
+export type LibraryDeleteFringeGroupResponses = {
     /**
      * Deleted.
      */
     204: void;
 };
 
-export type LibraryDeleteFringeTagTemplateResponse = LibraryDeleteFringeTagTemplateResponses[keyof LibraryDeleteFringeTagTemplateResponses];
+export type LibraryDeleteFringeGroupResponse = LibraryDeleteFringeGroupResponses[keyof LibraryDeleteFringeGroupResponses];
 
-export type LibraryGetFringeTagTemplateData = {
+export type LibraryGetFringeGroupData = {
     body?: never;
     path: {
-        fringeTagId: Id;
+        fringeGroupId: Id;
     };
     query?: never;
-    url: '/library/fringe-tags/{fringeTagId}';
+    url: '/library/fringe-groups/{fringeGroupId}';
 };
 
-export type LibraryGetFringeTagTemplateErrors = {
+export type LibraryGetFringeGroupErrors = {
     /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryGetFringeTagTemplateError = LibraryGetFringeTagTemplateErrors[keyof LibraryGetFringeTagTemplateErrors];
+export type LibraryGetFringeGroupError = LibraryGetFringeGroupErrors[keyof LibraryGetFringeGroupErrors];
 
-export type LibraryGetFringeTagTemplateResponses = {
+export type LibraryGetFringeGroupResponses = {
     /**
-     * The fringe-tag template.
+     * The fringe group.
      */
-    200: FringeTagTemplate;
+    200: FringeGroup;
 };
 
-export type LibraryGetFringeTagTemplateResponse = LibraryGetFringeTagTemplateResponses[keyof LibraryGetFringeTagTemplateResponses];
+export type LibraryGetFringeGroupResponse = LibraryGetFringeGroupResponses[keyof LibraryGetFringeGroupResponses];
 
-export type LibraryUpdateFringeTagTemplateData = {
-    body: FringeTagTemplateWrite;
+export type LibraryUpdateFringeGroupData = {
+    body: FringeGroupWrite;
     path: {
-        fringeTagId: Id;
+        fringeGroupId: Id;
     };
     query?: never;
-    url: '/library/fringe-tags/{fringeTagId}';
+    url: '/library/fringe-groups/{fringeGroupId}';
 };
 
-export type LibraryUpdateFringeTagTemplateErrors = {
+export type LibraryUpdateFringeGroupErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -7627,33 +6950,37 @@ export type LibraryUpdateFringeTagTemplateErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryUpdateFringeTagTemplateError = LibraryUpdateFringeTagTemplateErrors[keyof LibraryUpdateFringeTagTemplateErrors];
+export type LibraryUpdateFringeGroupError = LibraryUpdateFringeGroupErrors[keyof LibraryUpdateFringeGroupErrors];
 
-export type LibraryUpdateFringeTagTemplateResponses = {
+export type LibraryUpdateFringeGroupResponses = {
     /**
-     * The updated template.
+     * The updated fringe group.
      */
-    200: FringeTagTemplate;
+    200: FringeGroup;
 };
 
-export type LibraryUpdateFringeTagTemplateResponse = LibraryUpdateFringeTagTemplateResponses[keyof LibraryUpdateFringeTagTemplateResponses];
+export type LibraryUpdateFringeGroupResponse = LibraryUpdateFringeGroupResponses[keyof LibraryUpdateFringeGroupResponses];
 
 export type LibraryListTagsData = {
     body?: never;
@@ -7664,15 +6991,24 @@ export type LibraryListTagsData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
+         * Include the total number of matching items. Defaults to `false`.
          */
         withCount?: boolean;
+        /**
+         * Search tag names.
+         */
         q?: string;
+        /**
+         * Only tags with this eligibility key.
+         */
         eligibilityKey?: string;
+        /**
+         * Include deleted tags.
+         */
         includeDeleted?: boolean;
     };
     url: '/library/tags';
@@ -7680,7 +7016,7 @@ export type LibraryListTagsData = {
 
 export type LibraryListTagsErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -7688,15 +7024,19 @@ export type LibraryListTagsErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -7716,7 +7056,7 @@ export type LibraryCreateTagData = {
     body: TagCreate;
     headers: {
         /**
-         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         * Unique request key, 16 to 255 characters. Retrying the same request returns the first response. Missing or invalid keys return `400 validation`; reuse with a different body returns `409 idempotency_conflict`.
          */
         'Idempotency-Key': string;
     };
@@ -7727,7 +7067,7 @@ export type LibraryCreateTagData = {
 
 export type LibraryCreateTagErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -7735,23 +7075,27 @@ export type LibraryCreateTagErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -7782,15 +7126,19 @@ export type LibraryDeleteTagErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -7821,15 +7169,19 @@ export type LibraryGetTagErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -7856,7 +7208,7 @@ export type LibraryUpdateTagData = {
 
 export type LibraryUpdateTagErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -7864,19 +7216,23 @@ export type LibraryUpdateTagErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -7896,6 +7252,9 @@ export type LibraryListUnitsData = {
     body?: never;
     path?: never;
     query?: {
+        /**
+         * Search unit names and abbreviations.
+         */
         q?: string;
     };
     url: '/library/units';
@@ -7907,15 +7266,19 @@ export type LibraryListUnitsErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -7931,69 +7294,22 @@ export type LibraryListUnitsResponses = {
 
 export type LibraryListUnitsResponse = LibraryListUnitsResponses[keyof LibraryListUnitsResponses];
 
-export type LibraryListCustomUnitsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Maximum number of items to return on a page. Capped at 100.
-         */
-        limit?: number;
-        /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
-         */
-        cursor?: string;
-        includeDeleted?: boolean;
-    };
-    url: '/library/units/custom';
-};
-
-export type LibraryListCustomUnitsErrors = {
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type LibraryListCustomUnitsError = LibraryListCustomUnitsErrors[keyof LibraryListCustomUnitsErrors];
-
-export type LibraryListCustomUnitsResponses = {
-    /**
-     * A page of custom units.
-     */
-    200: CustomUnitCollection;
-};
-
-export type LibraryListCustomUnitsResponse = LibraryListCustomUnitsResponses[keyof LibraryListCustomUnitsResponses];
-
-export type LibraryCreateCustomUnitData = {
-    body: CustomUnitCreate;
+export type LibraryCreateUnitData = {
+    body: UnitCreate;
     headers: {
         /**
-         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         * Unique request key, 16 to 255 characters. Retrying the same request returns the first response. Missing or invalid keys return `400 validation`; reuse with a different body returns `409 idempotency_conflict`.
          */
         'Idempotency-Key': string;
     };
     path?: never;
     query?: never;
-    url: '/library/units/custom';
+    url: '/library/units';
 };
 
-export type LibraryCreateCustomUnitErrors = {
+export type LibraryCreateUnitErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -8001,89 +7317,140 @@ export type LibraryCreateCustomUnitErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryCreateCustomUnitError = LibraryCreateCustomUnitErrors[keyof LibraryCreateCustomUnitErrors];
+export type LibraryCreateUnitError = LibraryCreateUnitErrors[keyof LibraryCreateUnitErrors];
 
-export type LibraryCreateCustomUnitResponses = {
+export type LibraryCreateUnitResponses = {
     /**
-     * The created custom unit.
+     * The created unit.
      */
-    201: CustomUnit;
+    201: Unit;
 };
 
-export type LibraryCreateCustomUnitResponse = LibraryCreateCustomUnitResponses[keyof LibraryCreateCustomUnitResponses];
+export type LibraryCreateUnitResponse = LibraryCreateUnitResponses[keyof LibraryCreateUnitResponses];
 
-export type LibraryDeleteCustomUnitData = {
+export type LibraryDeleteUnitData = {
     body?: never;
     path: {
         unitId: Id;
     };
     query?: never;
-    url: '/library/units/custom/{unitId}';
+    url: '/library/units/{unitId}';
 };
 
-export type LibraryDeleteCustomUnitErrors = {
+export type LibraryDeleteUnitErrors = {
     /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryDeleteCustomUnitError = LibraryDeleteCustomUnitErrors[keyof LibraryDeleteCustomUnitErrors];
+export type LibraryDeleteUnitError = LibraryDeleteUnitErrors[keyof LibraryDeleteUnitErrors];
 
-export type LibraryDeleteCustomUnitResponses = {
+export type LibraryDeleteUnitResponses = {
     /**
      * Deleted.
      */
     204: void;
 };
 
-export type LibraryDeleteCustomUnitResponse = LibraryDeleteCustomUnitResponses[keyof LibraryDeleteCustomUnitResponses];
+export type LibraryDeleteUnitResponse = LibraryDeleteUnitResponses[keyof LibraryDeleteUnitResponses];
 
-export type LibraryUpdateCustomUnitData = {
-    body: CustomUnitUpdate;
+export type LibraryGetUnitData = {
+    body?: never;
+    path: {
+        unitId: string;
+    };
+    query?: never;
+    url: '/library/units/{unitId}';
+};
+
+export type LibraryGetUnitErrors = {
+    /**
+     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
+     */
+    401: Error;
+    /**
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
+     */
+    403: Error;
+    /**
+     * Not found or unavailable to the token.
+     */
+    404: Error;
+    /**
+     * Rate limited. See `Retry-After` before retrying.
+     */
+    429: Error;
+};
+
+export type LibraryGetUnitError = LibraryGetUnitErrors[keyof LibraryGetUnitErrors];
+
+export type LibraryGetUnitResponses = {
+    /**
+     * The unit.
+     */
+    200: Unit;
+};
+
+export type LibraryGetUnitResponse = LibraryGetUnitResponses[keyof LibraryGetUnitResponses];
+
+export type LibraryUpdateUnitData = {
+    body: UnitUpdate;
     path: {
         unitId: Id;
     };
     query?: never;
-    url: '/library/units/custom/{unitId}';
+    url: '/library/units/{unitId}';
 };
 
-export type LibraryUpdateCustomUnitErrors = {
+export type LibraryUpdateUnitErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -8091,39 +7458,43 @@ export type LibraryUpdateCustomUnitErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryUpdateCustomUnitError = LibraryUpdateCustomUnitErrors[keyof LibraryUpdateCustomUnitErrors];
+export type LibraryUpdateUnitError = LibraryUpdateUnitErrors[keyof LibraryUpdateUnitErrors];
 
-export type LibraryUpdateCustomUnitResponses = {
+export type LibraryUpdateUnitResponses = {
     /**
-     * The updated custom unit.
+     * The updated unit.
      */
-    200: CustomUnit;
+    200: Unit;
 };
 
-export type LibraryUpdateCustomUnitResponse = LibraryUpdateCustomUnitResponses[keyof LibraryUpdateCustomUnitResponses];
+export type LibraryUpdateUnitResponse = LibraryUpdateUnitResponses[keyof LibraryUpdateUnitResponses];
 
 export type LibraryListProjectRatePacksData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
     };
@@ -8133,24 +7504,16 @@ export type LibraryListProjectRatePacksData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
-        /**
-         * Comma list of related data to inline on a project-installed rate pack. Unknown key returns `400 expand_invalid`.
-         */
-        expand?: Array<ProjectRatePackExpand>;
-        /**
-         * Filter to installed (true) packs.
-         */
-        installed?: boolean;
     };
-    url: '/projects/{projectId}/library/rates';
+    url: '/projects/{projectId}/library/rate-packs';
 };
 
 export type LibraryListProjectRatePacksErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -8158,15 +7521,19 @@ export type LibraryListProjectRatePacksErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -8186,13 +7553,13 @@ export type LibraryRemoveRatePackData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
         packId: Id;
     };
     query?: never;
-    url: '/projects/{projectId}/library/rates/{packId}/add';
+    url: '/projects/{projectId}/library/rate-packs/{packId}';
 };
 
 export type LibraryRemoveRatePackErrors = {
@@ -8201,15 +7568,19 @@ export type LibraryRemoveRatePackErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -8229,18 +7600,18 @@ export type LibraryAddRatePackData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
         packId: Id;
     };
     query?: never;
-    url: '/projects/{projectId}/library/rates/{packId}/add';
+    url: '/projects/{projectId}/library/rate-packs/{packId}';
 };
 
 export type LibraryAddRatePackErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -8248,15 +7619,19 @@ export type LibraryAddRatePackErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -8276,7 +7651,7 @@ export type LibraryListProjectIncentivesData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
     };
@@ -8286,23 +7661,28 @@ export type LibraryListProjectIncentivesData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
          * Comma list of related data to inline on a project incentive (depth ≤ 2). Unknown key returns `400 expand_invalid`.
          */
         expand?: Array<ProjectIncentiveExpand>;
+        /**
+         * Filter by whether the incentive is applied to the project.
+         */
         isApplied?: boolean;
+        /**
+         * Only project incentives for this jurisdiction.
+         */
         jurisdiction?: string;
-        incentiveType?: string;
     };
     url: '/projects/{projectId}/library/incentives';
 };
 
 export type LibraryListProjectIncentivesErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -8310,15 +7690,19 @@ export type LibraryListProjectIncentivesErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -8338,17 +7722,17 @@ export type LibraryAddProjectIncentiveData = {
     body: ProjectIncentiveAdd;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
     };
     query?: never;
-    url: '/projects/{projectId}/library/incentives/add';
+    url: '/projects/{projectId}/library/incentives';
 };
 
 export type LibraryAddProjectIncentiveErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -8356,15 +7740,19 @@ export type LibraryAddProjectIncentiveErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -8373,11 +7761,11 @@ export type LibraryAddProjectIncentiveError = LibraryAddProjectIncentiveErrors[k
 
 export type LibraryAddProjectIncentiveResponses = {
     /**
-     * The project incentive (existing, when idempotent re-add).
+     * The existing project incentive.
      */
     200: ProjectIncentive;
     /**
-     * The newly created project incentive.
+     * The created project incentive.
      */
     201: ProjectIncentive;
 };
@@ -8388,7 +7776,7 @@ export type LibraryDeleteProjectIncentiveData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
         incentiveId: Id;
@@ -8403,15 +7791,19 @@ export type LibraryDeleteProjectIncentiveErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -8431,7 +7823,7 @@ export type LibraryGetProjectIncentiveData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
         incentiveId: Id;
@@ -8447,7 +7839,7 @@ export type LibraryGetProjectIncentiveData = {
 
 export type LibraryGetProjectIncentiveErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -8455,15 +7847,19 @@ export type LibraryGetProjectIncentiveErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -8483,7 +7879,7 @@ export type LibraryUpdateProjectIncentiveData = {
     body: ProjectIncentiveUpdate;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
         incentiveId: Id;
@@ -8494,7 +7890,7 @@ export type LibraryUpdateProjectIncentiveData = {
 
 export type LibraryUpdateProjectIncentiveErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -8502,19 +7898,23 @@ export type LibraryUpdateProjectIncentiveErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -8534,7 +7934,7 @@ export type LibraryListProjectFringesData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
     };
@@ -8544,7 +7944,7 @@ export type LibraryListProjectFringesData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
@@ -8552,20 +7952,16 @@ export type LibraryListProjectFringesData = {
          */
         expand?: Array<LibraryExpand>;
         /**
-         * Filter to copies of a specific workspace source.
+         * Filter by the workspace fringe used to create the project fringe.
          */
         sourceId?: Id;
-        /**
-         * Filter to copies whose values differ from their source.
-         */
-        diverged?: boolean;
     };
     url: '/projects/{projectId}/library/fringes';
 };
 
 export type LibraryListProjectFringesErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -8573,15 +7969,19 @@ export type LibraryListProjectFringesErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -8590,9 +7990,9 @@ export type LibraryListProjectFringesError = LibraryListProjectFringesErrors[key
 
 export type LibraryListProjectFringesResponses = {
     /**
-     * A page of project fringe copies.
+     * A page of project fringes.
      */
-    200: FringeCopyCollection;
+    200: ProjectFringeCollection;
 };
 
 export type LibraryListProjectFringesResponse = LibraryListProjectFringesResponses[keyof LibraryListProjectFringesResponses];
@@ -8603,22 +8003,22 @@ export type LibraryAddProjectFringeData = {
     };
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
     };
     query?: {
         /**
-         * When true, re-snapshot all fields from source (overwrites in-project edits).
+         * Restore workspace values and replace project edits.
          */
         reset?: boolean;
     };
-    url: '/projects/{projectId}/library/fringes/add';
+    url: '/projects/{projectId}/library/fringes';
 };
 
 export type LibraryAddProjectFringeErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -8626,15 +8026,19 @@ export type LibraryAddProjectFringeErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -8643,13 +8047,13 @@ export type LibraryAddProjectFringeError = LibraryAddProjectFringeErrors[keyof L
 
 export type LibraryAddProjectFringeResponses = {
     /**
-     * The project copy (existing live or resurrected).
+     * The existing project fringe.
      */
-    200: FringeCopy;
+    200: ProjectFringe;
     /**
-     * The newly created project copy.
+     * The created project fringe.
      */
-    201: FringeCopy;
+    201: ProjectFringe;
 };
 
 export type LibraryAddProjectFringeResponse = LibraryAddProjectFringeResponses[keyof LibraryAddProjectFringeResponses];
@@ -8658,7 +8062,7 @@ export type LibraryDeleteProjectFringeData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
         fringeId: Id;
@@ -8673,15 +8077,19 @@ export type LibraryDeleteProjectFringeErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -8701,7 +8109,7 @@ export type LibraryGetProjectFringeData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
         fringeId: Id;
@@ -8717,7 +8125,7 @@ export type LibraryGetProjectFringeData = {
 
 export type LibraryGetProjectFringeErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -8725,15 +8133,19 @@ export type LibraryGetProjectFringeErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -8742,18 +8154,18 @@ export type LibraryGetProjectFringeError = LibraryGetProjectFringeErrors[keyof L
 
 export type LibraryGetProjectFringeResponses = {
     /**
-     * The project copy.
+     * The project fringe.
      */
-    200: FringeCopy;
+    200: ProjectFringe;
 };
 
 export type LibraryGetProjectFringeResponse = LibraryGetProjectFringeResponses[keyof LibraryGetProjectFringeResponses];
 
 export type LibraryUpdateProjectFringeData = {
-    body: FringeTemplateWrite;
+    body: FringeWrite;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
         fringeId: Id;
@@ -8764,7 +8176,7 @@ export type LibraryUpdateProjectFringeData = {
 
 export type LibraryUpdateProjectFringeErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -8772,19 +8184,23 @@ export type LibraryUpdateProjectFringeErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -8793,9 +8209,9 @@ export type LibraryUpdateProjectFringeError = LibraryUpdateProjectFringeErrors[k
 
 export type LibraryUpdateProjectFringeResponses = {
     /**
-     * The updated project copy.
+     * The updated project fringe.
      */
-    200: FringeCopy;
+    200: ProjectFringe;
 };
 
 export type LibraryUpdateProjectFringeResponse = LibraryUpdateProjectFringeResponses[keyof LibraryUpdateProjectFringeResponses];
@@ -8804,7 +8220,7 @@ export type LibraryListProjectGlobalsData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
     };
@@ -8814,22 +8230,24 @@ export type LibraryListProjectGlobalsData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
          * Comma list of related data to inline on a project copy (depth ≤ 2). Unknown key returns `400 expand_invalid`.
          */
         expand?: Array<LibraryExpand>;
+        /**
+         * Only globals copied from this workspace global.
+         */
         sourceId?: Id;
-        diverged?: boolean;
     };
     url: '/projects/{projectId}/library/globals';
 };
 
 export type LibraryListProjectGlobalsErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -8837,15 +8255,19 @@ export type LibraryListProjectGlobalsErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -8854,9 +8276,9 @@ export type LibraryListProjectGlobalsError = LibraryListProjectGlobalsErrors[key
 
 export type LibraryListProjectGlobalsResponses = {
     /**
-     * A page of project global copies.
+     * A page of project globals.
      */
-    200: GlobalCopyCollection;
+    200: ProjectGlobalCollection;
 };
 
 export type LibraryListProjectGlobalsResponse = LibraryListProjectGlobalsResponses[keyof LibraryListProjectGlobalsResponses];
@@ -8867,19 +8289,22 @@ export type LibraryAddProjectGlobalData = {
     };
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
     };
     query?: {
+        /**
+         * Restore workspace values and replace project edits.
+         */
         reset?: boolean;
     };
-    url: '/projects/{projectId}/library/globals/add';
+    url: '/projects/{projectId}/library/globals';
 };
 
 export type LibraryAddProjectGlobalErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -8887,15 +8312,19 @@ export type LibraryAddProjectGlobalErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -8904,13 +8333,13 @@ export type LibraryAddProjectGlobalError = LibraryAddProjectGlobalErrors[keyof L
 
 export type LibraryAddProjectGlobalResponses = {
     /**
-     * The project copy (existing live or resurrected).
+     * The existing project global.
      */
-    200: GlobalCopy;
+    200: ProjectGlobal;
     /**
-     * The newly created project copy.
+     * The created project global.
      */
-    201: GlobalCopy;
+    201: ProjectGlobal;
 };
 
 export type LibraryAddProjectGlobalResponse = LibraryAddProjectGlobalResponses[keyof LibraryAddProjectGlobalResponses];
@@ -8919,7 +8348,7 @@ export type LibraryDeleteProjectGlobalData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
         globalId: Id;
@@ -8934,15 +8363,19 @@ export type LibraryDeleteProjectGlobalErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -8962,7 +8395,7 @@ export type LibraryGetProjectGlobalData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
         globalId: Id;
@@ -8978,7 +8411,7 @@ export type LibraryGetProjectGlobalData = {
 
 export type LibraryGetProjectGlobalErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -8986,15 +8419,19 @@ export type LibraryGetProjectGlobalErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -9003,18 +8440,18 @@ export type LibraryGetProjectGlobalError = LibraryGetProjectGlobalErrors[keyof L
 
 export type LibraryGetProjectGlobalResponses = {
     /**
-     * The project copy.
+     * The project global.
      */
-    200: GlobalCopy;
+    200: ProjectGlobal;
 };
 
 export type LibraryGetProjectGlobalResponse = LibraryGetProjectGlobalResponses[keyof LibraryGetProjectGlobalResponses];
 
 export type LibraryUpdateProjectGlobalData = {
-    body: GlobalTemplateWrite;
+    body: GlobalWrite;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
         globalId: Id;
@@ -9025,7 +8462,7 @@ export type LibraryUpdateProjectGlobalData = {
 
 export type LibraryUpdateProjectGlobalErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -9033,19 +8470,23 @@ export type LibraryUpdateProjectGlobalErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -9054,9 +8495,9 @@ export type LibraryUpdateProjectGlobalError = LibraryUpdateProjectGlobalErrors[k
 
 export type LibraryUpdateProjectGlobalResponses = {
     /**
-     * The updated project copy.
+     * The updated project global.
      */
-    200: GlobalCopy;
+    200: ProjectGlobal;
 };
 
 export type LibraryUpdateProjectGlobalResponse = LibraryUpdateProjectGlobalResponses[keyof LibraryUpdateProjectGlobalResponses];
@@ -9065,7 +8506,7 @@ export type LibraryListProjectCurrenciesData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
     };
@@ -9075,22 +8516,24 @@ export type LibraryListProjectCurrenciesData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
          * Comma list of related data to inline on a project copy (depth ≤ 2). Unknown key returns `400 expand_invalid`.
          */
         expand?: Array<LibraryExpand>;
+        /**
+         * Only currencies copied from this workspace currency.
+         */
         sourceId?: Id;
-        diverged?: boolean;
     };
     url: '/projects/{projectId}/library/currencies';
 };
 
 export type LibraryListProjectCurrenciesErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -9098,15 +8541,19 @@ export type LibraryListProjectCurrenciesErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -9115,9 +8562,9 @@ export type LibraryListProjectCurrenciesError = LibraryListProjectCurrenciesErro
 
 export type LibraryListProjectCurrenciesResponses = {
     /**
-     * A page of project currency copies.
+     * A page of project currencies.
      */
-    200: CurrencyCopyCollection;
+    200: ProjectCurrencyCollection;
 };
 
 export type LibraryListProjectCurrenciesResponse = LibraryListProjectCurrenciesResponses[keyof LibraryListProjectCurrenciesResponses];
@@ -9128,19 +8575,22 @@ export type LibraryAddProjectCurrencyData = {
     };
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
     };
     query?: {
+        /**
+         * Restore workspace values and replace project edits.
+         */
         reset?: boolean;
     };
-    url: '/projects/{projectId}/library/currencies/add';
+    url: '/projects/{projectId}/library/currencies';
 };
 
 export type LibraryAddProjectCurrencyErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -9148,15 +8598,19 @@ export type LibraryAddProjectCurrencyErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -9165,13 +8619,13 @@ export type LibraryAddProjectCurrencyError = LibraryAddProjectCurrencyErrors[key
 
 export type LibraryAddProjectCurrencyResponses = {
     /**
-     * The project copy (existing live or resurrected).
+     * The existing project currency.
      */
-    200: CurrencyCopy;
+    200: ProjectCurrency;
     /**
-     * The newly created project copy.
+     * The created project currency.
      */
-    201: CurrencyCopy;
+    201: ProjectCurrency;
 };
 
 export type LibraryAddProjectCurrencyResponse = LibraryAddProjectCurrencyResponses[keyof LibraryAddProjectCurrencyResponses];
@@ -9180,7 +8634,7 @@ export type LibraryDeleteProjectCurrencyData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
         currencyId: Id;
@@ -9195,15 +8649,19 @@ export type LibraryDeleteProjectCurrencyErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -9223,7 +8681,7 @@ export type LibraryGetProjectCurrencyData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
         currencyId: Id;
@@ -9239,7 +8697,7 @@ export type LibraryGetProjectCurrencyData = {
 
 export type LibraryGetProjectCurrencyErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -9247,15 +8705,19 @@ export type LibraryGetProjectCurrencyErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -9264,18 +8726,18 @@ export type LibraryGetProjectCurrencyError = LibraryGetProjectCurrencyErrors[key
 
 export type LibraryGetProjectCurrencyResponses = {
     /**
-     * The project copy.
+     * The project currency.
      */
-    200: CurrencyCopy;
+    200: ProjectCurrency;
 };
 
 export type LibraryGetProjectCurrencyResponse = LibraryGetProjectCurrencyResponses[keyof LibraryGetProjectCurrencyResponses];
 
 export type LibraryUpdateProjectCurrencyData = {
-    body: CurrencyTemplateWrite;
+    body: CurrencyWrite;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
         currencyId: Id;
@@ -9286,7 +8748,7 @@ export type LibraryUpdateProjectCurrencyData = {
 
 export type LibraryUpdateProjectCurrencyErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -9294,19 +8756,23 @@ export type LibraryUpdateProjectCurrencyErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -9315,18 +8781,18 @@ export type LibraryUpdateProjectCurrencyError = LibraryUpdateProjectCurrencyErro
 
 export type LibraryUpdateProjectCurrencyResponses = {
     /**
-     * The updated project copy.
+     * The updated project currency.
      */
-    200: CurrencyCopy;
+    200: ProjectCurrency;
 };
 
 export type LibraryUpdateProjectCurrencyResponse = LibraryUpdateProjectCurrencyResponses[keyof LibraryUpdateProjectCurrencyResponses];
 
-export type LibraryListProjectFringeTagsData = {
+export type LibraryListProjectFringeGroupsData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
     };
@@ -9336,22 +8802,24 @@ export type LibraryListProjectFringeTagsData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
          * Comma list of related data to inline on a project copy (depth ≤ 2). Unknown key returns `400 expand_invalid`.
          */
         expand?: Array<LibraryExpand>;
+        /**
+         * Only fringe groups copied from this workspace fringe group.
+         */
         sourceId?: Id;
-        diverged?: boolean;
     };
-    url: '/projects/{projectId}/library/fringe-tags';
+    url: '/projects/{projectId}/library/fringe-groups';
 };
 
-export type LibraryListProjectFringeTagsErrors = {
+export type LibraryListProjectFringeGroupsErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -9359,49 +8827,56 @@ export type LibraryListProjectFringeTagsErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryListProjectFringeTagsError = LibraryListProjectFringeTagsErrors[keyof LibraryListProjectFringeTagsErrors];
+export type LibraryListProjectFringeGroupsError = LibraryListProjectFringeGroupsErrors[keyof LibraryListProjectFringeGroupsErrors];
 
-export type LibraryListProjectFringeTagsResponses = {
+export type LibraryListProjectFringeGroupsResponses = {
     /**
-     * A page of project fringe-tag copies.
+     * A page of project fringe groups.
      */
-    200: FringeTagCopyCollection;
+    200: ProjectFringeGroupCollection;
 };
 
-export type LibraryListProjectFringeTagsResponse = LibraryListProjectFringeTagsResponses[keyof LibraryListProjectFringeTagsResponses];
+export type LibraryListProjectFringeGroupsResponse = LibraryListProjectFringeGroupsResponses[keyof LibraryListProjectFringeGroupsResponses];
 
-export type LibraryAddProjectFringeTagData = {
+export type LibraryAddProjectFringeGroupData = {
     body: {
         sourceId: Id;
     };
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
     };
     query?: {
+        /**
+         * Restore workspace values and replace project edits.
+         */
         reset?: boolean;
     };
-    url: '/projects/{projectId}/library/fringe-tags/add';
+    url: '/projects/{projectId}/library/fringe-groups';
 };
 
-export type LibraryAddProjectFringeTagErrors = {
+export type LibraryAddProjectFringeGroupErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -9409,85 +8884,93 @@ export type LibraryAddProjectFringeTagErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryAddProjectFringeTagError = LibraryAddProjectFringeTagErrors[keyof LibraryAddProjectFringeTagErrors];
+export type LibraryAddProjectFringeGroupError = LibraryAddProjectFringeGroupErrors[keyof LibraryAddProjectFringeGroupErrors];
 
-export type LibraryAddProjectFringeTagResponses = {
+export type LibraryAddProjectFringeGroupResponses = {
     /**
-     * The project copy (existing live or resurrected).
+     * The existing project Fringe Group.
      */
-    200: FringeTagCopy;
+    200: ProjectFringeGroup;
     /**
-     * The newly created project copy.
+     * The created project Fringe Group.
      */
-    201: FringeTagCopy;
+    201: ProjectFringeGroup;
 };
 
-export type LibraryAddProjectFringeTagResponse = LibraryAddProjectFringeTagResponses[keyof LibraryAddProjectFringeTagResponses];
+export type LibraryAddProjectFringeGroupResponse = LibraryAddProjectFringeGroupResponses[keyof LibraryAddProjectFringeGroupResponses];
 
-export type LibraryDeleteProjectFringeTagData = {
+export type LibraryDeleteProjectFringeGroupData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
-        fringeTagId: Id;
+        fringeGroupId: Id;
     };
     query?: never;
-    url: '/projects/{projectId}/library/fringe-tags/{fringeTagId}';
+    url: '/projects/{projectId}/library/fringe-groups/{fringeGroupId}';
 };
 
-export type LibraryDeleteProjectFringeTagErrors = {
+export type LibraryDeleteProjectFringeGroupErrors = {
     /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryDeleteProjectFringeTagError = LibraryDeleteProjectFringeTagErrors[keyof LibraryDeleteProjectFringeTagErrors];
+export type LibraryDeleteProjectFringeGroupError = LibraryDeleteProjectFringeGroupErrors[keyof LibraryDeleteProjectFringeGroupErrors];
 
-export type LibraryDeleteProjectFringeTagResponses = {
+export type LibraryDeleteProjectFringeGroupResponses = {
     /**
      * Removed.
      */
     204: void;
 };
 
-export type LibraryDeleteProjectFringeTagResponse = LibraryDeleteProjectFringeTagResponses[keyof LibraryDeleteProjectFringeTagResponses];
+export type LibraryDeleteProjectFringeGroupResponse = LibraryDeleteProjectFringeGroupResponses[keyof LibraryDeleteProjectFringeGroupResponses];
 
-export type LibraryGetProjectFringeTagData = {
+export type LibraryGetProjectFringeGroupData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
-        fringeTagId: Id;
+        fringeGroupId: Id;
     };
     query?: {
         /**
@@ -9495,12 +8978,12 @@ export type LibraryGetProjectFringeTagData = {
          */
         expand?: Array<LibraryExpand>;
     };
-    url: '/projects/{projectId}/library/fringe-tags/{fringeTagId}';
+    url: '/projects/{projectId}/library/fringe-groups/{fringeGroupId}';
 };
 
-export type LibraryGetProjectFringeTagErrors = {
+export type LibraryGetProjectFringeGroupErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -9508,46 +8991,50 @@ export type LibraryGetProjectFringeTagErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryGetProjectFringeTagError = LibraryGetProjectFringeTagErrors[keyof LibraryGetProjectFringeTagErrors];
+export type LibraryGetProjectFringeGroupError = LibraryGetProjectFringeGroupErrors[keyof LibraryGetProjectFringeGroupErrors];
 
-export type LibraryGetProjectFringeTagResponses = {
+export type LibraryGetProjectFringeGroupResponses = {
     /**
-     * The project copy.
+     * The project Fringe Group.
      */
-    200: FringeTagCopy;
+    200: ProjectFringeGroup;
 };
 
-export type LibraryGetProjectFringeTagResponse = LibraryGetProjectFringeTagResponses[keyof LibraryGetProjectFringeTagResponses];
+export type LibraryGetProjectFringeGroupResponse = LibraryGetProjectFringeGroupResponses[keyof LibraryGetProjectFringeGroupResponses];
 
-export type LibraryUpdateProjectFringeTagData = {
-    body: FringeTagTemplateWrite;
+export type LibraryUpdateProjectFringeGroupData = {
+    body: FringeGroupWrite;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
-        fringeTagId: Id;
+        fringeGroupId: Id;
     };
     query?: never;
-    url: '/projects/{projectId}/library/fringe-tags/{fringeTagId}';
+    url: '/projects/{projectId}/library/fringe-groups/{fringeGroupId}';
 };
 
-export type LibraryUpdateProjectFringeTagErrors = {
+export type LibraryUpdateProjectFringeGroupErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -9555,39 +9042,43 @@ export type LibraryUpdateProjectFringeTagErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type LibraryUpdateProjectFringeTagError = LibraryUpdateProjectFringeTagErrors[keyof LibraryUpdateProjectFringeTagErrors];
+export type LibraryUpdateProjectFringeGroupError = LibraryUpdateProjectFringeGroupErrors[keyof LibraryUpdateProjectFringeGroupErrors];
 
-export type LibraryUpdateProjectFringeTagResponses = {
+export type LibraryUpdateProjectFringeGroupResponses = {
     /**
-     * The updated project copy.
+     * The updated project Fringe Group.
      */
-    200: FringeTagCopy;
+    200: ProjectFringeGroup;
 };
 
-export type LibraryUpdateProjectFringeTagResponse = LibraryUpdateProjectFringeTagResponses[keyof LibraryUpdateProjectFringeTagResponses];
+export type LibraryUpdateProjectFringeGroupResponse = LibraryUpdateProjectFringeGroupResponses[keyof LibraryUpdateProjectFringeGroupResponses];
 
 export type LibraryListProjectTagsData = {
     body?: never;
     path: {
         /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
+         * Project ID or slug.
          */
         projectId: string;
     };
@@ -9596,18 +9087,13 @@ export type LibraryListProjectTagsData = {
          * Maximum number of items to return on a page. Capped at 100.
          */
         limit?: number;
-        /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
-         */
-        cursor?: string;
-        q?: string;
     };
     url: '/projects/{projectId}/library/tags';
 };
 
 export type LibraryListProjectTagsErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -9615,15 +9101,19 @@ export type LibraryListProjectTagsErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -9632,108 +9122,14 @@ export type LibraryListProjectTagsError = LibraryListProjectTagsErrors[keyof Lib
 
 export type LibraryListProjectTagsResponses = {
     /**
-     * A page of associated tags.
+     * A page of project tags.
      */
     200: TagCollection;
 };
 
 export type LibraryListProjectTagsResponse = LibraryListProjectTagsResponses[keyof LibraryListProjectTagsResponses];
 
-export type LibraryRemoveProjectTagData = {
-    body?: never;
-    path: {
-        /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        tagId: Id;
-    };
-    query?: never;
-    url: '/projects/{projectId}/library/tags/{tagId}/add';
-};
-
-export type LibraryRemoveProjectTagErrors = {
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type LibraryRemoveProjectTagError = LibraryRemoveProjectTagErrors[keyof LibraryRemoveProjectTagErrors];
-
-export type LibraryRemoveProjectTagResponses = {
-    /**
-     * Removed.
-     */
-    204: void;
-};
-
-export type LibraryRemoveProjectTagResponse = LibraryRemoveProjectTagResponses[keyof LibraryRemoveProjectTagResponses];
-
-export type LibraryAddProjectTagData = {
-    body?: ProjectTagAttach;
-    path: {
-        /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        tagId: Id;
-    };
-    query?: never;
-    url: '/projects/{projectId}/library/tags/{tagId}/add';
-};
-
-export type LibraryAddProjectTagErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
-     */
-    422: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type LibraryAddProjectTagError = LibraryAddProjectTagErrors[keyof LibraryAddProjectTagErrors];
-
-export type LibraryAddProjectTagResponses = {
-    /**
-     * The added tag.
-     */
-    200: Tag;
-};
-
-export type LibraryAddProjectTagResponse = LibraryAddProjectTagResponses[keyof LibraryAddProjectTagResponses];
-
-export type MasterDataListProjectsData = {
+export type ProjectsListData = {
     body?: never;
     path?: never;
     query?: {
@@ -9742,19 +9138,19 @@ export type MasterDataListProjectsData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
-         * Field to sort by (replaces legacy `sortBy`). A non-unique sort field appends `,id` as the tiebreaker. Allowed fields are typed per resource.
+         * Field to sort by. Allowed fields depend on the resource.
          */
         sort?: string;
         /**
-         * Sort direction (replaces legacy `sortOrder`).
+         * Sort direction.
          */
         order?: 'asc' | 'desc';
         /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
+         * Include the total number of matching items. Defaults to `false`.
          */
         withCount?: boolean;
         /**
@@ -9766,20 +9162,20 @@ export type MasterDataListProjectsData = {
          */
         spaceId?: Id;
         /**
-         * Free-text search over project name / slug.
+         * Search project names and slugs.
          */
         q?: string;
         /**
-         * Include soft-deleted projects (each carries a non-null `soft-delete timestamp`).
+         * Include deleted projects.
          */
         includeDeleted?: boolean;
     };
     url: '/projects';
 };
 
-export type MasterDataListProjectsErrors = {
+export type ProjectsListErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -9787,35 +9183,35 @@ export type MasterDataListProjectsErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type MasterDataListProjectsError = MasterDataListProjectsErrors[keyof MasterDataListProjectsErrors];
+export type ProjectsListError = ProjectsListErrors[keyof ProjectsListErrors];
 
-export type MasterDataListProjectsResponses = {
+export type ProjectsListResponses = {
     /**
      * A page of projects.
      */
     200: ProjectList;
 };
 
-export type MasterDataListProjectsResponse = MasterDataListProjectsResponses[keyof MasterDataListProjectsResponses];
+export type ProjectsListResponse = ProjectsListResponses[keyof ProjectsListResponses];
 
-export type MasterDataCreateProjectData = {
+export type ProjectsCreateData = {
     body: ProjectCreate;
     headers: {
         /**
-         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         * Unique request key, 16 to 255 characters. Retrying the same request returns the first response. Missing or invalid keys return `400 validation`; reuse with a different body returns `409 idempotency_conflict`.
          */
         'Idempotency-Key': string;
     };
@@ -9824,9 +9220,9 @@ export type MasterDataCreateProjectData = {
     url: '/projects';
 };
 
-export type MasterDataCreateProjectErrors = {
+export type ProjectsCreateErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -9834,137 +9230,107 @@ export type MasterDataCreateProjectErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * The workspace is temporarily locked.
+     */
+    423: Error;
+    /**
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
+    /**
+     * The service needed to complete this request is unavailable.
+     */
+    503: Error;
 };
 
-export type MasterDataCreateProjectError = MasterDataCreateProjectErrors[keyof MasterDataCreateProjectErrors];
+export type ProjectsCreateError = ProjectsCreateErrors[keyof ProjectsCreateErrors];
 
-export type MasterDataCreateProjectResponses = {
+export type ProjectsCreateResponses = {
     /**
      * The created project.
      */
-    201: Project;
+    201: ProjectCreated;
 };
 
-export type MasterDataCreateProjectResponse = MasterDataCreateProjectResponses[keyof MasterDataCreateProjectResponses];
+export type ProjectsCreateResponse = ProjectsCreateResponses[keyof ProjectsCreateResponses];
 
-export type MasterDataDeleteProjectData = {
+export type ProjectsGetData = {
     body?: never;
     path: {
         /**
-         * Project canonical `id` (`prj_…`) or its `slug`.
+         * Project ID or slug.
          */
-        slugOrId: string;
+        projectId: string;
     };
     query?: never;
-    url: '/projects/{slugOrId}';
+    url: '/projects/{projectId}';
 };
 
-export type MasterDataDeleteProjectErrors = {
+export type ProjectsGetErrors = {
     /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type MasterDataDeleteProjectError = MasterDataDeleteProjectErrors[keyof MasterDataDeleteProjectErrors];
+export type ProjectsGetError = ProjectsGetErrors[keyof ProjectsGetErrors];
 
-export type MasterDataDeleteProjectResponses = {
-    /**
-     * Deleted (no body).
-     */
-    204: void;
-};
-
-export type MasterDataDeleteProjectResponse = MasterDataDeleteProjectResponses[keyof MasterDataDeleteProjectResponses];
-
-export type MasterDataGetProjectData = {
-    body?: never;
-    path: {
-        /**
-         * Project canonical `id` (`prj_…`) or its `slug`.
-         */
-        slugOrId: string;
-    };
-    query?: never;
-    url: '/projects/{slugOrId}';
-};
-
-export type MasterDataGetProjectErrors = {
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type MasterDataGetProjectError = MasterDataGetProjectErrors[keyof MasterDataGetProjectErrors];
-
-export type MasterDataGetProjectResponses = {
+export type ProjectsGetResponses = {
     /**
      * The project.
      */
     200: Project;
 };
 
-export type MasterDataGetProjectResponse = MasterDataGetProjectResponses[keyof MasterDataGetProjectResponses];
+export type ProjectsGetResponse = ProjectsGetResponses[keyof ProjectsGetResponses];
 
-export type MasterDataUpdateProjectData = {
+export type ProjectsUpdateData = {
     body: ProjectUpdate;
     path: {
         /**
-         * Project canonical `id` (`prj_…`) or its `slug`.
+         * Project ID or slug.
          */
-        slugOrId: string;
+        projectId: string;
     };
     query?: never;
-    url: '/projects/{slugOrId}';
+    url: '/projects/{projectId}';
 };
 
-export type MasterDataUpdateProjectErrors = {
+export type ProjectsUpdateErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -9972,39 +9338,39 @@ export type MasterDataUpdateProjectErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type MasterDataUpdateProjectError = MasterDataUpdateProjectErrors[keyof MasterDataUpdateProjectErrors];
+export type ProjectsUpdateError = ProjectsUpdateErrors[keyof ProjectsUpdateErrors];
 
-export type MasterDataUpdateProjectResponses = {
+export type ProjectsUpdateResponses = {
     /**
      * The updated project.
      */
     200: Project;
 };
 
-export type MasterDataUpdateProjectResponse = MasterDataUpdateProjectResponses[keyof MasterDataUpdateProjectResponses];
+export type ProjectsUpdateResponse = ProjectsUpdateResponses[keyof ProjectsUpdateResponses];
 
-export type MasterDataListSpacesData = {
+export type SpacesListData = {
     body?: never;
     path?: never;
     query?: {
@@ -10013,33 +9379,36 @@ export type MasterDataListSpacesData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
-         * Field to sort by (replaces legacy `sortBy`). A non-unique sort field appends `,id` as the tiebreaker. Allowed fields are typed per resource.
+         * Field to sort by. Allowed fields depend on the resource.
          */
         sort?: string;
         /**
-         * Sort direction (replaces legacy `sortOrder`).
+         * Sort direction.
          */
         order?: 'asc' | 'desc';
         /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
+         * Include the total number of matching items. Defaults to `false`.
          */
         withCount?: boolean;
         /**
          * Only spaces directly nested under this parent space.
          */
         parentId?: Id;
+        /**
+         * Include deleted spaces.
+         */
         includeDeleted?: boolean;
     };
     url: '/spaces';
 };
 
-export type MasterDataListSpacesErrors = {
+export type SpacesListErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -10047,35 +9416,35 @@ export type MasterDataListSpacesErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type MasterDataListSpacesError = MasterDataListSpacesErrors[keyof MasterDataListSpacesErrors];
+export type SpacesListError = SpacesListErrors[keyof SpacesListErrors];
 
-export type MasterDataListSpacesResponses = {
+export type SpacesListResponses = {
     /**
      * A page of spaces.
      */
     200: SpaceList;
 };
 
-export type MasterDataListSpacesResponse = MasterDataListSpacesResponses[keyof MasterDataListSpacesResponses];
+export type SpacesListResponse = SpacesListResponses[keyof SpacesListResponses];
 
-export type MasterDataCreateSpaceData = {
+export type SpacesCreateData = {
     body: SpaceCreate;
     headers: {
         /**
-         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         * Unique request key, 16 to 255 characters. Retrying the same request returns the first response. Missing or invalid keys return `400 validation`; reuse with a different body returns `409 idempotency_conflict`.
          */
         'Idempotency-Key': string;
     };
@@ -10084,9 +9453,9 @@ export type MasterDataCreateSpaceData = {
     url: '/spaces';
 };
 
-export type MasterDataCreateSpaceErrors = {
+export type SpacesCreateErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -10094,43 +9463,43 @@ export type MasterDataCreateSpaceErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type MasterDataCreateSpaceError = MasterDataCreateSpaceErrors[keyof MasterDataCreateSpaceErrors];
+export type SpacesCreateError = SpacesCreateErrors[keyof SpacesCreateErrors];
 
-export type MasterDataCreateSpaceResponses = {
+export type SpacesCreateResponses = {
     /**
      * The created space.
      */
     201: Space;
 };
 
-export type MasterDataCreateSpaceResponse = MasterDataCreateSpaceResponses[keyof MasterDataCreateSpaceResponses];
+export type SpacesCreateResponse = SpacesCreateResponses[keyof SpacesCreateResponses];
 
-export type MasterDataDeleteSpaceData = {
+export type SpacesDeleteData = {
     body?: never;
     path: {
         /**
-         * Space canonical id (`spc_…`).
+         * Space ID.
          */
         spaceId: Id;
     };
@@ -10138,41 +9507,41 @@ export type MasterDataDeleteSpaceData = {
     url: '/spaces/{spaceId}';
 };
 
-export type MasterDataDeleteSpaceErrors = {
+export type SpacesDeleteErrors = {
     /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type MasterDataDeleteSpaceError = MasterDataDeleteSpaceErrors[keyof MasterDataDeleteSpaceErrors];
+export type SpacesDeleteError = SpacesDeleteErrors[keyof SpacesDeleteErrors];
 
-export type MasterDataDeleteSpaceResponses = {
+export type SpacesDeleteResponses = {
     /**
-     * Deleted (no body).
+     * Deleted.
      */
     204: void;
 };
 
-export type MasterDataDeleteSpaceResponse = MasterDataDeleteSpaceResponses[keyof MasterDataDeleteSpaceResponses];
+export type SpacesDeleteResponse = SpacesDeleteResponses[keyof SpacesDeleteResponses];
 
-export type MasterDataUpdateSpaceData = {
+export type SpacesUpdateData = {
     body: SpaceUpdate;
     path: {
         /**
-         * Space canonical id (`spc_…`).
+         * Space ID.
          */
         spaceId: Id;
     };
@@ -10180,9 +9549,9 @@ export type MasterDataUpdateSpaceData = {
     url: '/spaces/{spaceId}';
 };
 
-export type MasterDataUpdateSpaceErrors = {
+export type SpacesUpdateErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -10190,35 +9559,35 @@ export type MasterDataUpdateSpaceErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type MasterDataUpdateSpaceError = MasterDataUpdateSpaceErrors[keyof MasterDataUpdateSpaceErrors];
+export type SpacesUpdateError = SpacesUpdateErrors[keyof SpacesUpdateErrors];
 
-export type MasterDataUpdateSpaceResponses = {
+export type SpacesUpdateResponses = {
     /**
      * The updated space.
      */
     200: Space;
 };
 
-export type MasterDataUpdateSpaceResponse = MasterDataUpdateSpaceResponses[keyof MasterDataUpdateSpaceResponses];
+export type SpacesUpdateResponse = SpacesUpdateResponses[keyof SpacesUpdateResponses];
 
-export type MasterDataListContactsData = {
+export type ContactsListData = {
     body?: never;
     path?: never;
     query?: {
@@ -10227,15 +9596,15 @@ export type MasterDataListContactsData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
-         * Field to sort by (replaces legacy `sortBy`). A non-unique sort field appends `,id` as the tiebreaker. Allowed fields are typed per resource.
+         * Field to sort by. Allowed fields depend on the resource.
          */
         sort?: string;
         /**
-         * Sort direction (replaces legacy `sortOrder`).
+         * Sort direction.
          */
         order?: 'asc' | 'desc';
         /**
@@ -10243,19 +9612,15 @@ export type MasterDataListContactsData = {
          */
         expand?: Array<ContactExpand>;
         /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
+         * Include the total number of matching items. Defaults to `false`.
          */
         withCount?: boolean;
         /**
-         * Replay a saved view (`?view={id}`), a named, persisted filter + shape bundle. The view's filter/sort/expand resolve first; any inline query params layer on top to refine. An unknown or unreadable view id returns `404 not_found`.
-         */
-        view?: Id;
-        /**
-         * Free-text search over name / company / email.
+         * Search contact names, companies, and email addresses.
          */
         q?: string;
         /**
-         * Filter by contact type. Comma-separate for an IN set.
+         * Filter by one or more comma-separated contact types.
          */
         type?: string;
         /**
@@ -10267,21 +9632,24 @@ export type MasterDataListContactsData = {
          */
         tagMode?: 'any' | 'all' | 'none';
         /**
-         * Only contacts tracked (or not) for 1099 reporting.
+         * Filter by 1099 tracking status.
          */
         track1099?: boolean;
         /**
-         * Only contacts that do (or do not) have a tax id on file.
+         * Filter by whether a tax ID is on file.
          */
         hasTaxId?: boolean;
+        /**
+         * Include deleted contacts.
+         */
         includeDeleted?: boolean;
     };
     url: '/contacts';
 };
 
-export type MasterDataListContactsErrors = {
+export type ContactsListErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -10289,35 +9657,35 @@ export type MasterDataListContactsErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type MasterDataListContactsError = MasterDataListContactsErrors[keyof MasterDataListContactsErrors];
+export type ContactsListError = ContactsListErrors[keyof ContactsListErrors];
 
-export type MasterDataListContactsResponses = {
+export type ContactsListResponses = {
     /**
      * A page of contacts.
      */
     200: ContactList;
 };
 
-export type MasterDataListContactsResponse = MasterDataListContactsResponses[keyof MasterDataListContactsResponses];
+export type ContactsListResponse = ContactsListResponses[keyof ContactsListResponses];
 
-export type MasterDataCreateContactData = {
+export type ContactsCreateData = {
     body: ContactCreate;
     headers: {
         /**
-         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         * Unique request key, 16 to 255 characters. Retrying the same request returns the first response. Missing or invalid keys return `400 validation`; reuse with a different body returns `409 idempotency_conflict`.
          */
         'Idempotency-Key': string;
     };
@@ -10326,9 +9694,9 @@ export type MasterDataCreateContactData = {
     url: '/contacts';
 };
 
-export type MasterDataCreateContactErrors = {
+export type ContactsCreateErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -10336,43 +9704,43 @@ export type MasterDataCreateContactErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type MasterDataCreateContactError = MasterDataCreateContactErrors[keyof MasterDataCreateContactErrors];
+export type ContactsCreateError = ContactsCreateErrors[keyof ContactsCreateErrors];
 
-export type MasterDataCreateContactResponses = {
+export type ContactsCreateResponses = {
     /**
      * The created contact.
      */
     201: Contact;
 };
 
-export type MasterDataCreateContactResponse = MasterDataCreateContactResponses[keyof MasterDataCreateContactResponses];
+export type ContactsCreateResponse = ContactsCreateResponses[keyof ContactsCreateResponses];
 
-export type MasterDataDeleteContactData = {
+export type ContactsDeleteData = {
     body?: never;
     path: {
         /**
-         * Contact canonical id (`con_…`).
+         * Contact ID.
          */
         contactId: Id;
     };
@@ -10380,41 +9748,41 @@ export type MasterDataDeleteContactData = {
     url: '/contacts/{contactId}';
 };
 
-export type MasterDataDeleteContactErrors = {
+export type ContactsDeleteErrors = {
     /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type MasterDataDeleteContactError = MasterDataDeleteContactErrors[keyof MasterDataDeleteContactErrors];
+export type ContactsDeleteError = ContactsDeleteErrors[keyof ContactsDeleteErrors];
 
-export type MasterDataDeleteContactResponses = {
+export type ContactsDeleteResponses = {
     /**
-     * Deleted (no body).
+     * Deleted.
      */
     204: void;
 };
 
-export type MasterDataDeleteContactResponse = MasterDataDeleteContactResponses[keyof MasterDataDeleteContactResponses];
+export type ContactsDeleteResponse = ContactsDeleteResponses[keyof ContactsDeleteResponses];
 
-export type MasterDataGetContactData = {
+export type ContactsGetData = {
     body?: never;
     path: {
         /**
-         * Contact canonical id (`con_…`).
+         * Contact ID.
          */
         contactId: Id;
     };
@@ -10427,9 +9795,9 @@ export type MasterDataGetContactData = {
     url: '/contacts/{contactId}';
 };
 
-export type MasterDataGetContactErrors = {
+export type ContactsGetErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -10437,35 +9805,35 @@ export type MasterDataGetContactErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type MasterDataGetContactError = MasterDataGetContactErrors[keyof MasterDataGetContactErrors];
+export type ContactsGetError = ContactsGetErrors[keyof ContactsGetErrors];
 
-export type MasterDataGetContactResponses = {
+export type ContactsGetResponses = {
     /**
      * The contact.
      */
     200: Contact;
 };
 
-export type MasterDataGetContactResponse = MasterDataGetContactResponses[keyof MasterDataGetContactResponses];
+export type ContactsGetResponse = ContactsGetResponses[keyof ContactsGetResponses];
 
-export type MasterDataUpdateContactData = {
+export type ContactsUpdateData = {
     body: ContactUpdate;
     path: {
         /**
-         * Contact canonical id (`con_…`).
+         * Contact ID.
          */
         contactId: Id;
     };
@@ -10473,9 +9841,9 @@ export type MasterDataUpdateContactData = {
     url: '/contacts/{contactId}';
 };
 
-export type MasterDataUpdateContactErrors = {
+export type ContactsUpdateErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -10483,68 +9851,66 @@ export type MasterDataUpdateContactErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type MasterDataUpdateContactError = MasterDataUpdateContactErrors[keyof MasterDataUpdateContactErrors];
+export type ContactsUpdateError = ContactsUpdateErrors[keyof ContactsUpdateErrors];
 
-export type MasterDataUpdateContactResponses = {
+export type ContactsUpdateResponses = {
     /**
      * The updated contact.
      */
     200: Contact;
 };
 
-export type MasterDataUpdateContactResponse = MasterDataUpdateContactResponses[keyof MasterDataUpdateContactResponses];
+export type ContactsUpdateResponse = ContactsUpdateResponses[keyof ContactsUpdateResponses];
 
-export type MasterDataListCommentsData = {
+export type CommentsListData = {
     body?: never;
-    path?: never;
+    path: {
+        projectId: Id;
+    };
     query?: {
         /**
          * Maximum number of items to return on a page. Capped at 100.
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
-         * Field to sort by (replaces legacy `sortBy`). A non-unique sort field appends `,id` as the tiebreaker. Allowed fields are typed per resource.
+         * Field to sort by. Allowed fields depend on the resource.
          */
         sort?: string;
         /**
-         * Sort direction (replaces legacy `sortOrder`).
+         * Sort direction.
          */
         order?: 'asc' | 'desc';
         /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
+         * Include the total number of matching items. Defaults to `false`.
          */
         withCount?: boolean;
         /**
-         * Only comments within this project.
-         */
-        projectId?: Id;
-        /**
-         * Anchor entity kind to filter by (paired with `targetId`).
+         * Resource type. Use with `targetId`.
          */
         targetKind?: CommentTargetKind;
         /**
-         * Anchor entity id to filter by.
+         * Resource ID. Use with `targetKind`.
          */
         targetId?: Id;
         /**
@@ -10556,12 +9922,12 @@ export type MasterDataListCommentsData = {
          */
         resolved?: boolean;
     };
-    url: '/comments';
+    url: '/projects/{projectId}/comments';
 };
 
-export type MasterDataListCommentsErrors = {
+export type CommentsListErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -10569,46 +9935,48 @@ export type MasterDataListCommentsErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type MasterDataListCommentsError = MasterDataListCommentsErrors[keyof MasterDataListCommentsErrors];
+export type CommentsListError = CommentsListErrors[keyof CommentsListErrors];
 
-export type MasterDataListCommentsResponses = {
+export type CommentsListResponses = {
     /**
      * A page of comments.
      */
     200: CommentList;
 };
 
-export type MasterDataListCommentsResponse = MasterDataListCommentsResponses[keyof MasterDataListCommentsResponses];
+export type CommentsListResponse = CommentsListResponses[keyof CommentsListResponses];
 
-export type MasterDataCreateCommentData = {
+export type CommentsCreateData = {
     body: CommentCreate;
     headers: {
         /**
-         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         * Unique request key, 16 to 255 characters. Retrying the same request returns the first response. Missing or invalid keys return `400 validation`; reuse with a different body returns `409 idempotency_conflict`.
          */
         'Idempotency-Key': string;
     };
-    path?: never;
+    path: {
+        projectId: Id;
+    };
     query?: never;
-    url: '/comments';
+    url: '/projects/{projectId}/comments';
 };
 
-export type MasterDataCreateCommentErrors = {
+export type CommentsCreateErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -10616,95 +9984,97 @@ export type MasterDataCreateCommentErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type MasterDataCreateCommentError = MasterDataCreateCommentErrors[keyof MasterDataCreateCommentErrors];
+export type CommentsCreateError = CommentsCreateErrors[keyof CommentsCreateErrors];
 
-export type MasterDataCreateCommentResponses = {
+export type CommentsCreateResponses = {
     /**
      * The created comment.
      */
     201: Comment;
 };
 
-export type MasterDataCreateCommentResponse = MasterDataCreateCommentResponses[keyof MasterDataCreateCommentResponses];
+export type CommentsCreateResponse = CommentsCreateResponses[keyof CommentsCreateResponses];
 
-export type MasterDataDeleteCommentData = {
+export type CommentsDeleteData = {
     body?: never;
     path: {
+        projectId: Id;
         /**
-         * Comment canonical id (`cmt_…`).
+         * Comment ID.
          */
         commentId: Id;
     };
     query?: never;
-    url: '/comments/{commentId}';
+    url: '/projects/{projectId}/comments/{commentId}';
 };
 
-export type MasterDataDeleteCommentErrors = {
+export type CommentsDeleteErrors = {
     /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type MasterDataDeleteCommentError = MasterDataDeleteCommentErrors[keyof MasterDataDeleteCommentErrors];
+export type CommentsDeleteError = CommentsDeleteErrors[keyof CommentsDeleteErrors];
 
-export type MasterDataDeleteCommentResponses = {
+export type CommentsDeleteResponses = {
     /**
-     * Deleted (no body).
+     * Deleted.
      */
     204: void;
 };
 
-export type MasterDataDeleteCommentResponse = MasterDataDeleteCommentResponses[keyof MasterDataDeleteCommentResponses];
+export type CommentsDeleteResponse = CommentsDeleteResponses[keyof CommentsDeleteResponses];
 
-export type MasterDataUpdateCommentData = {
+export type CommentsUpdateData = {
     body: CommentUpdate;
     path: {
+        projectId: Id;
         /**
-         * Comment canonical id (`cmt_…`).
+         * Comment ID.
          */
         commentId: Id;
     };
     query?: never;
-    url: '/comments/{commentId}';
+    url: '/projects/{projectId}/comments/{commentId}';
 };
 
-export type MasterDataUpdateCommentErrors = {
+export type CommentsUpdateErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -10712,338 +10082,66 @@ export type MasterDataUpdateCommentErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type MasterDataUpdateCommentError = MasterDataUpdateCommentErrors[keyof MasterDataUpdateCommentErrors];
+export type CommentsUpdateError = CommentsUpdateErrors[keyof CommentsUpdateErrors];
 
-export type MasterDataUpdateCommentResponses = {
+export type CommentsUpdateResponses = {
     /**
      * The updated comment.
      */
     200: Comment;
 };
 
-export type MasterDataUpdateCommentResponse = MasterDataUpdateCommentResponses[keyof MasterDataUpdateCommentResponses];
+export type CommentsUpdateResponse = CommentsUpdateResponses[keyof CommentsUpdateResponses];
 
-export type MasterDataListViewsData = {
-    body?: never;
-    path: {
-        /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-    };
-    query?: {
-        /**
-         * Maximum number of items to return on a page. Capped at 100.
-         */
-        limit?: number;
-        /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
-         */
-        cursor?: string;
-        /**
-         * Field to sort by (replaces legacy `sortBy`). A non-unique sort field appends `,id` as the tiebreaker. Allowed fields are typed per resource.
-         */
-        sort?: string;
-        /**
-         * Sort direction (replaces legacy `sortOrder`).
-         */
-        order?: 'asc' | 'desc';
-        /**
-         * Only views over this subject (e.g. `transactions`, `budgetLines`).
-         */
-        subjectType?: string;
-        visibility?: ViewVisibility;
-    };
-    url: '/projects/{projectId}/views';
-};
-
-export type MasterDataListViewsErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type MasterDataListViewsError = MasterDataListViewsErrors[keyof MasterDataListViewsErrors];
-
-export type MasterDataListViewsResponses = {
-    /**
-     * A page of saved views.
-     */
-    200: ViewList;
-};
-
-export type MasterDataListViewsResponse = MasterDataListViewsResponses[keyof MasterDataListViewsResponses];
-
-export type MasterDataGetViewData = {
-    body?: never;
-    path: {
-        /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
-         * View canonical id (`view_…`).
-         */
-        viewId: Id;
-    };
-    query?: never;
-    url: '/projects/{projectId}/views/{viewId}';
-};
-
-export type MasterDataGetViewErrors = {
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type MasterDataGetViewError = MasterDataGetViewErrors[keyof MasterDataGetViewErrors];
-
-export type MasterDataGetViewResponses = {
-    /**
-     * The view definition.
-     */
-    200: View;
-};
-
-export type MasterDataGetViewResponse = MasterDataGetViewResponses[keyof MasterDataGetViewResponses];
-
-export type MasterDataGetViewDataData = {
-    body?: never;
-    path: {
-        /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-        /**
-         * View canonical id (`view_…`).
-         */
-        viewId: Id;
-    };
-    query?: {
-        /**
-         * Maximum number of items to return on a page. Capped at 100.
-         */
-        limit?: number;
-        /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
-         */
-        cursor?: string;
-        /**
-         * Field to sort by (replaces legacy `sortBy`). A non-unique sort field appends `,id` as the tiebreaker. Allowed fields are typed per resource.
-         */
-        sort?: string;
-        /**
-         * Sort direction (replaces legacy `sortOrder`).
-         */
-        order?: 'asc' | 'desc';
-        /**
-         * Comma list of related data to inline on resolved view rows (depth ≤ 2). The valid keys depend on the view's `subjectType`, they are the same per-resource allow-list as the underlying resource (transactions, documents, contacts or budget lines). An unknown or too-deep key for the resolved subject returns `400 expand_invalid`.
-         */
-        expand?: Array<string>;
-    };
-    url: '/projects/{projectId}/views/{viewId}/data';
-};
-
-export type MasterDataGetViewDataErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type MasterDataGetViewDataError = MasterDataGetViewDataErrors[keyof MasterDataGetViewDataErrors];
-
-export type MasterDataGetViewDataResponses = {
-    /**
-     * The resolved rows.
-     */
-    200: ViewData;
-};
-
-export type MasterDataGetViewDataResponse = MasterDataGetViewDataResponses[keyof MasterDataGetViewDataResponses];
-
-export type MetaAuthHealthData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/healthz';
-};
-
-export type MetaAuthHealthErrors = {
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-    /**
-     * A dependency check failed (e.g. the database pool is unreachable).
-     */
-    503: HealthStatus;
-};
-
-export type MetaAuthHealthError = MetaAuthHealthErrors[keyof MetaAuthHealthErrors];
-
-export type MetaAuthHealthResponses = {
-    /**
-     * The edge is healthy and its dedicated pool is reachable.
-     */
-    200: HealthStatus;
-};
-
-export type MetaAuthHealthResponse = MetaAuthHealthResponses[keyof MetaAuthHealthResponses];
-
-export type MetaAuthGetMeData = {
+export type MeGetData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/me';
 };
 
-export type MetaAuthGetMeErrors = {
+export type MeGetErrors = {
     /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type MetaAuthGetMeError = MetaAuthGetMeErrors[keyof MetaAuthGetMeErrors];
+export type MeGetError = MeGetErrors[keyof MeGetErrors];
 
-export type MetaAuthGetMeResponses = {
+export type MeGetResponses = {
     /**
-     * The token's identity and permission-filtered workspace reach.
+     * The current identity and workspaces.
      */
     200: Me;
 };
 
-export type MetaAuthGetMeResponse = MetaAuthGetMeResponses[keyof MetaAuthGetMeResponses];
-
-export type MetaAuthListWorkspacesData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Maximum number of items to return on a page. Capped at 100.
-         */
-        limit?: number;
-        /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
-         */
-        cursor?: string;
-        /**
-         * Field to sort by (replaces legacy `sortBy`). A non-unique sort field appends `,id` as the tiebreaker. Allowed fields are typed per resource.
-         */
-        sort?: string;
-        /**
-         * Sort direction (replaces legacy `sortOrder`).
-         */
-        order?: 'asc' | 'desc';
-        /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
-         */
-        withCount?: boolean;
-    };
-    url: '/workspaces';
-};
-
-export type MetaAuthListWorkspacesErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type MetaAuthListWorkspacesError = MetaAuthListWorkspacesErrors[keyof MetaAuthListWorkspacesErrors];
-
-export type MetaAuthListWorkspacesResponses = {
-    /**
-     * A paginated page of reachable workspaces.
-     */
-    200: WorkspaceCollection;
-};
-
-export type MetaAuthListWorkspacesResponse = MetaAuthListWorkspacesResponses[keyof MetaAuthListWorkspacesResponses];
+export type MeGetResponse = MeGetResponses[keyof MeGetResponses];
 
 export type PaymentRequestsListData = {
     body?: never;
@@ -11054,24 +10152,36 @@ export type PaymentRequestsListData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
+        /**
+         * Only payment requests with this status.
+         */
         status?: PaymentRequestStatus;
+        /**
+         * Only payment requests for this project.
+         */
         projectId?: Id;
+        /**
+         * Only payment requests linked to this purchase order.
+         */
         purchaseOrderId?: Id;
+        /**
+         * Only payment requests for this contact.
+         */
         contactId?: Id;
         /**
-         * Comma-separated PaymentRequestExpand values.
+         * Related records to include, separated by commas.
          */
-        expand?: string;
+        expand?: Array<PaymentRequestExpand>;
     };
     url: '/payment-requests';
 };
 
 export type PaymentRequestsListErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -11079,11 +10189,11 @@ export type PaymentRequestsListErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
 };
@@ -11106,16 +10216,16 @@ export type PaymentRequestsGetData = {
     };
     query?: {
         /**
-         * Comma-separated PaymentRequestExpand values.
+         * Related records to include, separated by commas.
          */
-        expand?: string;
+        expand?: Array<PaymentRequestExpand>;
     };
     url: '/payment-requests/{paymentRequestId}';
 };
 
 export type PaymentRequestsGetErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -11123,11 +10233,11 @@ export type PaymentRequestsGetErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
 };
@@ -11152,25 +10262,40 @@ export type PaymentsListData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
+        /**
+         * Only payments with this status.
+         */
         status?: PaymentStatus;
+        /**
+         * Only payments for this project.
+         */
         projectId?: Id;
+        /**
+         * Only payments linked to this purchase order.
+         */
         purchaseOrderId?: Id;
+        /**
+         * Only payments created from this payment request.
+         */
         paymentRequestId?: Id;
+        /**
+         * Only payments for this contact.
+         */
         contactId?: Id;
         /**
-         * Comma-separated PaymentExpand values.
+         * Related records to include, separated by commas.
          */
-        expand?: string;
+        expand?: Array<PaymentExpand>;
     };
     url: '/payments';
 };
 
 export type PaymentsListErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -11178,11 +10303,11 @@ export type PaymentsListErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
 };
@@ -11205,16 +10330,16 @@ export type PaymentsGetData = {
     };
     query?: {
         /**
-         * Comma-separated PaymentExpand values.
+         * Related records to include, separated by commas.
          */
-        expand?: string;
+        expand?: Array<PaymentExpand>;
     };
     url: '/payments/{paymentId}';
 };
 
 export type PaymentsGetErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -11222,11 +10347,11 @@ export type PaymentsGetErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
 };
@@ -11242,7 +10367,7 @@ export type PaymentsGetResponses = {
 
 export type PaymentsGetResponse = PaymentsGetResponses[keyof PaymentsGetResponses];
 
-export type PaymentsTimelineData = {
+export type PaymentsGetTimelineData = {
     body?: never;
     path: {
         paymentId: Id;
@@ -11253,16 +10378,16 @@ export type PaymentsTimelineData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
     };
     url: '/payments/{paymentId}/timeline';
 };
 
-export type PaymentsTimelineErrors = {
+export type PaymentsGetTimelineErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -11270,32 +10395,32 @@ export type PaymentsTimelineErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
 };
 
-export type PaymentsTimelineError = PaymentsTimelineErrors[keyof PaymentsTimelineErrors];
+export type PaymentsGetTimelineError = PaymentsGetTimelineErrors[keyof PaymentsGetTimelineErrors];
 
-export type PaymentsTimelineResponses = {
+export type PaymentsGetTimelineResponses = {
     /**
      * Payment history.
      */
     200: PaymentTimelinePage;
 };
 
-export type PaymentsTimelineResponse = PaymentsTimelineResponses[keyof PaymentsTimelineResponses];
+export type PaymentsGetTimelineResponse = PaymentsGetTimelineResponses[keyof PaymentsGetTimelineResponses];
 
 export type PurchaseOrdersListData = {
     body?: never;
     path?: never;
     query?: {
         /**
-         * Filter by project. A `prj_…` id or project slug returns only that project's purchase orders; `none` returns unassigned (workspace-level) purchase orders; omitting it returns every purchase order in the workspace. A named project that does not exist (or is not readable) returns `404 not_found`.
+         * Project ID or slug. Use `none` for unassigned purchase orders.
          */
         projectId?: string;
         /**
@@ -11303,7 +10428,7 @@ export type PurchaseOrdersListData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
@@ -11311,7 +10436,7 @@ export type PurchaseOrdersListData = {
          */
         sort?: PurchaseOrderSort;
         /**
-         * Sort direction (replaces legacy `sortOrder`).
+         * Sort direction.
          */
         order?: 'asc' | 'desc';
         /**
@@ -11319,35 +10444,31 @@ export type PurchaseOrdersListData = {
          */
         expand?: Array<PurchaseOrderExpand>;
         /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
+         * Include the total number of matching items. Defaults to `false`.
          */
         withCount?: boolean;
         /**
-         * Replay a saved view (`?view={id}`), a named, persisted filter + shape bundle. The view's filter/sort/expand resolve first; any inline query params layer on top to refine. An unknown or unreadable view id returns `404 not_found`.
-         */
-        view?: Id;
-        /**
-         * Filter by current status.
+         * Purchase order status.
          */
         status?: PurchaseOrderStatus;
         /**
-         * Filter to POs whose vendor contact is this id (`con_…`).
+         * Vendor contact ID.
          */
         contactId?: string;
         /**
-         * Filter to POs charged against this budget line (`bud_…`).
+         * Budget line ID.
          */
         budgetLineId?: string;
         /**
-         * Exact-match filter on the human-facing PO `number` (no text index on number).
+         * Purchase order number. Matching is exact.
          */
         number?: string;
         /**
-         * Free-text search. A text search index exists on `title` only, so `q` matches `title`; `number` is exact-match via the `number` filter.
+         * Search purchase order names.
          */
         q?: string;
         /**
-         * Include soft-deleted purchase orders (`soft-delete timestamp` populated). Default `false`.
+         * Include deleted purchase orders. Defaults to `false`.
          */
         includeDeleted?: boolean;
     };
@@ -11356,7 +10477,7 @@ export type PurchaseOrdersListData = {
 
 export type PurchaseOrdersListErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -11364,15 +10485,15 @@ export type PurchaseOrdersListErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -11392,7 +10513,7 @@ export type PurchaseOrdersCreateData = {
     body: PurchaseOrderCreate;
     headers: {
         /**
-         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         * A unique 16-255 character key. Reusing the key with the same body returns the first result. Reusing it with a different body returns `409 idempotency_conflict`.
          */
         'Idempotency-Key': string;
     };
@@ -11408,7 +10529,7 @@ export type PurchaseOrdersCreateData = {
 
 export type PurchaseOrdersCreateErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -11416,23 +10537,23 @@ export type PurchaseOrdersCreateErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -11452,7 +10573,7 @@ export type PurchaseOrdersDeleteData = {
     body?: never;
     path: {
         /**
-         * Purchase order identifier (`po_…`).
+         * Purchase order ID.
          */
         purchaseOrderId: Id;
     };
@@ -11466,19 +10587,19 @@ export type PurchaseOrdersDeleteErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -11498,7 +10619,7 @@ export type PurchaseOrdersGetData = {
     body?: never;
     path: {
         /**
-         * Purchase order identifier (`po_…`).
+         * Purchase order ID.
          */
         purchaseOrderId: Id;
     };
@@ -11513,19 +10634,23 @@ export type PurchaseOrdersGetData = {
 
 export type PurchaseOrdersGetErrors = {
     /**
+     * The request is invalid.
+     */
+    400: Error;
+    /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -11545,7 +10670,7 @@ export type PurchaseOrdersUpdateData = {
     body: PurchaseOrderUpdate;
     path: {
         /**
-         * Purchase order identifier (`po_…`).
+         * Purchase order ID.
          */
         purchaseOrderId: Id;
     };
@@ -11560,7 +10685,7 @@ export type PurchaseOrdersUpdateData = {
 
 export type PurchaseOrdersUpdateErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -11568,23 +10693,23 @@ export type PurchaseOrdersUpdateErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -11602,9 +10727,15 @@ export type PurchaseOrdersUpdateResponse = PurchaseOrdersUpdateResponses[keyof P
 
 export type PurchaseOrdersSubmitData = {
     body?: never;
+    headers: {
+        /**
+         * A unique 16-255 character key. Reusing the key returns the first submission result.
+         */
+        'Idempotency-Key': string;
+    };
     path: {
         /**
-         * Purchase order identifier (`po_…`).
+         * Purchase order ID.
          */
         purchaseOrderId: Id;
     };
@@ -11614,34 +10745,51 @@ export type PurchaseOrdersSubmitData = {
 
 export type PurchaseOrdersSubmitErrors = {
     /**
+     * The request is invalid.
+     */
+    400: Error;
+    /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
+    /**
+     * The service needed to complete this request is unavailable.
+     */
+    503: Error;
 };
 
 export type PurchaseOrdersSubmitError = PurchaseOrdersSubmitErrors[keyof PurchaseOrdersSubmitErrors];
+
+export type PurchaseOrdersSubmitResponses = {
+    /**
+     * The submitted purchase order.
+     */
+    200: PurchaseOrder;
+};
+
+export type PurchaseOrdersSubmitResponse = PurchaseOrdersSubmitResponses[keyof PurchaseOrdersSubmitResponses];
 
 export type PurchaseOrdersCancelSubmissionData = {
     body?: never;
     path: {
         /**
-         * Purchase order identifier (`po_…`).
+         * Purchase order ID.
          */
         purchaseOrderId: Id;
     };
@@ -11655,19 +10803,19 @@ export type PurchaseOrdersCancelSubmissionErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -11687,7 +10835,7 @@ export type PurchaseOrdersVoidData = {
     body?: never;
     path: {
         /**
-         * Purchase order identifier (`po_…`).
+         * Purchase order ID.
          */
         purchaseOrderId: Id;
     };
@@ -11701,19 +10849,19 @@ export type PurchaseOrdersVoidErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -11733,7 +10881,7 @@ export type PurchaseOrdersMarkPaidData = {
     body?: never;
     path: {
         /**
-         * Purchase order identifier (`po_…`).
+         * Purchase order ID.
          */
         purchaseOrderId: Id;
     };
@@ -11747,19 +10895,19 @@ export type PurchaseOrdersMarkPaidErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -11775,193 +10923,87 @@ export type PurchaseOrdersMarkPaidResponses = {
 
 export type PurchaseOrdersMarkPaidResponse = PurchaseOrdersMarkPaidResponses[keyof PurchaseOrdersMarkPaidResponses];
 
-export type PurchaseOrdersLinkData = {
-    body: PurchaseOrderLink;
+export type PurchaseOrdersUnlinkTransactionData = {
+    body?: never;
     path: {
-        /**
-         * Purchase order identifier (`po_…`).
-         */
         purchaseOrderId: Id;
+        transactionId: Id;
     };
     query?: never;
-    url: '/purchase-orders/{purchaseOrderId}/link';
+    url: '/purchase-orders/{purchaseOrderId}/transactions/{transactionId}';
 };
 
-export type PurchaseOrdersLinkErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
+export type PurchaseOrdersUnlinkTransactionErrors = {
     /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
-    /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
-     */
-    422: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
 };
 
-export type PurchaseOrdersLinkError = PurchaseOrdersLinkErrors[keyof PurchaseOrdersLinkErrors];
+export type PurchaseOrdersUnlinkTransactionError = PurchaseOrdersUnlinkTransactionErrors[keyof PurchaseOrdersUnlinkTransactionErrors];
 
-export type PurchaseOrdersLinkResponses = {
-    /**
-     * The linked purchase order. Its status is unchanged.
-     */
-    200: PurchaseOrder;
-};
-
-export type PurchaseOrdersLinkResponse = PurchaseOrdersLinkResponses[keyof PurchaseOrdersLinkResponses];
-
-export type PurchaseOrdersUnlinkData = {
-    body: PurchaseOrderLink;
-    path: {
-        /**
-         * Purchase order identifier (`po_…`).
-         */
-        purchaseOrderId: Id;
-    };
-    query?: never;
-    url: '/purchase-orders/{purchaseOrderId}/unlink';
-};
-
-export type PurchaseOrdersUnlinkErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
-     */
-    409: Error;
-    /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
-     */
-    422: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type PurchaseOrdersUnlinkError = PurchaseOrdersUnlinkErrors[keyof PurchaseOrdersUnlinkErrors];
-
-export type PurchaseOrdersUnlinkResponses = {
+export type PurchaseOrdersUnlinkTransactionResponses = {
     /**
      * The purchase order after unlinking.
      */
     200: PurchaseOrder;
 };
 
-export type PurchaseOrdersUnlinkResponse = PurchaseOrdersUnlinkResponses[keyof PurchaseOrdersUnlinkResponses];
+export type PurchaseOrdersUnlinkTransactionResponse = PurchaseOrdersUnlinkTransactionResponses[keyof PurchaseOrdersUnlinkTransactionResponses];
 
-export type PurchaseOrdersActivityData = {
+export type PurchaseOrdersLinkTransactionData = {
     body?: never;
     path: {
         purchaseOrderId: Id;
+        transactionId: Id;
     };
     query?: never;
-    url: '/purchase-orders/{purchaseOrderId}/activity';
+    url: '/purchase-orders/{purchaseOrderId}/transactions/{transactionId}';
 };
 
-export type PurchaseOrdersActivityErrors = {
+export type PurchaseOrdersLinkTransactionErrors = {
     /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * The request conflicts with the current resource state.
      */
-    429: Error;
+    409: Error;
 };
 
-export type PurchaseOrdersActivityError = PurchaseOrdersActivityErrors[keyof PurchaseOrdersActivityErrors];
+export type PurchaseOrdersLinkTransactionError = PurchaseOrdersLinkTransactionErrors[keyof PurchaseOrdersLinkTransactionErrors];
 
-export type PurchaseOrdersActivityResponses = {
+export type PurchaseOrdersLinkTransactionResponses = {
     /**
-     * Current purchase-order activity with source entries.
+     * The linked purchase order.
      */
-    200: PurchaseOrderActivity;
+    200: PurchaseOrder;
 };
 
-export type PurchaseOrdersActivityResponse = PurchaseOrdersActivityResponses[keyof PurchaseOrdersActivityResponses];
+export type PurchaseOrdersLinkTransactionResponse = PurchaseOrdersLinkTransactionResponses[keyof PurchaseOrdersLinkTransactionResponses];
 
-export type PurchaseOrdersSuggestedMatchesData = {
-    body?: never;
-    path: {
-        purchaseOrderId: Id;
-    };
-    query?: never;
-    url: '/purchase-orders/{purchaseOrderId}/suggested-matches';
-};
-
-export type PurchaseOrdersSuggestedMatchesErrors = {
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type PurchaseOrdersSuggestedMatchesError = PurchaseOrdersSuggestedMatchesErrors[keyof PurchaseOrdersSuggestedMatchesErrors];
-
-export type PurchaseOrdersSuggestedMatchesResponses = {
-    /**
-     * Suggested matches.
-     */
-    200: PurchaseOrderSuggestedMatchList;
-};
-
-export type PurchaseOrdersSuggestedMatchesResponse = PurchaseOrdersSuggestedMatchesResponses[keyof PurchaseOrdersSuggestedMatchesResponses];
-
-export type PurchaseOrdersTimelineData = {
+export type PurchaseOrdersGetTimelineData = {
     body?: never;
     path: {
         purchaseOrderId: Id;
@@ -11972,16 +11014,16 @@ export type PurchaseOrdersTimelineData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
     };
     url: '/purchase-orders/{purchaseOrderId}/timeline';
 };
 
-export type PurchaseOrdersTimelineErrors = {
+export type PurchaseOrdersGetTimelineErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -11989,35 +11031,35 @@ export type PurchaseOrdersTimelineErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type PurchaseOrdersTimelineError = PurchaseOrdersTimelineErrors[keyof PurchaseOrdersTimelineErrors];
+export type PurchaseOrdersGetTimelineError = PurchaseOrdersGetTimelineErrors[keyof PurchaseOrdersGetTimelineErrors];
 
-export type PurchaseOrdersTimelineResponses = {
+export type PurchaseOrdersGetTimelineResponses = {
     /**
-     * A page of chronological purchase-order events.
+     * Purchase order history, newest first.
      */
     200: PurchaseOrderTimelinePage;
 };
 
-export type PurchaseOrdersTimelineResponse = PurchaseOrdersTimelineResponses[keyof PurchaseOrdersTimelineResponses];
+export type PurchaseOrdersGetTimelineResponse = PurchaseOrdersGetTimelineResponses[keyof PurchaseOrdersGetTimelineResponses];
 
 export type PurchaseOrdersListItemsData = {
     body?: never;
     path: {
         /**
-         * Purchase order identifier (`po_…`).
+         * Purchase order ID.
          */
         purchaseOrderId: Id;
     };
@@ -12027,7 +11069,7 @@ export type PurchaseOrdersListItemsData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
     };
@@ -12036,19 +11078,23 @@ export type PurchaseOrdersListItemsData = {
 
 export type PurchaseOrdersListItemsErrors = {
     /**
+     * The request is invalid.
+     */
+    400: Error;
+    /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -12068,13 +11114,13 @@ export type PurchaseOrdersCreateItemData = {
     body: PurchaseOrderItemWrite;
     headers: {
         /**
-         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         * A unique 16-255 character key. Reusing the key with the same body returns the first result. Reusing it with a different body returns `409 idempotency_conflict`.
          */
         'Idempotency-Key': string;
     };
     path: {
         /**
-         * Purchase order identifier (`po_…`).
+         * Purchase order ID.
          */
         purchaseOrderId: Id;
     };
@@ -12084,7 +11130,7 @@ export type PurchaseOrdersCreateItemData = {
 
 export type PurchaseOrdersCreateItemErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -12092,23 +11138,23 @@ export type PurchaseOrdersCreateItemErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -12128,11 +11174,11 @@ export type PurchaseOrdersDeleteItemData = {
     body?: never;
     path: {
         /**
-         * Purchase order identifier (`po_…`).
+         * Purchase order ID.
          */
         purchaseOrderId: Id;
         /**
-         * Purchase order item identifier (`poi_…`).
+         * Purchase order item ID.
          */
         itemId: Id;
     };
@@ -12146,19 +11192,19 @@ export type PurchaseOrdersDeleteItemErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -12178,11 +11224,11 @@ export type PurchaseOrdersUpdateItemData = {
     body: PurchaseOrderItemWrite;
     path: {
         /**
-         * Purchase order identifier (`po_…`).
+         * Purchase order ID.
          */
         purchaseOrderId: Id;
         /**
-         * Purchase order item identifier (`poi_…`).
+         * Purchase order item ID.
          */
         itemId: Id;
     };
@@ -12192,7 +11238,7 @@ export type PurchaseOrdersUpdateItemData = {
 
 export type PurchaseOrdersUpdateItemErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -12200,23 +11246,23 @@ export type PurchaseOrdersUpdateItemErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -12232,68 +11278,6 @@ export type PurchaseOrdersUpdateItemResponses = {
 
 export type PurchaseOrdersUpdateItemResponse = PurchaseOrdersUpdateItemResponses[keyof PurchaseOrdersUpdateItemResponses];
 
-export type PurchaseOrdersListTransactionsData = {
-    body?: never;
-    path: {
-        /**
-         * Purchase order identifier (`po_…`).
-         */
-        purchaseOrderId: Id;
-    };
-    query?: {
-        /**
-         * Maximum number of items to return on a page. Capped at 100.
-         */
-        limit?: number;
-        /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
-         */
-        cursor?: string;
-    };
-    url: '/purchase-orders/{purchaseOrderId}/transactions';
-};
-
-export type PurchaseOrdersListTransactionsErrors = {
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type PurchaseOrdersListTransactionsError = PurchaseOrdersListTransactionsErrors[keyof PurchaseOrdersListTransactionsErrors];
-
-export type PurchaseOrdersListTransactionsResponses = {
-    /**
-     * A page of linked transactions.
-     */
-    200: {
-        data: Array<Transaction>;
-        nextCursor?: NextCursor;
-        /**
-         * Total matching transactions; present only when `withCount=true`.
-         */
-        count?: number;
-        /**
-         * True when a permission/expand under-fetch bounded the page short of `limit`.
-         */
-        truncated?: boolean;
-    };
-};
-
-export type PurchaseOrdersListTransactionsResponse = PurchaseOrdersListTransactionsResponses[keyof PurchaseOrdersListTransactionsResponses];
-
 export type SearchWorkspaceData = {
     body?: never;
     path?: never;
@@ -12303,24 +11287,32 @@ export type SearchWorkspaceData = {
          */
         q: string;
         /**
-         * Comma-separated subset of kinds to search; omit to search every supported kind. The response always echoes `searchedTypes` (`requested ∩ supported ∩ authorized`), so a kind with no text index or a fully-denied scope is dropped (not silently empty). An unrecognized kind fails validation (`fieldErrors.types`).
+         * Resource types to search. Omit to search every supported type.
          */
         types?: Array<SearchKind>;
+        /**
+         * Limit results to one project.
+         */
+        projectId?: Id;
         /**
          * Maximum number of items to return on a page. Capped at 100.
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
+        /**
+         * Include the total number of matching items. Defaults to `false`.
+         */
+        withCount?: boolean;
     };
     url: '/search';
 };
 
 export type SearchWorkspaceErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -12328,15 +11320,19 @@ export type SearchWorkspaceErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * This feature is not available on the workspace plan.
+     */
+    402: Error;
+    /**
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -12345,90 +11341,27 @@ export type SearchWorkspaceError = SearchWorkspaceErrors[keyof SearchWorkspaceEr
 
 export type SearchWorkspaceResponses = {
     /**
-     * A ranked page of mixed-type hits plus the echoed `searchedTypes`.
+     * Ranked search results.
      */
     200: SearchResponse;
 };
 
 export type SearchWorkspaceResponse = SearchWorkspaceResponses[keyof SearchWorkspaceResponses];
 
-export type SearchProjectData = {
-    body?: never;
-    path: {
-        /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-    };
-    query: {
-        /**
-         * The search query. 1 to 500 characters.
-         */
-        q: string;
-        /**
-         * Comma-separated subset of kinds to search; omit to search every supported kind. Echoed back as `searchedTypes`. `contacts` is never searched at project scope (workspace-level only) and is dropped from `searchedTypes` even if requested.
-         */
-        types?: Array<SearchKind>;
-        /**
-         * Maximum number of items to return on a page. Capped at 100.
-         */
-        limit?: number;
-        /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
-         */
-        cursor?: string;
-    };
-    url: '/projects/{projectId}/search';
-};
-
-export type SearchProjectErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type SearchProjectError = SearchProjectErrors[keyof SearchProjectErrors];
-
-export type SearchProjectResponses = {
-    /**
-     * A ranked page of mixed-type hits scoped to this project, plus `searchedTypes`.
-     */
-    200: SearchResponse;
-};
-
-export type SearchProjectResponse = SearchProjectResponses[keyof SearchProjectResponses];
-
 export type TransactionsListData = {
     body?: never;
     path?: never;
     query?: {
         /**
-         * Filter by project (`prj_…` id or slug). Use `none` for unassigned (workspace-level) transactions; omit to return every transaction in the workspace.
+         * Project ID or slug. Use `none` for unassigned transactions.
          */
         projectId?: string;
         /**
-         * Filter by rail. Comma-separated = IN.
+         * Transaction source. Separate multiple values with commas.
          */
         source?: TransactionSource;
         /**
-         * Filter by movement type (extensible enum). Comma-separated = IN.
+         * Transaction type. Separate multiple values with commas.
          */
         type?: string;
         /**
@@ -12436,47 +11369,55 @@ export type TransactionsListData = {
          */
         status?: TransactionStatus;
         /**
-         * Closed boolean over the derived reversal set (refund and dispute states, plaid reversals). `true` = money-back events only.
+         * Set to `true` for refunds and other reversals.
          */
         isReversal?: boolean;
         /**
-         * Filter by assigned contact.
+         * Assigned contact ID.
          */
         contactId?: Id;
         /**
-         * Filter by coded budget line (transaction-level coding).
+         * Budget line ID.
          */
         budgetLineId?: Id;
         /**
-         * Inclusive lower bound on `timestamp` (ISO-8601). `dateFrom > dateTo` -> 400 invalid_date_range.
+         * Linked purchase order ID.
+         */
+        purchaseOrderId?: Id;
+        /**
+         * Three-letter currency code. Required with `amountMin` or `amountMax`.
+         */
+        currency?: string;
+        /**
+         * Earliest transaction time, inclusive. Must be on or before `dateTo`.
          */
         dateFrom?: string;
         /**
-         * Inclusive upper bound on `timestamp` (ISO-8601).
+         * Latest transaction time, inclusive.
          */
         dateTo?: string;
         /**
-         * Inclusive lower bound on `amount` in minor units.
+         * Minimum amount, inclusive, in minor currency units. Requires `currency`.
          */
         amountMin?: number;
         /**
-         * Inclusive upper bound on `amount` in minor units.
+         * Maximum amount, inclusive, in minor currency units. Requires `currency`.
          */
         amountMax?: number;
         /**
-         * Filter itemized (`true`) vs single-coded (`false`) transactions.
+         * Set to `true` for itemized transactions or `false` for transactions without items.
          */
         isItemized?: boolean;
         /**
-         * Filter by rail-supplied merchant name (case-insensitive substring match). A restored high-value legacy facet, useful for grouping sourced spend by vendor.
+         * Merchant name. Matching is case-insensitive and partial.
          */
         merchant?: string;
         /**
-         * Restore the high-value legacy "has attachments" facet, retargeted to the documents model: `true` returns only transactions with at least one assigned document, `false` only those with none. (Legacy `hasAttachments`; the underlying assignment model is the new `/documents` + assign surface.)
+         * Set to `true` for transactions with documents or `false` for transactions without documents.
          */
         hasDocuments?: boolean;
         /**
-         * Full-text search over `description`.
+         * Search transaction descriptions.
          */
         q?: string;
         /**
@@ -12488,7 +11429,7 @@ export type TransactionsListData = {
          */
         sort?: TransactionSortField;
         /**
-         * Sort direction (replaces legacy `sortOrder`).
+         * Sort direction.
          */
         order?: 'asc' | 'desc';
         /**
@@ -12496,24 +11437,20 @@ export type TransactionsListData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
+         * Include the total number of matching items. Defaults to `false`.
          */
         withCount?: boolean;
-        /**
-         * Replay a saved view (`?view={id}`), a named, persisted filter + shape bundle. The view's filter/sort/expand resolve first; any inline query params layer on top to refine. An unknown or unreadable view id returns `404 not_found`.
-         */
-        view?: Id;
     };
     url: '/transactions';
 };
 
 export type TransactionsListErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -12521,15 +11458,15 @@ export type TransactionsListErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -12546,10 +11483,10 @@ export type TransactionsListResponses = {
 export type TransactionsListResponse = TransactionsListResponses[keyof TransactionsListResponses];
 
 export type TransactionsCreateData = {
-    body: TransactionJournalCreate;
+    body: TransactionManualCreate;
     headers: {
         /**
-         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         * A unique 16-255 character key. Reusing the key with the same body returns the first result. Reusing it with a different body returns `409 idempotency_conflict`.
          */
         'Idempotency-Key': string;
     };
@@ -12560,7 +11497,7 @@ export type TransactionsCreateData = {
 
 export type TransactionsCreateErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -12568,23 +11505,23 @@ export type TransactionsCreateErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -12593,7 +11530,7 @@ export type TransactionsCreateError = TransactionsCreateErrors[keyof Transaction
 
 export type TransactionsCreateResponses = {
     /**
-     * The created journal transaction.
+     * The created transaction.
      */
     201: Transaction;
 };
@@ -12603,30 +11540,74 @@ export type TransactionsCreateResponse = TransactionsCreateResponses[keyof Trans
 export type TransactionsStatsData = {
     body?: never;
     path?: never;
-    query?: {
+    query: {
         /**
-         * Filter by project (`prj_…` id or slug). Use `none` for unassigned (workspace-level) transactions; omit to return every transaction in the workspace.
+         * Project ID or slug. Use `none` for unassigned transactions.
          */
         projectId?: string;
+        /**
+         * Transaction source. Separate multiple values with commas.
+         */
         source?: TransactionSource;
+        /**
+         * Transaction type. Separate multiple values with commas.
+         */
         type?: string;
+        /**
+         * Transaction status. Separate multiple values with commas.
+         */
         status?: TransactionStatus;
+        /**
+         * Set to `true` for refunds and other reversals.
+         */
         isReversal?: boolean;
+        /**
+         * Only transactions for this contact.
+         */
         contactId?: Id;
+        /**
+         * Only transactions coded to this budget line.
+         */
         budgetLineId?: Id;
+        /**
+         * Linked purchase order ID.
+         */
+        purchaseOrderId?: Id;
+        /**
+         * Three-letter currency code for the total.
+         */
+        currency: string;
+        /**
+         * Earliest transaction time, inclusive. Must be on or before `dateTo`.
+         */
         dateFrom?: string;
+        /**
+         * Latest transaction time, inclusive.
+         */
         dateTo?: string;
+        /**
+         * Minimum amount, inclusive, in minor currency units.
+         */
         amountMin?: number;
+        /**
+         * Maximum amount, inclusive, in minor currency units.
+         */
         amountMax?: number;
+        /**
+         * Set to `true` for itemized transactions or `false` for transactions without items.
+         */
         isItemized?: boolean;
         /**
-         * Filter by rail-supplied merchant name (case-insensitive substring match).
+         * Merchant name. Matching is case-insensitive and partial.
          */
         merchant?: string;
         /**
-         * `true` = only transactions with at least one assigned document; `false` = only those with none (the restored legacy "has attachments" facet, retargeted to the documents model).
+         * Set to `true` for transactions with documents or `false` for transactions without documents.
          */
         hasDocuments?: boolean;
+        /**
+         * Search transaction descriptions.
+         */
         q?: string;
     };
     url: '/transactions/stats';
@@ -12634,7 +11615,7 @@ export type TransactionsStatsData = {
 
 export type TransactionsStatsErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -12642,15 +11623,15 @@ export type TransactionsStatsErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -12659,71 +11640,29 @@ export type TransactionsStatsError = TransactionsStatsErrors[keyof TransactionsS
 
 export type TransactionsStatsResponses = {
     /**
-     * Aggregate stats for the filter.
+     * Totals for matching transactions.
      */
     200: TransactionStats;
 };
 
 export type TransactionsStatsResponse = TransactionsStatsResponses[keyof TransactionsStatsResponses];
 
-export type TransactionsTypesData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Filter by project (`prj_…` id or slug). `none` = unassigned; omit for the whole workspace.
-         */
-        projectId?: string;
-    };
-    url: '/transactions/types';
-};
-
-export type TransactionsTypesErrors = {
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type TransactionsTypesError = TransactionsTypesErrors[keyof TransactionsTypesErrors];
-
-export type TransactionsTypesResponses = {
-    /**
-     * Distinct visible type values.
-     */
-    200: TransactionTypes;
-};
-
-export type TransactionsTypesResponse = TransactionsTypesResponses[keyof TransactionsTypesResponses];
-
-export type TransactionsBatchCreateData = {
-    body: TransactionBatchCreate;
+export type TransactionsCreateBulkData = {
+    body: TransactionBulkCreate;
     headers: {
         /**
-         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         * A unique 16-255 character key. Reusing the key with the same body returns the first result. Reusing it with a different body returns `409 idempotency_conflict`.
          */
         'Idempotency-Key': string;
     };
     path?: never;
     query?: never;
-    url: '/transactions/batch';
+    url: '/transactions/bulk';
 };
 
-export type TransactionsBatchCreateErrors = {
+export type TransactionsCreateBulkErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -12731,52 +11670,52 @@ export type TransactionsBatchCreateErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Payload / result too large, `budget_too_large` or `batch_too_large`.
+     * Payload / result too large, `budget_too_large` or `bulk_too_large`.
      */
     413: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type TransactionsBatchCreateError = TransactionsBatchCreateErrors[keyof TransactionsBatchCreateErrors];
+export type TransactionsCreateBulkError = TransactionsCreateBulkErrors[keyof TransactionsCreateBulkErrors];
 
-export type TransactionsBatchCreateResponses = {
+export type TransactionsCreateBulkResponses = {
     /**
      * The created transactions.
      */
     201: TransactionCollection;
 };
 
-export type TransactionsBatchCreateResponse = TransactionsBatchCreateResponses[keyof TransactionsBatchCreateResponses];
+export type TransactionsCreateBulkResponse = TransactionsCreateBulkResponses[keyof TransactionsCreateBulkResponses];
 
 export type TransactionsDeleteData = {
     body?: never;
     path: {
         /**
-         * Transaction id (`txn_...`).
+         * Transaction ID.
          */
-        txId: Id;
+        transactionId: Id;
     };
     query?: never;
-    url: '/transactions/{txId}';
+    url: '/transactions/{transactionId}';
 };
 
 export type TransactionsDeleteErrors = {
@@ -12785,19 +11724,19 @@ export type TransactionsDeleteErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -12806,7 +11745,7 @@ export type TransactionsDeleteError = TransactionsDeleteErrors[keyof Transaction
 
 export type TransactionsDeleteResponses = {
     /**
-     * Soft-deleted. No body.
+     * Transaction deleted.
      */
     204: void;
 };
@@ -12817,9 +11756,9 @@ export type TransactionsGetData = {
     body?: never;
     path: {
         /**
-         * Transaction id (`txn_...`).
+         * Transaction ID.
          */
-        txId: Id;
+        transactionId: Id;
     };
     query?: {
         /**
@@ -12827,12 +11766,12 @@ export type TransactionsGetData = {
          */
         expand?: Array<TransactionExpandKey>;
     };
-    url: '/transactions/{txId}';
+    url: '/transactions/{transactionId}';
 };
 
 export type TransactionsGetErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -12840,15 +11779,15 @@ export type TransactionsGetErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -12868,17 +11807,17 @@ export type TransactionsUpdateData = {
     body: TransactionPatch;
     path: {
         /**
-         * Transaction id (`txn_...`).
+         * Transaction ID.
          */
-        txId: Id;
+        transactionId: Id;
     };
     query?: never;
-    url: '/transactions/{txId}';
+    url: '/transactions/{transactionId}';
 };
 
 export type TransactionsUpdateErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -12886,23 +11825,23 @@ export type TransactionsUpdateErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -12918,78 +11857,74 @@ export type TransactionsUpdateResponses = {
 
 export type TransactionsUpdateResponse = TransactionsUpdateResponses[keyof TransactionsUpdateResponses];
 
-export type TransactionsItemsListData = {
+export type TransactionsListItemsData = {
     body?: never;
     path: {
         /**
-         * Transaction id (`txn_...`).
+         * Transaction ID.
          */
-        txId: Id;
+        transactionId: Id;
     };
     query?: {
         /**
          * Maximum number of items to return on a page. Capped at 100.
          */
         limit?: number;
-        /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
-         */
-        cursor?: string;
     };
-    url: '/transactions/{txId}/items';
+    url: '/transactions/{transactionId}/items';
 };
 
-export type TransactionsItemsListErrors = {
+export type TransactionsListItemsErrors = {
     /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type TransactionsItemsListError = TransactionsItemsListErrors[keyof TransactionsItemsListErrors];
+export type TransactionsListItemsError = TransactionsListItemsErrors[keyof TransactionsListItemsErrors];
 
-export type TransactionsItemsListResponses = {
+export type TransactionsListItemsResponses = {
     /**
      * The items.
      */
     200: TransactionItemCollection;
 };
 
-export type TransactionsItemsListResponse = TransactionsItemsListResponses[keyof TransactionsItemsListResponses];
+export type TransactionsListItemsResponse = TransactionsListItemsResponses[keyof TransactionsListItemsResponses];
 
-export type TransactionsItemsCreateData = {
+export type TransactionsCreateItemData = {
     body: TransactionItemCreate;
     headers: {
         /**
-         * Required client-generated key (16-255 chars) for exactly-once creation. Retrying with the same key replays the original result (`Idempotency-Replayed: true`); the same key with a different body returns `409 idempotency_conflict`. Missing or too-short key returns `400 validation`.
+         * A unique 16-255 character key. Reusing the key with the same body returns the first result. Reusing it with a different body returns `409 idempotency_conflict`.
          */
         'Idempotency-Key': string;
     };
     path: {
         /**
-         * Transaction id (`txn_...`).
+         * Transaction ID.
          */
-        txId: Id;
+        transactionId: Id;
     };
     query?: never;
-    url: '/transactions/{txId}/items';
+    url: '/transactions/{transactionId}/items';
 };
 
-export type TransactionsItemsCreateErrors = {
+export type TransactionsCreateItemErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -12997,103 +11932,103 @@ export type TransactionsItemsCreateErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type TransactionsItemsCreateError = TransactionsItemsCreateErrors[keyof TransactionsItemsCreateErrors];
+export type TransactionsCreateItemError = TransactionsCreateItemErrors[keyof TransactionsCreateItemErrors];
 
-export type TransactionsItemsCreateResponses = {
+export type TransactionsCreateItemResponses = {
     /**
      * The created item.
      */
     201: TransactionItem;
 };
 
-export type TransactionsItemsCreateResponse = TransactionsItemsCreateResponses[keyof TransactionsItemsCreateResponses];
+export type TransactionsCreateItemResponse = TransactionsCreateItemResponses[keyof TransactionsCreateItemResponses];
 
-export type TransactionsItemsDeleteData = {
+export type TransactionsDeleteItemData = {
     body?: never;
     path: {
         /**
-         * Transaction id (`txn_...`).
+         * Transaction ID.
          */
-        txId: Id;
+        transactionId: Id;
         /**
-         * Transaction item id (`txi_...`).
+         * Transaction item ID.
          */
         itemId: Id;
     };
     query?: never;
-    url: '/transactions/{txId}/items/{itemId}';
+    url: '/transactions/{transactionId}/items/{itemId}';
 };
 
-export type TransactionsItemsDeleteErrors = {
+export type TransactionsDeleteItemErrors = {
     /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type TransactionsItemsDeleteError = TransactionsItemsDeleteErrors[keyof TransactionsItemsDeleteErrors];
+export type TransactionsDeleteItemError = TransactionsDeleteItemErrors[keyof TransactionsDeleteItemErrors];
 
-export type TransactionsItemsDeleteResponses = {
+export type TransactionsDeleteItemResponses = {
     /**
-     * Item soft-deleted. No body.
+     * Item deleted.
      */
     204: void;
 };
 
-export type TransactionsItemsDeleteResponse = TransactionsItemsDeleteResponses[keyof TransactionsItemsDeleteResponses];
+export type TransactionsDeleteItemResponse = TransactionsDeleteItemResponses[keyof TransactionsDeleteItemResponses];
 
-export type TransactionsItemsUpdateData = {
+export type TransactionsUpdateItemData = {
     body: TransactionItemPatch;
     path: {
         /**
-         * Transaction id (`txn_...`).
+         * Transaction ID.
          */
-        txId: Id;
+        transactionId: Id;
         /**
-         * Transaction item id (`txi_...`).
+         * Transaction item ID.
          */
         itemId: Id;
     };
     query?: never;
-    url: '/transactions/{txId}/items/{itemId}';
+    url: '/transactions/{transactionId}/items/{itemId}';
 };
 
-export type TransactionsItemsUpdateErrors = {
+export type TransactionsUpdateItemErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -13101,338 +12036,33 @@ export type TransactionsItemsUpdateErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type TransactionsItemsUpdateError = TransactionsItemsUpdateErrors[keyof TransactionsItemsUpdateErrors];
+export type TransactionsUpdateItemError = TransactionsUpdateItemErrors[keyof TransactionsUpdateItemErrors];
 
-export type TransactionsItemsUpdateResponses = {
+export type TransactionsUpdateItemResponses = {
     /**
      * The updated item.
      */
     200: TransactionItem;
 };
 
-export type TransactionsItemsUpdateResponse = TransactionsItemsUpdateResponses[keyof TransactionsItemsUpdateResponses];
-
-export type UsageListRollupsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Inclusive start of the window (ISO-8601). Defaults to a recent window when omitted. The window is capped, an over-cap `from`/`to` span returns `400 range_too_large`; an inverted or unparseable range returns `400 invalid_date_range`.
-         */
-        from?: string;
-        /**
-         * Exclusive end of the window (ISO-8601). Defaults to now when omitted. `from` must be before `to`.
-         */
-        to?: string;
-        /**
-         * The rollup dimension. Defaults to `day`. The active dimension is echoed in each row's `keyKind` / `key`.
-         */
-        groupBy?: UsageGroupBy;
-        /**
-         * Filter to a single source (`api | agent | document`). Omit for the combined view across all three.
-         */
-        source?: UsageSource;
-        /**
-         * Filter to a single operation class (e.g. `api.read`, `agent.run`).
-         */
-        operationClass?: UsageOperationClass;
-        /**
-         * Filter rollups to a single API token (`tok_…`).
-         */
-        tokenId?: Id;
-        /**
-         * Maximum number of items to return on a page. Capped at 100.
-         */
-        limit?: number;
-        /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
-         */
-        cursor?: string;
-        /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
-         */
-        withCount?: boolean;
-    };
-    url: '/usage';
-};
-
-export type UsageListRollupsErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type UsageListRollupsError = UsageListRollupsErrors[keyof UsageListRollupsErrors];
-
-export type UsageListRollupsResponses = {
-    /**
-     * A page of usage rollup rows plus the resolved window.
-     */
-    200: UsageRollupResponse;
-};
-
-export type UsageListRollupsResponse = UsageListRollupsResponses[keyof UsageListRollupsResponses];
-
-export type UsageListProjectRollupsData = {
-    body?: never;
-    path: {
-        /**
-         * Project identifier, accepts the canonical `id` (`prj_…`) or the project `slug`.
-         */
-        projectId: string;
-    };
-    query?: {
-        /**
-         * Inclusive start of the window (ISO-8601). Defaults to a recent window when omitted. The window is capped, an over-cap `from`/`to` span returns `400 range_too_large`; an inverted or unparseable range returns `400 invalid_date_range`.
-         */
-        from?: string;
-        /**
-         * Exclusive end of the window (ISO-8601). Defaults to now when omitted. `from` must be before `to`.
-         */
-        to?: string;
-        /**
-         * The rollup dimension. Defaults to `day`. The active dimension is echoed in each row's `keyKind` / `key`.
-         */
-        groupBy?: UsageGroupBy;
-        /**
-         * Filter to a single source (`api | agent | document`). Omit for the combined view across all three.
-         */
-        source?: UsageSource;
-        /**
-         * Filter to a single operation class (e.g. `api.read`, `agent.run`).
-         */
-        operationClass?: UsageOperationClass;
-        /**
-         * Filter rollups to a single API token (`tok_…`).
-         */
-        tokenId?: Id;
-        /**
-         * Maximum number of items to return on a page. Capped at 100.
-         */
-        limit?: number;
-        /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
-         */
-        cursor?: string;
-        /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
-         */
-        withCount?: boolean;
-    };
-    url: '/projects/{projectId}/usage';
-};
-
-export type UsageListProjectRollupsErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type UsageListProjectRollupsError = UsageListProjectRollupsErrors[keyof UsageListProjectRollupsErrors];
-
-export type UsageListProjectRollupsResponses = {
-    /**
-     * A page of project-scoped usage rollup rows plus the resolved window.
-     */
-    200: UsageRollupResponse;
-};
-
-export type UsageListProjectRollupsResponse = UsageListProjectRollupsResponses[keyof UsageListProjectRollupsResponses];
-
-export type UsageListCreditsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Inclusive start of the window (ISO-8601). Defaults to a recent window when omitted. The window is capped, an over-cap `from`/`to` span returns `400 range_too_large`; an inverted or unparseable range returns `400 invalid_date_range`.
-         */
-        from?: string;
-        /**
-         * Exclusive end of the window (ISO-8601). Defaults to now when omitted. `from` must be before `to`.
-         */
-        to?: string;
-        /**
-         * Filter to a single source (`api | agent | document`). Omit for the combined view across all three.
-         */
-        source?: UsageSource;
-        /**
-         * Filter to a single operation class (e.g. `api.read`, `agent.run`).
-         */
-        operationClass?: UsageOperationClass;
-        /**
-         * Maximum number of items to return on a page. Capped at 100.
-         */
-        limit?: number;
-        /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
-         */
-        cursor?: string;
-        /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
-         */
-        withCount?: boolean;
-    };
-    url: '/usage/credits';
-};
-
-export type UsageListCreditsErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type UsageListCreditsError = UsageListCreditsErrors[keyof UsageListCreditsErrors];
-
-export type UsageListCreditsResponses = {
-    /**
-     * Ledger-derived usage-credit rows plus the window total and projected balance.
-     */
-    200: UsageCreditsResponse;
-};
-
-export type UsageListCreditsResponse = UsageListCreditsResponses[keyof UsageListCreditsResponses];
-
-export type UsageListOperationsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Inclusive start of the window (ISO-8601). Defaults to a recent window when omitted. The window is capped, an over-cap `from`/`to` span returns `400 range_too_large`; an inverted or unparseable range returns `400 invalid_date_range`.
-         */
-        from?: string;
-        /**
-         * Exclusive end of the window (ISO-8601). Defaults to now when omitted. `from` must be before `to`.
-         */
-        to?: string;
-        /**
-         * Filter to a single source (`api | agent | document`). Omit for the combined view across all three.
-         */
-        source?: UsageSource;
-        /**
-         * Filter to a single operation class (e.g. `api.read`, `agent.run`).
-         */
-        operationClass?: UsageOperationClass;
-        /**
-         * Filter rollups to a single API token (`tok_…`).
-         */
-        tokenId?: Id;
-        /**
-         * Maximum number of items to return on a page. Capped at 100.
-         */
-        limit?: number;
-        /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
-         */
-        cursor?: string;
-        /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
-         */
-        withCount?: boolean;
-    };
-    url: '/usage/operations';
-};
-
-export type UsageListOperationsErrors = {
-    /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
-     */
-    403: Error;
-    /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
-     */
-    404: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
-     */
-    429: Error;
-};
-
-export type UsageListOperationsError = UsageListOperationsErrors[keyof UsageListOperationsErrors];
-
-export type UsageListOperationsResponses = {
-    /**
-     * A page of per-operation usage rows plus the resolved window.
-     */
-    200: UsageOperationsResponse;
-};
-
-export type UsageListOperationsResponse = UsageListOperationsResponses[keyof UsageListOperationsResponses];
+export type TransactionsUpdateItemResponse = TransactionsUpdateItemResponses[keyof TransactionsUpdateItemResponses];
 
 export type WebhooksListData = {
     body?: never;
@@ -13443,27 +12073,19 @@ export type WebhooksListData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
-         * Field to sort by (replaces legacy `sortBy`). A non-unique sort field appends `,id` as the tiebreaker. Allowed fields are typed per resource.
-         */
-        sort?: string;
-        /**
-         * Sort direction (replaces legacy `sortOrder`).
+         * Sort direction.
          */
         order?: 'asc' | 'desc';
         /**
-         * Comma list of related data to inline on a webhook subscription (depth ≤ 2). Unknown key returns `400 expand_invalid`.
-         */
-        expand?: Array<WebhookExpand>;
-        /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
+         * Include the total number of matching items. Defaults to `false`.
          */
         withCount?: boolean;
         /**
-         * Only subscriptions that include at least one of these event types. Repeat the param or pass a comma-separated list.
+         * Only subscriptions that include at least one of these comma-separated event types.
          */
         events?: Array<WebhookEvent>;
         /**
@@ -13476,7 +12098,7 @@ export type WebhooksListData = {
 
 export type WebhooksListErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -13484,15 +12106,15 @@ export type WebhooksListErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -13501,7 +12123,7 @@ export type WebhooksListError = WebhooksListErrors[keyof WebhooksListErrors];
 
 export type WebhooksListResponses = {
     /**
-     * A page of webhook subscriptions (secrets omitted).
+     * A page of webhook subscriptions.
      */
     200: WebhookCollection;
 };
@@ -13517,7 +12139,7 @@ export type WebhooksCreateData = {
 
 export type WebhooksCreateErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -13525,23 +12147,23 @@ export type WebhooksCreateErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -13550,7 +12172,7 @@ export type WebhooksCreateError = WebhooksCreateErrors[keyof WebhooksCreateError
 
 export type WebhooksCreateResponses = {
     /**
-     * The created subscription, including the signing `secret` (returned exactly once, store it now).
+     * The created subscription and its signing secret. Store the secret before discarding the response.
      */
     201: WebhookWithSecret;
 };
@@ -13575,15 +12197,15 @@ export type WebhooksDeleteErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -13607,18 +12229,13 @@ export type WebhooksGetData = {
          */
         webhookId: Id;
     };
-    query?: {
-        /**
-         * Comma list of related data to inline on a webhook subscription (depth ≤ 2). Unknown key returns `400 expand_invalid`.
-         */
-        expand?: Array<WebhookExpand>;
-    };
+    query?: never;
     url: '/webhooks/{webhookId}';
 };
 
 export type WebhooksGetErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -13626,15 +12243,15 @@ export type WebhooksGetErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -13643,7 +12260,7 @@ export type WebhooksGetError = WebhooksGetErrors[keyof WebhooksGetErrors];
 
 export type WebhooksGetResponses = {
     /**
-     * The subscription (secret omitted).
+     * The webhook subscription.
      */
     200: Webhook;
 };
@@ -13664,7 +12281,7 @@ export type WebhooksUpdateData = {
 
 export type WebhooksUpdateErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -13672,23 +12289,23 @@ export type WebhooksUpdateErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
+     * The request names a read-only field or cannot be processed.
      */
     422: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -13697,14 +12314,14 @@ export type WebhooksUpdateError = WebhooksUpdateErrors[keyof WebhooksUpdateError
 
 export type WebhooksUpdateResponses = {
     /**
-     * The updated subscription (secret omitted).
+     * The updated webhook subscription.
      */
     200: Webhook;
 };
 
 export type WebhooksUpdateResponse = WebhooksUpdateResponses[keyof WebhooksUpdateResponses];
 
-export type WebhooksPingData = {
+export type WebhooksSendTestDeliveryData = {
     body?: never;
     path: {
         /**
@@ -13713,46 +12330,46 @@ export type WebhooksPingData = {
         webhookId: Id;
     };
     query?: never;
-    url: '/webhooks/{webhookId}/ping';
+    url: '/webhooks/{webhookId}/test-delivery';
 };
 
-export type WebhooksPingErrors = {
+export type WebhooksSendTestDeliveryErrors = {
+    /**
+     * The request is invalid.
+     */
+    400: Error;
     /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Conflict, `account_path_ambiguous`, `idempotency_conflict`, `already_assigned`, `status_unreachable_for_source`, `po_invalid_status` or `webhook_url_invalid_ssrf`.
+     * The request conflicts with the current resource state.
      */
     409: Error;
     /**
-     * Unprocessable entity, `field_read_only` (mass-assignment of a server-owned field), `source_not_postable`, `webhook_url_blocked` or `role_ceiling_exceeded`.
-     */
-    422: Error;
-    /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
 
-export type WebhooksPingError = WebhooksPingErrors[keyof WebhooksPingErrors];
+export type WebhooksSendTestDeliveryError = WebhooksSendTestDeliveryErrors[keyof WebhooksSendTestDeliveryErrors];
 
-export type WebhooksPingResponses = {
+export type WebhooksSendTestDeliveryResponses = {
     /**
-     * The test delivery was queued and recorded; inspect its outcome via the deliveries log.
+     * The queued test delivery.
      */
     202: WebhookDelivery;
 };
 
-export type WebhooksPingResponse = WebhooksPingResponses[keyof WebhooksPingResponses];
+export type WebhooksSendTestDeliveryResponse = WebhooksSendTestDeliveryResponses[keyof WebhooksSendTestDeliveryResponses];
 
 export type WebhooksListDeliveriesData = {
     body?: never;
@@ -13768,19 +12385,15 @@ export type WebhooksListDeliveriesData = {
          */
         limit?: number;
         /**
-         * Opaque cursor from a prior page's `nextCursor`. Encodes the mint-time filter + sort; replaying it against a changed filter or sort returns `400 cursor_invalid`. Stable under concurrent insert / soft-delete.
+         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
          */
         cursor?: string;
         /**
-         * Field to sort by (replaces legacy `sortBy`). A non-unique sort field appends `,id` as the tiebreaker. Allowed fields are typed per resource.
-         */
-        sort?: string;
-        /**
-         * Sort direction (replaces legacy `sortOrder`).
+         * Sort direction.
          */
         order?: 'asc' | 'desc';
         /**
-         * Opt in to a total `count` on the collection envelope. Off by default because counting is expensive. Valid on every list response, the canonical envelope always carries `count`.
+         * Include the total number of matching items. Defaults to `false`.
          */
         withCount?: boolean;
         /**
@@ -13801,7 +12414,7 @@ export type WebhooksListDeliveriesData = {
 
 export type WebhooksListDeliveriesErrors = {
     /**
-     * Bad request, `validation`, `cursor_invalid`, `expand_invalid`, `invalid_date_range`, `webhook_https_required` or `document_invalid_target_kind`.
+     * The request is invalid.
      */
     400: Error;
     /**
@@ -13809,15 +12422,15 @@ export type WebhooksListDeliveriesErrors = {
      */
     401: Error;
     /**
-     * Forbidden, `permission_revoked` (with a `requiredAbility` hint), `scope_exceeded`, `forbidden`, `feature_not_available`, `role_ceiling_exceeded`, `token_revoked` or `document_assign_forbidden`. The principal's live ability ∩ token scopes does not permit the action.
+     * Forbidden. The token does not allow this action.
      */
     403: Error;
     /**
-     * Not found, `not_found` (also returned for exists-but-unauthorized, so existence never leaks) or `document_target_not_found`.
+     * Not found or unavailable to the token.
      */
     404: Error;
     /**
-     * Rate limited, `rate_limited`. The response carries a `Retry-After` header. Rate-limit internals are not leaked.
+     * Rate limited. See `Retry-After` before retrying.
      */
     429: Error;
 };
@@ -13832,3 +12445,12 @@ export type WebhooksListDeliveriesResponses = {
 };
 
 export type WebhooksListDeliveriesResponse = WebhooksListDeliveriesResponses[keyof WebhooksListDeliveriesResponses];
+
+export type WebhooksReceiveEventWebhookPayload = WebhookEventPayload;
+
+export type WebhooksReceiveEventWebhookRequest = {
+    body: WebhooksReceiveEventWebhookPayload;
+    key: 'saturationEvent';
+    path?: never;
+    query?: never;
+};

@@ -2,7 +2,7 @@
 
 import { client } from './client.gen.js';
 import { type Client, formDataBodySerializer, type Options as Options2, type TDataShape } from './client/index.js';
-import type { BudgetCreateLineData, BudgetCreateLineErrors, BudgetCreateLineResponses, BudgetCreateLinesBatchData, BudgetCreateLinesBatchErrors, BudgetCreateLinesBatchResponses, BudgetCreatePhaseData, BudgetCreatePhaseErrors, BudgetCreatePhaseResponses, BudgetDeleteLineData, BudgetDeleteLineErrors, BudgetDeleteLineResponses, BudgetDeletePhaseData, BudgetDeletePhaseErrors, BudgetDeletePhaseResponses, BudgetGetCellData, BudgetGetCellErrors, BudgetGetCellResponses, BudgetGetDocumentData, BudgetGetDocumentErrors, BudgetGetDocumentResponses, BudgetGetLineData, BudgetGetLineErrors, BudgetGetLineResponses, BudgetGetPhaseData, BudgetGetPhaseErrors, BudgetGetPhaseResponses, BudgetGetRollupData, BudgetGetRollupErrors, BudgetGetRollupResponses, BudgetGetTotalsData, BudgetGetTotalsErrors, BudgetGetTotalsResponses, BudgetGetVarianceData, BudgetGetVarianceErrors, BudgetGetVarianceResponses, BudgetListAccountsData, BudgetListAccountsErrors, BudgetListAccountsResponses, BudgetListLinesData, BudgetListLinesErrors, BudgetListLinesResponses, BudgetListPhasesData, BudgetListPhasesErrors, BudgetListPhasesResponses, BudgetUpdateLineData, BudgetUpdateLineErrors, BudgetUpdateLineResponses, BudgetUpdatePhaseData, BudgetUpdatePhaseErrors, BudgetUpdatePhaseResponses, BudgetUpsertLinePhaseDataBatchData, BudgetUpsertLinePhaseDataBatchErrors, BudgetUpsertLinePhaseDataBatchResponses, BudgetUpsertLinePhaseDataData, BudgetUpsertLinePhaseDataErrors, BudgetUpsertLinePhaseDataResponses, DocumentsAssignData, DocumentsAssignErrors, DocumentsAssignResponses, DocumentsDeleteData, DocumentsDeleteErrors, DocumentsDeleteResponses, DocumentsDropData, DocumentsDropErrors, DocumentsDropResponses, DocumentsGetContentData, DocumentsGetContentErrors, DocumentsGetContentResponses, DocumentsGetData, DocumentsGetErrors, DocumentsGetExtractionData, DocumentsGetExtractionErrors, DocumentsGetExtractionResponses, DocumentsGetResponses, DocumentsListAssignmentsData, DocumentsListAssignmentsErrors, DocumentsListAssignmentsResponses, DocumentsListByContactData, DocumentsListByContactErrors, DocumentsListByContactResponses, DocumentsListByProjectData, DocumentsListByProjectErrors, DocumentsListByProjectResponses, DocumentsListByPurchaseOrderData, DocumentsListByPurchaseOrderErrors, DocumentsListByPurchaseOrderResponses, DocumentsListByTransactionData, DocumentsListByTransactionErrors, DocumentsListByTransactionResponses, DocumentsListData, DocumentsListErrors, DocumentsListResponses, DocumentsUnassignData, DocumentsUnassignErrors, DocumentsUnassignResponses, DocumentsUpdateData, DocumentsUpdateErrors, DocumentsUpdateResponses, LibraryAddProjectCurrencyData, LibraryAddProjectCurrencyErrors, LibraryAddProjectCurrencyResponses, LibraryAddProjectFringeData, LibraryAddProjectFringeErrors, LibraryAddProjectFringeResponses, LibraryAddProjectFringeTagData, LibraryAddProjectFringeTagErrors, LibraryAddProjectFringeTagResponses, LibraryAddProjectGlobalData, LibraryAddProjectGlobalErrors, LibraryAddProjectGlobalResponses, LibraryAddProjectIncentiveData, LibraryAddProjectIncentiveErrors, LibraryAddProjectIncentiveResponses, LibraryAddProjectTagData, LibraryAddProjectTagErrors, LibraryAddProjectTagResponses, LibraryAddRatePackData, LibraryAddRatePackErrors, LibraryAddRatePackResponses, LibraryCreateCurrencyTemplateData, LibraryCreateCurrencyTemplateErrors, LibraryCreateCurrencyTemplateResponses, LibraryCreateCustomUnitData, LibraryCreateCustomUnitErrors, LibraryCreateCustomUnitResponses, LibraryCreateFringeTagTemplateData, LibraryCreateFringeTagTemplateErrors, LibraryCreateFringeTagTemplateResponses, LibraryCreateFringeTemplateData, LibraryCreateFringeTemplateErrors, LibraryCreateFringeTemplateResponses, LibraryCreateGlobalTemplateData, LibraryCreateGlobalTemplateErrors, LibraryCreateGlobalTemplateResponses, LibraryCreateRatePackData, LibraryCreateRatePackErrors, LibraryCreateRatePackItemData, LibraryCreateRatePackItemErrors, LibraryCreateRatePackItemResponses, LibraryCreateRatePackResponses, LibraryCreateTagData, LibraryCreateTagErrors, LibraryCreateTagResponses, LibraryDeleteCurrencyTemplateData, LibraryDeleteCurrencyTemplateErrors, LibraryDeleteCurrencyTemplateResponses, LibraryDeleteCustomUnitData, LibraryDeleteCustomUnitErrors, LibraryDeleteCustomUnitResponses, LibraryDeleteFringeTagTemplateData, LibraryDeleteFringeTagTemplateErrors, LibraryDeleteFringeTagTemplateResponses, LibraryDeleteFringeTemplateData, LibraryDeleteFringeTemplateErrors, LibraryDeleteFringeTemplateResponses, LibraryDeleteGlobalTemplateData, LibraryDeleteGlobalTemplateErrors, LibraryDeleteGlobalTemplateResponses, LibraryDeleteProjectCurrencyData, LibraryDeleteProjectCurrencyErrors, LibraryDeleteProjectCurrencyResponses, LibraryDeleteProjectFringeData, LibraryDeleteProjectFringeErrors, LibraryDeleteProjectFringeResponses, LibraryDeleteProjectFringeTagData, LibraryDeleteProjectFringeTagErrors, LibraryDeleteProjectFringeTagResponses, LibraryDeleteProjectGlobalData, LibraryDeleteProjectGlobalErrors, LibraryDeleteProjectGlobalResponses, LibraryDeleteProjectIncentiveData, LibraryDeleteProjectIncentiveErrors, LibraryDeleteProjectIncentiveResponses, LibraryDeleteRatePackData, LibraryDeleteRatePackErrors, LibraryDeleteRatePackItemData, LibraryDeleteRatePackItemErrors, LibraryDeleteRatePackItemResponses, LibraryDeleteRatePackResponses, LibraryDeleteTagData, LibraryDeleteTagErrors, LibraryDeleteTagResponses, LibraryDisableIncentivePackData, LibraryDisableIncentivePackErrors, LibraryDisableIncentivePackResponses, LibraryDisableRatePackData, LibraryDisableRatePackErrors, LibraryDisableRatePackResponses, LibraryEnableIncentivePackData, LibraryEnableIncentivePackErrors, LibraryEnableIncentivePackResponses, LibraryEnableRatePackData, LibraryEnableRatePackErrors, LibraryEnableRatePackResponses, LibraryGetCurrencyTemplateData, LibraryGetCurrencyTemplateErrors, LibraryGetCurrencyTemplateResponses, LibraryGetFringeTagTemplateData, LibraryGetFringeTagTemplateErrors, LibraryGetFringeTagTemplateResponses, LibraryGetFringeTemplateData, LibraryGetFringeTemplateErrors, LibraryGetFringeTemplateResponses, LibraryGetGlobalTemplateData, LibraryGetGlobalTemplateErrors, LibraryGetGlobalTemplateResponses, LibraryGetIncentivePackData, LibraryGetIncentivePackErrors, LibraryGetIncentivePackResponses, LibraryGetProjectCurrencyData, LibraryGetProjectCurrencyErrors, LibraryGetProjectCurrencyResponses, LibraryGetProjectFringeData, LibraryGetProjectFringeErrors, LibraryGetProjectFringeResponses, LibraryGetProjectFringeTagData, LibraryGetProjectFringeTagErrors, LibraryGetProjectFringeTagResponses, LibraryGetProjectGlobalData, LibraryGetProjectGlobalErrors, LibraryGetProjectGlobalResponses, LibraryGetProjectIncentiveData, LibraryGetProjectIncentiveErrors, LibraryGetProjectIncentiveResponses, LibraryGetRatePackData, LibraryGetRatePackErrors, LibraryGetRatePackResponses, LibraryGetTagData, LibraryGetTagErrors, LibraryGetTagResponses, LibraryListCurrencyTemplatesData, LibraryListCurrencyTemplatesErrors, LibraryListCurrencyTemplatesResponses, LibraryListCustomUnitsData, LibraryListCustomUnitsErrors, LibraryListCustomUnitsResponses, LibraryListFringeTagTemplatesData, LibraryListFringeTagTemplatesErrors, LibraryListFringeTagTemplatesResponses, LibraryListFringeTemplatesData, LibraryListFringeTemplatesErrors, LibraryListFringeTemplatesResponses, LibraryListGlobalTemplatesData, LibraryListGlobalTemplatesErrors, LibraryListGlobalTemplatesResponses, LibraryListIncentivePacksData, LibraryListIncentivePacksErrors, LibraryListIncentivePacksResponses, LibraryListIncentiveProgramsData, LibraryListIncentiveProgramsErrors, LibraryListIncentiveProgramsResponses, LibraryListProjectCurrenciesData, LibraryListProjectCurrenciesErrors, LibraryListProjectCurrenciesResponses, LibraryListProjectFringesData, LibraryListProjectFringesErrors, LibraryListProjectFringesResponses, LibraryListProjectFringeTagsData, LibraryListProjectFringeTagsErrors, LibraryListProjectFringeTagsResponses, LibraryListProjectGlobalsData, LibraryListProjectGlobalsErrors, LibraryListProjectGlobalsResponses, LibraryListProjectIncentivesData, LibraryListProjectIncentivesErrors, LibraryListProjectIncentivesResponses, LibraryListProjectRatePacksData, LibraryListProjectRatePacksErrors, LibraryListProjectRatePacksResponses, LibraryListProjectTagsData, LibraryListProjectTagsErrors, LibraryListProjectTagsResponses, LibraryListRatePackItemsData, LibraryListRatePackItemsErrors, LibraryListRatePackItemsResponses, LibraryListRatePacksData, LibraryListRatePacksErrors, LibraryListRatePacksResponses, LibraryListTagsData, LibraryListTagsErrors, LibraryListTagsResponses, LibraryListUnitsData, LibraryListUnitsErrors, LibraryListUnitsResponses, LibraryRemoveProjectTagData, LibraryRemoveProjectTagErrors, LibraryRemoveProjectTagResponses, LibraryRemoveRatePackData, LibraryRemoveRatePackErrors, LibraryRemoveRatePackResponses, LibraryUpdateCurrencyTemplateData, LibraryUpdateCurrencyTemplateErrors, LibraryUpdateCurrencyTemplateResponses, LibraryUpdateCustomUnitData, LibraryUpdateCustomUnitErrors, LibraryUpdateCustomUnitResponses, LibraryUpdateFringeTagTemplateData, LibraryUpdateFringeTagTemplateErrors, LibraryUpdateFringeTagTemplateResponses, LibraryUpdateFringeTemplateData, LibraryUpdateFringeTemplateErrors, LibraryUpdateFringeTemplateResponses, LibraryUpdateGlobalTemplateData, LibraryUpdateGlobalTemplateErrors, LibraryUpdateGlobalTemplateResponses, LibraryUpdateProjectCurrencyData, LibraryUpdateProjectCurrencyErrors, LibraryUpdateProjectCurrencyResponses, LibraryUpdateProjectFringeData, LibraryUpdateProjectFringeErrors, LibraryUpdateProjectFringeResponses, LibraryUpdateProjectFringeTagData, LibraryUpdateProjectFringeTagErrors, LibraryUpdateProjectFringeTagResponses, LibraryUpdateProjectGlobalData, LibraryUpdateProjectGlobalErrors, LibraryUpdateProjectGlobalResponses, LibraryUpdateProjectIncentiveData, LibraryUpdateProjectIncentiveErrors, LibraryUpdateProjectIncentiveResponses, LibraryUpdateRatePackData, LibraryUpdateRatePackErrors, LibraryUpdateRatePackItemData, LibraryUpdateRatePackItemErrors, LibraryUpdateRatePackItemResponses, LibraryUpdateRatePackResponses, LibraryUpdateTagData, LibraryUpdateTagErrors, LibraryUpdateTagResponses, MasterDataCreateCommentData, MasterDataCreateCommentErrors, MasterDataCreateCommentResponses, MasterDataCreateContactData, MasterDataCreateContactErrors, MasterDataCreateContactResponses, MasterDataCreateProjectData, MasterDataCreateProjectErrors, MasterDataCreateProjectResponses, MasterDataCreateSpaceData, MasterDataCreateSpaceErrors, MasterDataCreateSpaceResponses, MasterDataDeleteCommentData, MasterDataDeleteCommentErrors, MasterDataDeleteCommentResponses, MasterDataDeleteContactData, MasterDataDeleteContactErrors, MasterDataDeleteContactResponses, MasterDataDeleteProjectData, MasterDataDeleteProjectErrors, MasterDataDeleteProjectResponses, MasterDataDeleteSpaceData, MasterDataDeleteSpaceErrors, MasterDataDeleteSpaceResponses, MasterDataGetContactData, MasterDataGetContactErrors, MasterDataGetContactResponses, MasterDataGetProjectData, MasterDataGetProjectErrors, MasterDataGetProjectResponses, MasterDataGetViewData, MasterDataGetViewDataData, MasterDataGetViewDataErrors, MasterDataGetViewDataResponses, MasterDataGetViewErrors, MasterDataGetViewResponses, MasterDataListCommentsData, MasterDataListCommentsErrors, MasterDataListCommentsResponses, MasterDataListContactsData, MasterDataListContactsErrors, MasterDataListContactsResponses, MasterDataListProjectsData, MasterDataListProjectsErrors, MasterDataListProjectsResponses, MasterDataListSpacesData, MasterDataListSpacesErrors, MasterDataListSpacesResponses, MasterDataListViewsData, MasterDataListViewsErrors, MasterDataListViewsResponses, MasterDataUpdateCommentData, MasterDataUpdateCommentErrors, MasterDataUpdateCommentResponses, MasterDataUpdateContactData, MasterDataUpdateContactErrors, MasterDataUpdateContactResponses, MasterDataUpdateProjectData, MasterDataUpdateProjectErrors, MasterDataUpdateProjectResponses, MasterDataUpdateSpaceData, MasterDataUpdateSpaceErrors, MasterDataUpdateSpaceResponses, MetaAuthGetMeData, MetaAuthGetMeErrors, MetaAuthGetMeResponses, MetaAuthHealthData, MetaAuthHealthErrors, MetaAuthHealthResponses, MetaAuthListWorkspacesData, MetaAuthListWorkspacesErrors, MetaAuthListWorkspacesResponses, PaymentRequestsGetData, PaymentRequestsGetErrors, PaymentRequestsGetResponses, PaymentRequestsListData, PaymentRequestsListErrors, PaymentRequestsListResponses, PaymentsGetData, PaymentsGetErrors, PaymentsGetResponses, PaymentsListData, PaymentsListErrors, PaymentsListResponses, PaymentsTimelineData, PaymentsTimelineErrors, PaymentsTimelineResponses, PurchaseOrdersActivityData, PurchaseOrdersActivityErrors, PurchaseOrdersActivityResponses, PurchaseOrdersCancelSubmissionData, PurchaseOrdersCancelSubmissionErrors, PurchaseOrdersCancelSubmissionResponses, PurchaseOrdersCreateData, PurchaseOrdersCreateErrors, PurchaseOrdersCreateItemData, PurchaseOrdersCreateItemErrors, PurchaseOrdersCreateItemResponses, PurchaseOrdersCreateResponses, PurchaseOrdersDeleteData, PurchaseOrdersDeleteErrors, PurchaseOrdersDeleteItemData, PurchaseOrdersDeleteItemErrors, PurchaseOrdersDeleteItemResponses, PurchaseOrdersDeleteResponses, PurchaseOrdersGetData, PurchaseOrdersGetErrors, PurchaseOrdersGetResponses, PurchaseOrdersLinkData, PurchaseOrdersLinkErrors, PurchaseOrdersLinkResponses, PurchaseOrdersListData, PurchaseOrdersListErrors, PurchaseOrdersListItemsData, PurchaseOrdersListItemsErrors, PurchaseOrdersListItemsResponses, PurchaseOrdersListResponses, PurchaseOrdersListTransactionsData, PurchaseOrdersListTransactionsErrors, PurchaseOrdersListTransactionsResponses, PurchaseOrdersMarkPaidData, PurchaseOrdersMarkPaidErrors, PurchaseOrdersMarkPaidResponses, PurchaseOrdersSubmitData, PurchaseOrdersSubmitErrors, PurchaseOrdersSuggestedMatchesData, PurchaseOrdersSuggestedMatchesErrors, PurchaseOrdersSuggestedMatchesResponses, PurchaseOrdersTimelineData, PurchaseOrdersTimelineErrors, PurchaseOrdersTimelineResponses, PurchaseOrdersUnlinkData, PurchaseOrdersUnlinkErrors, PurchaseOrdersUnlinkResponses, PurchaseOrdersUpdateData, PurchaseOrdersUpdateErrors, PurchaseOrdersUpdateItemData, PurchaseOrdersUpdateItemErrors, PurchaseOrdersUpdateItemResponses, PurchaseOrdersUpdateResponses, PurchaseOrdersVoidData, PurchaseOrdersVoidErrors, PurchaseOrdersVoidResponses, SearchProjectData, SearchProjectErrors, SearchProjectResponses, SearchWorkspaceData, SearchWorkspaceErrors, SearchWorkspaceResponses, TransactionsBatchCreateData, TransactionsBatchCreateErrors, TransactionsBatchCreateResponses, TransactionsCreateData, TransactionsCreateErrors, TransactionsCreateResponses, TransactionsDeleteData, TransactionsDeleteErrors, TransactionsDeleteResponses, TransactionsGetData, TransactionsGetErrors, TransactionsGetResponses, TransactionsItemsCreateData, TransactionsItemsCreateErrors, TransactionsItemsCreateResponses, TransactionsItemsDeleteData, TransactionsItemsDeleteErrors, TransactionsItemsDeleteResponses, TransactionsItemsListData, TransactionsItemsListErrors, TransactionsItemsListResponses, TransactionsItemsUpdateData, TransactionsItemsUpdateErrors, TransactionsItemsUpdateResponses, TransactionsListData, TransactionsListErrors, TransactionsListResponses, TransactionsStatsData, TransactionsStatsErrors, TransactionsStatsResponses, TransactionsTypesData, TransactionsTypesErrors, TransactionsTypesResponses, TransactionsUpdateData, TransactionsUpdateErrors, TransactionsUpdateResponses, UsageListCreditsData, UsageListCreditsErrors, UsageListCreditsResponses, UsageListOperationsData, UsageListOperationsErrors, UsageListOperationsResponses, UsageListProjectRollupsData, UsageListProjectRollupsErrors, UsageListProjectRollupsResponses, UsageListRollupsData, UsageListRollupsErrors, UsageListRollupsResponses, WebhooksCreateData, WebhooksCreateErrors, WebhooksCreateResponses, WebhooksDeleteData, WebhooksDeleteErrors, WebhooksDeleteResponses, WebhooksGetData, WebhooksGetErrors, WebhooksGetResponses, WebhooksListData, WebhooksListDeliveriesData, WebhooksListDeliveriesErrors, WebhooksListDeliveriesResponses, WebhooksListErrors, WebhooksListResponses, WebhooksPingData, WebhooksPingErrors, WebhooksPingResponses, WebhooksUpdateData, WebhooksUpdateErrors, WebhooksUpdateResponses } from './types.gen.js';
+import type { BudgetCreateLineData, BudgetCreateLineErrors, BudgetCreateLineResponses, BudgetCreateLinesBulkData, BudgetCreateLinesBulkErrors, BudgetCreateLinesBulkResponses, BudgetCreatePhaseData, BudgetCreatePhaseErrors, BudgetCreatePhaseResponses, BudgetDeleteLineData, BudgetDeleteLineErrors, BudgetDeleteLineResponses, BudgetDeletePhaseData, BudgetDeletePhaseErrors, BudgetDeletePhaseResponses, BudgetGetData, BudgetGetErrors, BudgetGetLineData, BudgetGetLineErrors, BudgetGetLineResponses, BudgetGetPhaseData, BudgetGetPhaseErrors, BudgetGetPhaseResponses, BudgetGetResponses, BudgetGetTotalsData, BudgetGetTotalsErrors, BudgetGetTotalsResponses, BudgetListLinesData, BudgetListLinesErrors, BudgetListLinesResponses, BudgetListPhasesData, BudgetListPhasesErrors, BudgetListPhasesResponses, BudgetUpdateLineData, BudgetUpdateLineErrors, BudgetUpdateLinePhaseDataBulkData, BudgetUpdateLinePhaseDataBulkErrors, BudgetUpdateLinePhaseDataBulkResponses, BudgetUpdateLinePhaseDataData, BudgetUpdateLinePhaseDataErrors, BudgetUpdateLinePhaseDataResponses, BudgetUpdateLineResponses, BudgetUpdatePhaseData, BudgetUpdatePhaseErrors, BudgetUpdatePhaseResponses, CommentsCreateData, CommentsCreateErrors, CommentsCreateResponses, CommentsDeleteData, CommentsDeleteErrors, CommentsDeleteResponses, CommentsListData, CommentsListErrors, CommentsListResponses, CommentsUpdateData, CommentsUpdateErrors, CommentsUpdateResponses, ContactsCreateData, ContactsCreateErrors, ContactsCreateResponses, ContactsDeleteData, ContactsDeleteErrors, ContactsDeleteResponses, ContactsGetData, ContactsGetErrors, ContactsGetResponses, ContactsListData, ContactsListErrors, ContactsListResponses, ContactsUpdateData, ContactsUpdateErrors, ContactsUpdateResponses, DocumentsDeleteData, DocumentsDeleteErrors, DocumentsDeleteResponses, DocumentsGetContentData, DocumentsGetContentErrors, DocumentsGetContentResponses, DocumentsGetData, DocumentsGetErrors, DocumentsGetExtractionData, DocumentsGetExtractionErrors, DocumentsGetExtractionResponses, DocumentsGetResponses, DocumentsLinkData, DocumentsLinkErrors, DocumentsLinkResponses, DocumentsListData, DocumentsListErrors, DocumentsListResponses, DocumentsUnlinkData, DocumentsUnlinkErrors, DocumentsUnlinkResponses, DocumentsUpdateData, DocumentsUpdateErrors, DocumentsUpdateResponses, DocumentsUploadData, DocumentsUploadErrors, DocumentsUploadResponses, LibraryAddProjectCurrencyData, LibraryAddProjectCurrencyErrors, LibraryAddProjectCurrencyResponses, LibraryAddProjectFringeData, LibraryAddProjectFringeErrors, LibraryAddProjectFringeGroupData, LibraryAddProjectFringeGroupErrors, LibraryAddProjectFringeGroupResponses, LibraryAddProjectFringeResponses, LibraryAddProjectGlobalData, LibraryAddProjectGlobalErrors, LibraryAddProjectGlobalResponses, LibraryAddProjectIncentiveData, LibraryAddProjectIncentiveErrors, LibraryAddProjectIncentiveResponses, LibraryAddRatePackData, LibraryAddRatePackErrors, LibraryAddRatePackResponses, LibraryCreateCurrencyData, LibraryCreateCurrencyErrors, LibraryCreateCurrencyResponses, LibraryCreateFringeData, LibraryCreateFringeErrors, LibraryCreateFringeGroupData, LibraryCreateFringeGroupErrors, LibraryCreateFringeGroupResponses, LibraryCreateFringeResponses, LibraryCreateGlobalData, LibraryCreateGlobalErrors, LibraryCreateGlobalResponses, LibraryCreateRatePackData, LibraryCreateRatePackErrors, LibraryCreateRatePackItemData, LibraryCreateRatePackItemErrors, LibraryCreateRatePackItemResponses, LibraryCreateRatePackResponses, LibraryCreateTagData, LibraryCreateTagErrors, LibraryCreateTagResponses, LibraryCreateUnitData, LibraryCreateUnitErrors, LibraryCreateUnitResponses, LibraryDeleteCurrencyData, LibraryDeleteCurrencyErrors, LibraryDeleteCurrencyResponses, LibraryDeleteFringeData, LibraryDeleteFringeErrors, LibraryDeleteFringeGroupData, LibraryDeleteFringeGroupErrors, LibraryDeleteFringeGroupResponses, LibraryDeleteFringeResponses, LibraryDeleteGlobalData, LibraryDeleteGlobalErrors, LibraryDeleteGlobalResponses, LibraryDeleteProjectCurrencyData, LibraryDeleteProjectCurrencyErrors, LibraryDeleteProjectCurrencyResponses, LibraryDeleteProjectFringeData, LibraryDeleteProjectFringeErrors, LibraryDeleteProjectFringeGroupData, LibraryDeleteProjectFringeGroupErrors, LibraryDeleteProjectFringeGroupResponses, LibraryDeleteProjectFringeResponses, LibraryDeleteProjectGlobalData, LibraryDeleteProjectGlobalErrors, LibraryDeleteProjectGlobalResponses, LibraryDeleteProjectIncentiveData, LibraryDeleteProjectIncentiveErrors, LibraryDeleteProjectIncentiveResponses, LibraryDeleteRatePackData, LibraryDeleteRatePackErrors, LibraryDeleteRatePackItemData, LibraryDeleteRatePackItemErrors, LibraryDeleteRatePackItemResponses, LibraryDeleteRatePackResponses, LibraryDeleteTagData, LibraryDeleteTagErrors, LibraryDeleteTagResponses, LibraryDeleteUnitData, LibraryDeleteUnitErrors, LibraryDeleteUnitResponses, LibraryDisableIncentivePackData, LibraryDisableIncentivePackErrors, LibraryDisableIncentivePackResponses, LibraryDisableRatePackData, LibraryDisableRatePackErrors, LibraryDisableRatePackResponses, LibraryEnableIncentivePackData, LibraryEnableIncentivePackErrors, LibraryEnableIncentivePackResponses, LibraryEnableRatePackData, LibraryEnableRatePackErrors, LibraryEnableRatePackResponses, LibraryGetCurrencyData, LibraryGetCurrencyErrors, LibraryGetCurrencyResponses, LibraryGetFringeData, LibraryGetFringeErrors, LibraryGetFringeGroupData, LibraryGetFringeGroupErrors, LibraryGetFringeGroupResponses, LibraryGetFringeResponses, LibraryGetGlobalData, LibraryGetGlobalErrors, LibraryGetGlobalResponses, LibraryGetIncentivePackData, LibraryGetIncentivePackErrors, LibraryGetIncentivePackResponses, LibraryGetProjectCurrencyData, LibraryGetProjectCurrencyErrors, LibraryGetProjectCurrencyResponses, LibraryGetProjectFringeData, LibraryGetProjectFringeErrors, LibraryGetProjectFringeGroupData, LibraryGetProjectFringeGroupErrors, LibraryGetProjectFringeGroupResponses, LibraryGetProjectFringeResponses, LibraryGetProjectGlobalData, LibraryGetProjectGlobalErrors, LibraryGetProjectGlobalResponses, LibraryGetProjectIncentiveData, LibraryGetProjectIncentiveErrors, LibraryGetProjectIncentiveResponses, LibraryGetRatePackData, LibraryGetRatePackErrors, LibraryGetRatePackResponses, LibraryGetTagData, LibraryGetTagErrors, LibraryGetTagResponses, LibraryGetUnitData, LibraryGetUnitErrors, LibraryGetUnitResponses, LibraryListCurrenciesData, LibraryListCurrenciesErrors, LibraryListCurrenciesResponses, LibraryListFringeGroupsData, LibraryListFringeGroupsErrors, LibraryListFringeGroupsResponses, LibraryListFringesData, LibraryListFringesErrors, LibraryListFringesResponses, LibraryListGlobalsData, LibraryListGlobalsErrors, LibraryListGlobalsResponses, LibraryListIncentivePacksData, LibraryListIncentivePacksErrors, LibraryListIncentivePacksResponses, LibraryListIncentiveProgramsData, LibraryListIncentiveProgramsErrors, LibraryListIncentiveProgramsResponses, LibraryListProjectCurrenciesData, LibraryListProjectCurrenciesErrors, LibraryListProjectCurrenciesResponses, LibraryListProjectFringeGroupsData, LibraryListProjectFringeGroupsErrors, LibraryListProjectFringeGroupsResponses, LibraryListProjectFringesData, LibraryListProjectFringesErrors, LibraryListProjectFringesResponses, LibraryListProjectGlobalsData, LibraryListProjectGlobalsErrors, LibraryListProjectGlobalsResponses, LibraryListProjectIncentivesData, LibraryListProjectIncentivesErrors, LibraryListProjectIncentivesResponses, LibraryListProjectRatePacksData, LibraryListProjectRatePacksErrors, LibraryListProjectRatePacksResponses, LibraryListProjectTagsData, LibraryListProjectTagsErrors, LibraryListProjectTagsResponses, LibraryListRatePackItemsData, LibraryListRatePackItemsErrors, LibraryListRatePackItemsResponses, LibraryListRatePacksData, LibraryListRatePacksErrors, LibraryListRatePacksResponses, LibraryListTagsData, LibraryListTagsErrors, LibraryListTagsResponses, LibraryListUnitsData, LibraryListUnitsErrors, LibraryListUnitsResponses, LibraryRemoveRatePackData, LibraryRemoveRatePackErrors, LibraryRemoveRatePackResponses, LibraryUpdateCurrencyData, LibraryUpdateCurrencyErrors, LibraryUpdateCurrencyResponses, LibraryUpdateFringeData, LibraryUpdateFringeErrors, LibraryUpdateFringeGroupData, LibraryUpdateFringeGroupErrors, LibraryUpdateFringeGroupResponses, LibraryUpdateFringeResponses, LibraryUpdateGlobalData, LibraryUpdateGlobalErrors, LibraryUpdateGlobalResponses, LibraryUpdateProjectCurrencyData, LibraryUpdateProjectCurrencyErrors, LibraryUpdateProjectCurrencyResponses, LibraryUpdateProjectFringeData, LibraryUpdateProjectFringeErrors, LibraryUpdateProjectFringeGroupData, LibraryUpdateProjectFringeGroupErrors, LibraryUpdateProjectFringeGroupResponses, LibraryUpdateProjectFringeResponses, LibraryUpdateProjectGlobalData, LibraryUpdateProjectGlobalErrors, LibraryUpdateProjectGlobalResponses, LibraryUpdateProjectIncentiveData, LibraryUpdateProjectIncentiveErrors, LibraryUpdateProjectIncentiveResponses, LibraryUpdateRatePackData, LibraryUpdateRatePackErrors, LibraryUpdateRatePackItemData, LibraryUpdateRatePackItemErrors, LibraryUpdateRatePackItemResponses, LibraryUpdateRatePackResponses, LibraryUpdateTagData, LibraryUpdateTagErrors, LibraryUpdateTagResponses, LibraryUpdateUnitData, LibraryUpdateUnitErrors, LibraryUpdateUnitResponses, MeGetData, MeGetErrors, MeGetResponses, PaymentRequestsGetData, PaymentRequestsGetErrors, PaymentRequestsGetResponses, PaymentRequestsListData, PaymentRequestsListErrors, PaymentRequestsListResponses, PaymentsGetData, PaymentsGetErrors, PaymentsGetResponses, PaymentsGetTimelineData, PaymentsGetTimelineErrors, PaymentsGetTimelineResponses, PaymentsListData, PaymentsListErrors, PaymentsListResponses, ProjectsCreateData, ProjectsCreateErrors, ProjectsCreateResponses, ProjectsGetData, ProjectsGetErrors, ProjectsGetResponses, ProjectsListData, ProjectsListErrors, ProjectsListResponses, ProjectsUpdateData, ProjectsUpdateErrors, ProjectsUpdateResponses, PurchaseOrdersCancelSubmissionData, PurchaseOrdersCancelSubmissionErrors, PurchaseOrdersCancelSubmissionResponses, PurchaseOrdersCreateData, PurchaseOrdersCreateErrors, PurchaseOrdersCreateItemData, PurchaseOrdersCreateItemErrors, PurchaseOrdersCreateItemResponses, PurchaseOrdersCreateResponses, PurchaseOrdersDeleteData, PurchaseOrdersDeleteErrors, PurchaseOrdersDeleteItemData, PurchaseOrdersDeleteItemErrors, PurchaseOrdersDeleteItemResponses, PurchaseOrdersDeleteResponses, PurchaseOrdersGetData, PurchaseOrdersGetErrors, PurchaseOrdersGetResponses, PurchaseOrdersGetTimelineData, PurchaseOrdersGetTimelineErrors, PurchaseOrdersGetTimelineResponses, PurchaseOrdersLinkTransactionData, PurchaseOrdersLinkTransactionErrors, PurchaseOrdersLinkTransactionResponses, PurchaseOrdersListData, PurchaseOrdersListErrors, PurchaseOrdersListItemsData, PurchaseOrdersListItemsErrors, PurchaseOrdersListItemsResponses, PurchaseOrdersListResponses, PurchaseOrdersMarkPaidData, PurchaseOrdersMarkPaidErrors, PurchaseOrdersMarkPaidResponses, PurchaseOrdersSubmitData, PurchaseOrdersSubmitErrors, PurchaseOrdersSubmitResponses, PurchaseOrdersUnlinkTransactionData, PurchaseOrdersUnlinkTransactionErrors, PurchaseOrdersUnlinkTransactionResponses, PurchaseOrdersUpdateData, PurchaseOrdersUpdateErrors, PurchaseOrdersUpdateItemData, PurchaseOrdersUpdateItemErrors, PurchaseOrdersUpdateItemResponses, PurchaseOrdersUpdateResponses, PurchaseOrdersVoidData, PurchaseOrdersVoidErrors, PurchaseOrdersVoidResponses, SearchWorkspaceData, SearchWorkspaceErrors, SearchWorkspaceResponses, SpacesCreateData, SpacesCreateErrors, SpacesCreateResponses, SpacesDeleteData, SpacesDeleteErrors, SpacesDeleteResponses, SpacesListData, SpacesListErrors, SpacesListResponses, SpacesUpdateData, SpacesUpdateErrors, SpacesUpdateResponses, TransactionsCreateBulkData, TransactionsCreateBulkErrors, TransactionsCreateBulkResponses, TransactionsCreateData, TransactionsCreateErrors, TransactionsCreateItemData, TransactionsCreateItemErrors, TransactionsCreateItemResponses, TransactionsCreateResponses, TransactionsDeleteData, TransactionsDeleteErrors, TransactionsDeleteItemData, TransactionsDeleteItemErrors, TransactionsDeleteItemResponses, TransactionsDeleteResponses, TransactionsGetData, TransactionsGetErrors, TransactionsGetResponses, TransactionsListData, TransactionsListErrors, TransactionsListItemsData, TransactionsListItemsErrors, TransactionsListItemsResponses, TransactionsListResponses, TransactionsStatsData, TransactionsStatsErrors, TransactionsStatsResponses, TransactionsUpdateData, TransactionsUpdateErrors, TransactionsUpdateItemData, TransactionsUpdateItemErrors, TransactionsUpdateItemResponses, TransactionsUpdateResponses, WebhooksCreateData, WebhooksCreateErrors, WebhooksCreateResponses, WebhooksDeleteData, WebhooksDeleteErrors, WebhooksDeleteResponses, WebhooksGetData, WebhooksGetErrors, WebhooksGetResponses, WebhooksListData, WebhooksListDeliveriesData, WebhooksListDeliveriesErrors, WebhooksListDeliveriesResponses, WebhooksListErrors, WebhooksListResponses, WebhooksSendTestDeliveryData, WebhooksSendTestDeliveryErrors, WebhooksSendTestDeliveryResponses, WebhooksUpdateData, WebhooksUpdateErrors, WebhooksUpdateResponses } from './types.gen.js';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -19,20 +19,20 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 };
 
 /**
- * Get the budget document (tree + phases + totals + editable phase data)
+ * Get a budget
  *
- * Returns the budget document as a flat array of lines (rebuild the tree from `parentId`), visible phase columns, computed totals, and editable estimate phase data, all in one response. Use `path` or `accountCode` to narrow a large budget before the server line ceiling is applied. `accountId`, tag filters, date windows, hidden phases, and `expand` are rejected on this document read.
+ * Returns the budget's visible phases, totals, lines, and editable phase data. Use `path` or `accountId` to select an account and its descendants. Use `parentId` to build the line tree.
  */
-export const budgetGetDocument = <ThrowOnError extends boolean = false>(options: Options<BudgetGetDocumentData, ThrowOnError>) => (options.client ?? client).get<BudgetGetDocumentResponses, BudgetGetDocumentErrors, ThrowOnError>({
+export const budgetGet = <ThrowOnError extends boolean = false>(options: Options<BudgetGetData, ThrowOnError>) => (options.client ?? client).get<BudgetGetResponses, BudgetGetErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/projects/{projectId}/budget',
     ...options
 });
 
 /**
- * Get grand totals (optionally for a filtered slice)
+ * Get budget totals
  *
- * Returns the engine's grand totals as of `computedAt`. With supported filters (`phase`, `accountId`/`path` subtree) the response is the engine-coalesced slice total, computed server-side and never summed by the client. `path` matches only the materialized account path; `accountId` is a code classifier and can be ambiguous. `expand` is rejected.
+ * Returns totals at `computedAt`. Use `phase`, `accountId`, or `path` to select part of the budget.
  */
 export const budgetGetTotals = <ThrowOnError extends boolean = false>(options: Options<BudgetGetTotalsData, ThrowOnError>) => (options.client ?? client).get<BudgetGetTotalsResponses, BudgetGetTotalsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -41,42 +41,9 @@ export const budgetGetTotals = <ThrowOnError extends boolean = false>(options: O
 });
 
 /**
- * Get the engine rollup for a phase
+ * List budget lines
  *
- * Returns the computed rollup for a single phase as of `computedAt`. `expand` is not supported.
- */
-export const budgetGetRollup = <ThrowOnError extends boolean = false>(options: Options<BudgetGetRollupData, ThrowOnError>) => (options.client ?? client).get<BudgetGetRollupResponses, BudgetGetRollupErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/budget/rollup',
-    ...options
-});
-
-/**
- * Get computed variance between two phases
- *
- * Returns the computed variance (`to` minus `from`) between two phases as of `computedAt`. `expand` is rejected.
- */
-export const budgetGetVariance = <ThrowOnError extends boolean = false>(options: Options<BudgetGetVarianceData, ThrowOnError>) => (options.client ?? client).get<BudgetGetVarianceResponses, BudgetGetVarianceErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/budget/variance',
-    ...options
-});
-
-/**
- * Read one budget value by account and column
- *
- * Reads one budget value by `account` + `column`, never a raw domain address. `account` accepts a path/code; `column` names the value column (e.g. a phase). Wildcard/subtree pattern reads stay internal-only. The value is computed server-side as of `computedAt`, with the same caching behavior as `/budget/totals`: the value is the engine's truth as of `computedAt` (in the body), the response carries `Cache-Control: max-age=T` + an opaque `ETag` header, and a conditional GET (`If-None-Match`) re-runs the row-derived permission gate before returning `304`. `expand` is rejected (`400 expand_invalid`); a warm-up miss returns `504 budget_compute_timeout`.
- */
-export const budgetGetCell = <ThrowOnError extends boolean = false>(options: Options<BudgetGetCellData, ThrowOnError>) => (options.client ?? client).get<BudgetGetCellResponses, BudgetGetCellErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/budget/cells',
-    ...options
-});
-
-/**
- * List budget lines (paginated, filterable)
- *
- * Browse/edit individual stored budget lines, paginated. Filters AND-compose. `accountId` is a classifier and returns a set (an account code can sit on many rows); `path` returns exactly one row (or `409 account_path_ambiguous` if a coded path matches more than one live row). For the complete budget document use `GET /budget`. Expand keys: `phases, phaseData, contact, account, sourceItem`; `phaseData` returns raw editable estimate phase data keyed by phase id. (The legacy `lines.notes` expand is not ported, the note is a plain-text `line.notes` field always present inline; see `BudgetLine.notes`.)
+ * Returns budget lines that match all filters. Use `expand` to include contacts, phase totals, or phase data. Use the budget endpoint to get the full budget in one response.
  */
 export const budgetListLines = <ThrowOnError extends boolean = false>(options: Options<BudgetListLinesData, ThrowOnError>) => (options.client ?? client).get<BudgetListLinesResponses, BudgetListLinesErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -86,9 +53,9 @@ export const budgetListLines = <ThrowOnError extends boolean = false>(options: O
 });
 
 /**
- * Create a budget line with optional phase data
+ * Create a budget line
  *
- * Creates a stored budget line under `parentId`, optionally with initial editable phase data keyed by phase id. Server mints `id`, the internal address reference, and timestamps, they cannot be client-supplied. Naming a server-owned field returns `422 field_read_only`. Emits a durable `budgetLine.created` audit event.
+ * Creates a budget line under `parentId`, with optional phase data keyed by phase ID.
  */
 export const budgetCreateLine = <ThrowOnError extends boolean = false>(options: Options<BudgetCreateLineData, ThrowOnError>) => (options.client ?? client).post<BudgetCreateLineResponses, BudgetCreateLineErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -101,13 +68,13 @@ export const budgetCreateLine = <ThrowOnError extends boolean = false>(options: 
 });
 
 /**
- * Create budget lines in one all-or-nothing batch
+ * Create budget lines
  *
- * Creates multiple stored budget lines, each optionally carrying initial editable phase data keyed by phase id. The batch is transactional: either every line and phase-data entry is written, or none are. A required `Idempotency-Key` provides exactly-once same-body retries.
+ * Creates up to 100 budget lines with optional phase data. If any line fails, none are created. Use `Idempotency-Key` to retry safely.
  */
-export const budgetCreateLinesBatch = <ThrowOnError extends boolean = false>(options: Options<BudgetCreateLinesBatchData, ThrowOnError>) => (options.client ?? client).post<BudgetCreateLinesBatchResponses, BudgetCreateLinesBatchErrors, ThrowOnError>({
+export const budgetCreateLinesBulk = <ThrowOnError extends boolean = false>(options: Options<BudgetCreateLinesBulkData, ThrowOnError>) => (options.client ?? client).post<BudgetCreateLinesBulkResponses, BudgetCreateLinesBulkErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/budget/lines/batch',
+    url: '/projects/{projectId}/budget/lines/bulk',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -116,13 +83,13 @@ export const budgetCreateLinesBatch = <ThrowOnError extends boolean = false>(opt
 });
 
 /**
- * Upsert editable line phase data in one all-or-nothing batch
+ * Update phase data for budget lines
  *
- * Upserts raw editable estimate phase data for existing lines and phases. The batch is transactional: either every phase-data entry is written, or none are. A required `Idempotency-Key` provides exactly-once same-body retries.
+ * Updates up to 500 line and phase entries. If any entry fails, none are changed. Use `Idempotency-Key` to retry safely.
  */
-export const budgetUpsertLinePhaseDataBatch = <ThrowOnError extends boolean = false>(options: Options<BudgetUpsertLinePhaseDataBatchData, ThrowOnError>) => (options.client ?? client).post<BudgetUpsertLinePhaseDataBatchResponses, BudgetUpsertLinePhaseDataBatchErrors, ThrowOnError>({
+export const budgetUpdateLinePhaseDataBulk = <ThrowOnError extends boolean = false>(options: Options<BudgetUpdateLinePhaseDataBulkData, ThrowOnError>) => (options.client ?? client).post<BudgetUpdateLinePhaseDataBulkResponses, BudgetUpdateLinePhaseDataBulkErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/budget/lines/phase-data/batch',
+    url: '/projects/{projectId}/budget/lines/phase-data/bulk',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -131,9 +98,9 @@ export const budgetUpsertLinePhaseDataBatch = <ThrowOnError extends boolean = fa
 });
 
 /**
- * Soft-delete a budget line
+ * Delete a budget line
  *
- * Soft-deletes the line (`soft-delete timestamp = now`). Re-creating an edited-then-deleted line resurrects the diverged copy as-is (edits preserved); pass `?reset=true` to re-snapshot instead. Emits a durable `budgetLine.deleted` audit event.
+ * Deletes a budget line.
  */
 export const budgetDeleteLine = <ThrowOnError extends boolean = false>(options: Options<BudgetDeleteLineData, ThrowOnError>) => (options.client ?? client).delete<BudgetDeleteLineResponses, BudgetDeleteLineErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -142,7 +109,7 @@ export const budgetDeleteLine = <ThrowOnError extends boolean = false>(options: 
 });
 
 /**
- * Get a budget line by id
+ * Get a budget line
  */
 export const budgetGetLine = <ThrowOnError extends boolean = false>(options: Options<BudgetGetLineData, ThrowOnError>) => (options.client ?? client).get<BudgetGetLineResponses, BudgetGetLineErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -154,7 +121,7 @@ export const budgetGetLine = <ThrowOnError extends boolean = false>(options: Opt
 /**
  * Update a budget line
  *
- * Patches the provider-writable allow-list, optionally upserting editable phase data keyed by phase id. Naming a server-owned field (`address`, `budgetId`, `path`, `depth`, timestamps) returns `422 field_read_only` listing offenders, never a silent strip. Emits a durable `budgetLine.updated` audit event.
+ * Updates a budget line and optional phase data. Omitted fields remain unchanged.
  */
 export const budgetUpdateLine = <ThrowOnError extends boolean = false>(options: Options<BudgetUpdateLineData, ThrowOnError>) => (options.client ?? client).patch<BudgetUpdateLineResponses, BudgetUpdateLineErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -167,11 +134,11 @@ export const budgetUpdateLine = <ThrowOnError extends boolean = false>(options: 
 });
 
 /**
- * Upsert one editable line phase-data entry
+ * Update phase data for a budget line
  *
- * Upserts raw editable estimate phase data for one line/phase intersection. Omitted fields are left unchanged; explicit `null` clears nullable fields.
+ * Updates one line and phase entry. Omitted fields remain unchanged. Null clears a nullable field.
  */
-export const budgetUpsertLinePhaseData = <ThrowOnError extends boolean = false>(options: Options<BudgetUpsertLinePhaseDataData, ThrowOnError>) => (options.client ?? client).put<BudgetUpsertLinePhaseDataResponses, BudgetUpsertLinePhaseDataErrors, ThrowOnError>({
+export const budgetUpdateLinePhaseData = <ThrowOnError extends boolean = false>(options: Options<BudgetUpdateLinePhaseDataData, ThrowOnError>) => (options.client ?? client).put<BudgetUpdateLinePhaseDataResponses, BudgetUpdateLinePhaseDataErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/projects/{projectId}/budget/lines/{lineId}/phase-data/{phaseId}',
     ...options,
@@ -184,7 +151,7 @@ export const budgetUpsertLinePhaseData = <ThrowOnError extends boolean = false>(
 /**
  * List budget phases
  *
- * The phase columns of the budget (soft-deleted phases excluded).
+ * Returns the budget's visible and hidden phases.
  */
 export const budgetListPhases = <ThrowOnError extends boolean = false>(options: Options<BudgetListPhasesData, ThrowOnError>) => (options.client ?? client).get<BudgetListPhasesResponses, BudgetListPhasesErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -195,7 +162,7 @@ export const budgetListPhases = <ThrowOnError extends boolean = false>(options: 
 /**
  * Create a budget phase
  *
- * Adds a phase column. Emits a durable audit event.
+ * Adds a phase to the budget.
  */
 export const budgetCreatePhase = <ThrowOnError extends boolean = false>(options: Options<BudgetCreatePhaseData, ThrowOnError>) => (options.client ?? client).post<BudgetCreatePhaseResponses, BudgetCreatePhaseErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -208,9 +175,9 @@ export const budgetCreatePhase = <ThrowOnError extends boolean = false>(options:
 });
 
 /**
- * Soft-delete a budget phase (CAUTION: deleting an actual- or rollup-type phase removes the Actuals / totals COLUMN - reorganizing estimate columns never requires it)
+ * Delete a budget phase
  *
- * Soft-deletes the phase column (`soft-delete timestamp = now`). CAUTION: deleting an actual- or rollup-type phase removes that COLUMN (Actuals / a totals rollup) from the budget - reorganizing or renaming ESTIMATE columns never requires deleting actual/rollup phases. Emits a durable audit event.
+ * Deletes the phase and its budget column. Delete estimate phases only when removing their data. Rename or reorder a phase to reorganize the budget.
  */
 export const budgetDeletePhase = <ThrowOnError extends boolean = false>(options: Options<BudgetDeletePhaseData, ThrowOnError>) => (options.client ?? client).delete<BudgetDeletePhaseResponses, BudgetDeletePhaseErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -219,7 +186,7 @@ export const budgetDeletePhase = <ThrowOnError extends boolean = false>(options:
 });
 
 /**
- * Get a budget phase by id
+ * Get a budget phase
  */
 export const budgetGetPhase = <ThrowOnError extends boolean = false>(options: Options<BudgetGetPhaseData, ThrowOnError>) => (options.client ?? client).get<BudgetGetPhaseResponses, BudgetGetPhaseErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -230,7 +197,7 @@ export const budgetGetPhase = <ThrowOnError extends boolean = false>(options: Op
 /**
  * Update a budget phase
  *
- * Patches the writable phase fields. Naming a server-owned field returns `422 field_read_only`. Emits a durable audit event.
+ * Updates a budget phase. Omitted fields remain unchanged.
  */
 export const budgetUpdatePhase = <ThrowOnError extends boolean = false>(options: Options<BudgetUpdatePhaseData, ThrowOnError>) => (options.client ?? client).patch<BudgetUpdatePhaseResponses, BudgetUpdatePhaseErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -243,35 +210,22 @@ export const budgetUpdatePhase = <ThrowOnError extends boolean = false>(options:
 });
 
 /**
- * List budget accounts (account-typed lines)
+ * List documents
  *
- * Derived view of the chart of accounts, the budget lines where `kind=account`. Returns `code`, `name`, `parentId`, `path`, `depth`.
- */
-export const budgetListAccounts = <ThrowOnError extends boolean = false>(options: Options<BudgetListAccountsData, ThrowOnError>) => (options.client ?? client).get<BudgetListAccountsResponses, BudgetListAccountsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/budget/accounts',
-    ...options
-});
-
-/**
- * List / filter documents
- *
- * List documents in the workspace, paginated (cap 100). Filter by folder, assignment target, unassigned-only, project, status, classification, coarse type, or a name/description search.
+ * Returns up to 100 documents per page. Use filters to narrow the results.
  */
 export const documentsList = <ThrowOnError extends boolean = false>(options?: Options<DocumentsListData, ThrowOnError>) => (options?.client ?? client).get<DocumentsListResponses, DocumentsListErrors, ThrowOnError>({
-    querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/documents',
     ...options
 });
 
 /**
- * Drop a document (optionally assign atomically)
+ * Upload a document
  *
- * Upload ("drop") a document once. Optionally assign it to one or more typed targets in the same atomic call via `metadata.assignTo`, the 80% "receipt onto this transaction" case. Atomic: if any target fails validation, permission, or the cross-workspace check, the request fails 4xx and NO document row (and no orphan blob) is created. In v1, multiple targets must be DISTINCT kinds (one reference per kind). The assign permission gate is `update` on each target's subject, not on the document.
- * This is a billable create (it stores a blob and a document row). Accepts an optional `Idempotency-Key` header for safe retries; replaying the same key with a different body returns `409 idempotency_conflict`.
+ * Upload a document and optionally link it to targets with `metadata.links`. Each target must have a different `kind`. If any link fails, the document is not created. This operation is billable. Use `Idempotency-Key` to retry safely.
  */
-export const documentsDrop = <ThrowOnError extends boolean = false>(options: Options<DocumentsDropData, ThrowOnError>) => (options.client ?? client).post<DocumentsDropResponses, DocumentsDropErrors, ThrowOnError>({
+export const documentsUpload = <ThrowOnError extends boolean = false>(options: Options<DocumentsUploadData, ThrowOnError>) => (options.client ?? client).post<DocumentsUploadResponses, DocumentsUploadErrors, ThrowOnError>({
     ...formDataBodySerializer,
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/documents',
@@ -285,7 +239,7 @@ export const documentsDrop = <ThrowOnError extends boolean = false>(options: Opt
 /**
  * Delete a document
  *
- * Soft-delete the document. Idempotent, safe to retry.
+ * Deletes the document. Safe to retry.
  */
 export const documentsDelete = <ThrowOnError extends boolean = false>(options: Options<DocumentsDeleteData, ThrowOnError>) => (options.client ?? client).delete<DocumentsDeleteResponses, DocumentsDeleteErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -294,19 +248,18 @@ export const documentsDelete = <ThrowOnError extends boolean = false>(options: O
 });
 
 /**
- * Get document metadata
+ * Get a document
  */
 export const documentsGet = <ThrowOnError extends boolean = false>(options: Options<DocumentsGetData, ThrowOnError>) => (options.client ?? client).get<DocumentsGetResponses, DocumentsGetErrors, ThrowOnError>({
-    querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/documents/{documentId}',
     ...options
 });
 
 /**
- * Rename / move / re-describe a document
+ * Update a document
  *
- * Update client-writable fields only (`name`, `description`, `folderId`). Assignments are managed via `/assign` and `/unassign`. Naming a server-owned field returns `422 field_read_only`.
+ * Update the document's name, description, or folder. Use the links endpoint to change its links.
  */
 export const documentsUpdate = <ThrowOnError extends boolean = false>(options: Options<DocumentsUpdateData, ThrowOnError>) => (options.client ?? client).patch<DocumentsUpdateResponses, DocumentsUpdateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -319,9 +272,9 @@ export const documentsUpdate = <ThrowOnError extends boolean = false>(options: O
 });
 
 /**
- * Download document bytes
+ * Download a document
  *
- * Stream the stored document blob. The response `Content-Type` is the document's `mimeType`.
+ * Returns the file with its stored `mimeType` as the response `Content-Type`.
  */
 export const documentsGetContent = <ThrowOnError extends boolean = false>(options: Options<DocumentsGetContentData, ThrowOnError>) => (options.client ?? client).get<DocumentsGetContentResponses, DocumentsGetContentErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -330,9 +283,35 @@ export const documentsGetContent = <ThrowOnError extends boolean = false>(option
 });
 
 /**
- * Get a document's structured extraction
+ * Remove a document link
  *
- * The structured fields the platform extracted from the document, the replacement for the legacy per-attachment parsed-document read. Returns the classification, a flat map of extracted typed fields (e.g. invoice number, vendor, total, dates), and any line items, each with a confidence score so a consumer can threshold low-confidence values. Available only once `status = READY`; while the document is still `PENDING`/`PROCESSING` this returns `404 not_found` (extraction not ready yet, re-fetch the document and retry when its `status` is `READY`), and a `FAILED` document has no extraction. Read-only, extraction is set by the platform, never by the client.
+ * Removes the link for this kind. Safe to retry.
+ */
+export const documentsUnlink = <ThrowOnError extends boolean = false>(options: Options<DocumentsUnlinkData, ThrowOnError>) => (options.client ?? client).delete<DocumentsUnlinkResponses, DocumentsUnlinkErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/documents/{documentId}/links/{kind}',
+    ...options
+});
+
+/**
+ * Link a document
+ *
+ * Links the document to one target of this kind. Linking the same target again has no effect. Set `replace` to change an existing link of this kind.
+ */
+export const documentsLink = <ThrowOnError extends boolean = false>(options: Options<DocumentsLinkData, ThrowOnError>) => (options.client ?? client).put<DocumentsLinkResponses, DocumentsLinkErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/documents/{documentId}/links/{kind}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get extracted document data
+ *
+ * Returns the document's classification, extracted fields, line items, and confidence scores. Available when the document status is `ready`. Returns `404 not_found` while extraction is pending or processing. A failed document has no extraction.
  */
 export const documentsGetExtraction = <ThrowOnError extends boolean = false>(options: Options<DocumentsGetExtractionData, ThrowOnError>) => (options.client ?? client).get<DocumentsGetExtractionResponses, DocumentsGetExtractionErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -341,114 +320,25 @@ export const documentsGetExtraction = <ThrowOnError extends boolean = false>(opt
 });
 
 /**
- * Assign a document to a typed target
+ * List rate packs
  *
- * Assign an already-dropped document to a typed `{ kind, id }` target. The permission gate is `update` on the target's subject, so you can only attach where you could already edit the thing, not on the document. Idempotent on the SAME id (`200` no-op); a same-kind assignment to a DIFFERENT id returns `409 already_assigned` unless `replace: true`. A target in a different workspace returns `404 not_found` (never silently ignored). It is deliberately indistinguishable from a target that does not exist, so cross-workspace existence is never leaked.
- */
-export const documentsAssign = <ThrowOnError extends boolean = false>(options: Options<DocumentsAssignData, ThrowOnError>) => (options.client ?? client).post<DocumentsAssignResponses, DocumentsAssignErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/documents/{documentId}/assign',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Unassign a document from a typed target
- *
- * Remove a document's assignment to a typed `{ kind, id }` target (clears that kind's reference). Idempotent, a `200` no-op when the document is not assigned to that target.
- */
-export const documentsUnassign = <ThrowOnError extends boolean = false>(options: Options<DocumentsUnassignData, ThrowOnError>) => (options.client ?? client).post<DocumentsUnassignResponses, DocumentsUnassignErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/documents/{documentId}/unassign',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * List a document's assignments
- *
- * The set of typed targets this document is currently assigned to, derived from its non-null per-kind reference (single-reference v1).
- */
-export const documentsListAssignments = <ThrowOnError extends boolean = false>(options: Options<DocumentsListAssignmentsData, ThrowOnError>) => (options.client ?? client).get<DocumentsListAssignmentsResponses, DocumentsListAssignmentsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/documents/{documentId}/assignments',
-    ...options
-});
-
-/**
- * List documents on a project
- *
- * Reverse read, documents scoped to this project (`projectId = {projectId}`).
- */
-export const documentsListByProject = <ThrowOnError extends boolean = false>(options: Options<DocumentsListByProjectData, ThrowOnError>) => (options.client ?? client).get<DocumentsListByProjectResponses, DocumentsListByProjectErrors, ThrowOnError>({
-    querySerializer: { parameters: { expand: { array: { explode: false } } } },
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/documents',
-    ...options
-});
-
-/**
- * List documents on a transaction
- *
- * Reverse read, documents assigned to this transaction (`transactionId = {txId}`).
- */
-export const documentsListByTransaction = <ThrowOnError extends boolean = false>(options: Options<DocumentsListByTransactionData, ThrowOnError>) => (options.client ?? client).get<DocumentsListByTransactionResponses, DocumentsListByTransactionErrors, ThrowOnError>({
-    querySerializer: { parameters: { expand: { array: { explode: false } } } },
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/transactions/{txId}/documents',
-    ...options
-});
-
-/**
- * List documents on a purchase order
- *
- * Reverse read, documents assigned to this purchase order (`purchaseOrderId = {purchaseOrderId}`).
- */
-export const documentsListByPurchaseOrder = <ThrowOnError extends boolean = false>(options: Options<DocumentsListByPurchaseOrderData, ThrowOnError>) => (options.client ?? client).get<DocumentsListByPurchaseOrderResponses, DocumentsListByPurchaseOrderErrors, ThrowOnError>({
-    querySerializer: { parameters: { expand: { array: { explode: false } } } },
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/purchase-orders/{purchaseOrderId}/documents',
-    ...options
-});
-
-/**
- * List documents on a contact
- *
- * Reverse read, documents assigned to this contact (`contactId = {contactId}`). Contacts are workspace-level, so this read is at WORKSPACE scope (not under a project); contact-only documents may have a null `projectId`.
- */
-export const documentsListByContact = <ThrowOnError extends boolean = false>(options: Options<DocumentsListByContactData, ThrowOnError>) => (options.client ?? client).get<DocumentsListByContactResponses, DocumentsListByContactErrors, ThrowOnError>({
-    querySerializer: { parameters: { expand: { array: { explode: false } } } },
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/contacts/{contactId}/documents',
-    ...options
-});
-
-/**
- * List rate packs visible to the workspace
- *
- * Rate packs visible to the workspace: `PUBLIC` ∪ workspace-owned, live. Each carries `enabled`/`isOwned`/`latestVersion`. Enabled/installed deprecated packs are included and flagged `deprecated: true`.
+ * List public and workspace-owned rate packs. Deprecated packs already in use include `deprecated: true`.
  */
 export const libraryListRatePacks = <ThrowOnError extends boolean = false>(options?: Options<LibraryListRatePacksData, ThrowOnError>) => (options?.client ?? client).get<LibraryListRatePacksResponses, LibraryListRatePacksErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates',
+    url: '/library/rate-packs',
     ...options
 });
 
 /**
- * Author a PRIVATE workspace-owned rate pack
+ * Create a rate pack
  *
- * Creates a PRIVATE pack and auto-enables it for the workspace. Returns the created pack.
+ * Create a private rate pack for the workspace. The new pack is enabled automatically.
  */
 export const libraryCreateRatePack = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateRatePackData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateRatePackResponses, LibraryCreateRatePackErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates',
+    url: '/library/rate-packs',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -457,13 +347,13 @@ export const libraryCreateRatePack = <ThrowOnError extends boolean = false>(opti
 });
 
 /**
- * Soft-delete an owned rate pack
+ * Delete a rate pack
  *
- * Soft-deletes the pack (`soft-delete timestamp`), preserving lineage. Idempotent.
+ * Delete a workspace-owned rate pack. Repeating the request has no additional effect.
  */
 export const libraryDeleteRatePack = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteRatePackData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteRatePackResponses, LibraryDeleteRatePackErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates/{packId}',
+    url: '/library/rate-packs/{packId}',
     ...options
 });
 
@@ -473,18 +363,18 @@ export const libraryDeleteRatePack = <ThrowOnError extends boolean = false>(opti
 export const libraryGetRatePack = <ThrowOnError extends boolean = false>(options: Options<LibraryGetRatePackData, ThrowOnError>) => (options.client ?? client).get<LibraryGetRatePackResponses, LibraryGetRatePackErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates/{packId}',
+    url: '/library/rate-packs/{packId}',
     ...options
 });
 
 /**
- * Update an owned rate pack
+ * Update a rate pack
  *
- * Patches an owned pack. A non-owned pack returns `404 not_found` (no existence leak).
+ * Update a workspace-owned rate pack. Other packs return `404 not_found`.
  */
 export const libraryUpdateRatePack = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateRatePackData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateRatePackResponses, LibraryUpdateRatePackErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates/{packId}',
+    url: '/library/rate-packs/{packId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -495,44 +385,44 @@ export const libraryUpdateRatePack = <ThrowOnError extends boolean = false>(opti
 /**
  * Disable a rate pack for the workspace
  *
- * Soft-deletes the enable link. Idempotent.
+ * Remove a rate pack from the workspace. Repeating the request has no additional effect.
  */
 export const libraryDisableRatePack = <ThrowOnError extends boolean = false>(options: Options<LibraryDisableRatePackData, ThrowOnError>) => (options.client ?? client).delete<LibraryDisableRatePackResponses, LibraryDisableRatePackErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates/{packId}/enable',
+    url: '/library/rate-packs/{packId}/enablement',
     ...options
 });
 
 /**
  * Enable a rate pack for the workspace
  *
- * Idempotent upsert of the workspace-enable link (deterministic id, resurrects a soft-deleted link). Enabling a deprecated pack returns `400 validation`; a PRIVATE pack owned by another workspace returns `404 not_found`.
+ * Make a rate pack available to the workspace. Deprecated packs return `400 validation`; private packs owned by another workspace return `404 not_found`.
  */
 export const libraryEnableRatePack = <ThrowOnError extends boolean = false>(options: Options<LibraryEnableRatePackData, ThrowOnError>) => (options.client ?? client).post<LibraryEnableRatePackResponses, LibraryEnableRatePackErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates/{packId}/enable',
+    url: '/library/rate-packs/{packId}/enablement',
     ...options
 });
 
 /**
- * Search/browse a pack's current-version items
+ * List rate pack items
  *
- * Latest-version, non-deleted items. Access requires the pack to be enabled, owned, or PUBLIC. Paginated (cap 100).
+ * List current items in an available rate pack.
  */
 export const libraryListRatePackItems = <ThrowOnError extends boolean = false>(options: Options<LibraryListRatePackItemsData, ThrowOnError>) => (options.client ?? client).get<LibraryListRatePackItemsResponses, LibraryListRatePackItemsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates/{packId}/items',
+    url: '/library/rate-packs/{packId}/items',
     ...options
 });
 
 /**
- * Add an item to an owned pack
+ * Add a rate pack item
  *
- * Adds an item (auto-creates v1 if the pack has no version). Server recomputes itemCount/searchText.
+ * Add an item to a workspace-owned rate pack.
  */
 export const libraryCreateRatePackItem = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateRatePackItemData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateRatePackItemResponses, LibraryCreateRatePackItemErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates/{packId}/items',
+    url: '/library/rate-packs/{packId}/items',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -541,22 +431,22 @@ export const libraryCreateRatePackItem = <ThrowOnError extends boolean = false>(
 });
 
 /**
- * Soft-delete a pack item
+ * Delete a rate pack item
  *
- * Soft-deletes the item; server recomputes itemCount. Idempotent.
+ * Delete a rate pack item. Repeating the request has no additional effect.
  */
 export const libraryDeleteRatePackItem = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteRatePackItemData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteRatePackItemResponses, LibraryDeleteRatePackItemErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates/{packId}/items/{itemId}',
+    url: '/library/rate-packs/{packId}/items/{itemId}',
     ...options
 });
 
 /**
- * Update a pack item
+ * Update a rate pack item
  */
 export const libraryUpdateRatePackItem = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateRatePackItemData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateRatePackItemResponses, LibraryUpdateRatePackItemErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/rates/{packId}/items/{itemId}',
+    url: '/library/rate-packs/{packId}/items/{itemId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -565,12 +455,12 @@ export const libraryUpdateRatePackItem = <ThrowOnError extends boolean = false>(
 });
 
 /**
- * List incentive packs visible to the workspace
+ * List incentive packs
  */
 export const libraryListIncentivePacks = <ThrowOnError extends boolean = false>(options?: Options<LibraryListIncentivePacksData, ThrowOnError>) => (options?.client ?? client).get<LibraryListIncentivePacksResponses, LibraryListIncentivePacksErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/incentives',
+    url: '/library/incentive-packs',
     ...options
 });
 
@@ -580,54 +470,54 @@ export const libraryListIncentivePacks = <ThrowOnError extends boolean = false>(
 export const libraryGetIncentivePack = <ThrowOnError extends boolean = false>(options: Options<LibraryGetIncentivePackData, ThrowOnError>) => (options.client ?? client).get<LibraryGetIncentivePackResponses, LibraryGetIncentivePackErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/incentives/{packId}',
+    url: '/library/incentive-packs/{packId}',
     ...options
 });
 
 /**
- * List an incentive pack's programs (rules)
+ * List incentive programs
  */
 export const libraryListIncentivePrograms = <ThrowOnError extends boolean = false>(options: Options<LibraryListIncentiveProgramsData, ThrowOnError>) => (options.client ?? client).get<LibraryListIncentiveProgramsResponses, LibraryListIncentiveProgramsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/incentives/{packId}/programs',
+    url: '/library/incentive-packs/{packId}/programs',
     ...options
 });
 
 /**
  * Disable an incentive pack for the workspace
  *
- * Soft-deletes the enable link. Idempotent.
+ * Remove an incentive pack from the workspace. Repeating the request has no additional effect.
  */
 export const libraryDisableIncentivePack = <ThrowOnError extends boolean = false>(options: Options<LibraryDisableIncentivePackData, ThrowOnError>) => (options.client ?? client).delete<LibraryDisableIncentivePackResponses, LibraryDisableIncentivePackErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/incentives/{packId}/enable',
+    url: '/library/incentive-packs/{packId}/enablement',
     ...options
 });
 
 /**
  * Enable an incentive pack for the workspace
  *
- * Idempotent upsert/resurrect of the workspace-enable link. Enabling a deprecated pack returns `400 validation`; a PRIVATE pack owned by another workspace returns `404 not_found`. Incentive programs are added to a project via `POST …/projects/{projectId}/library/incentives/add`.
+ * Make an incentive pack available to the workspace. Deprecated packs return `400 validation`; private packs owned by another workspace return `404 not_found`.
  */
 export const libraryEnableIncentivePack = <ThrowOnError extends boolean = false>(options: Options<LibraryEnableIncentivePackData, ThrowOnError>) => (options.client ?? client).post<LibraryEnableIncentivePackResponses, LibraryEnableIncentivePackErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/incentives/{packId}/enable',
+    url: '/library/incentive-packs/{packId}/enablement',
     ...options
 });
 
 /**
- * List workspace fringe templates
+ * List fringes
  */
-export const libraryListFringeTemplates = <ThrowOnError extends boolean = false>(options?: Options<LibraryListFringeTemplatesData, ThrowOnError>) => (options?.client ?? client).get<LibraryListFringeTemplatesResponses, LibraryListFringeTemplatesErrors, ThrowOnError>({
+export const libraryListFringes = <ThrowOnError extends boolean = false>(options?: Options<LibraryListFringesData, ThrowOnError>) => (options?.client ?? client).get<LibraryListFringesResponses, LibraryListFringesErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/fringes',
     ...options
 });
 
 /**
- * Create a workspace fringe template
+ * Create a fringe
  */
-export const libraryCreateFringeTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateFringeTemplateData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateFringeTemplateResponses, LibraryCreateFringeTemplateErrors, ThrowOnError>({
+export const libraryCreateFringe = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateFringeData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateFringeResponses, LibraryCreateFringeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/fringes',
     ...options,
@@ -638,29 +528,29 @@ export const libraryCreateFringeTemplate = <ThrowOnError extends boolean = false
 });
 
 /**
- * Soft-delete a workspace fringe template
+ * Delete a fringe
  *
- * Soft-deletes the template. Project copies keep their `sourceId`; `expand=sourceItem` then resolves to a tombstone (never null).
+ * Delete a workspace fringe. Project fringes created from it remain available.
  */
-export const libraryDeleteFringeTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteFringeTemplateData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteFringeTemplateResponses, LibraryDeleteFringeTemplateErrors, ThrowOnError>({
+export const libraryDeleteFringe = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteFringeData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteFringeResponses, LibraryDeleteFringeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/fringes/{fringeId}',
     ...options
 });
 
 /**
- * Get a workspace fringe template
+ * Get a fringe
  */
-export const libraryGetFringeTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryGetFringeTemplateData, ThrowOnError>) => (options.client ?? client).get<LibraryGetFringeTemplateResponses, LibraryGetFringeTemplateErrors, ThrowOnError>({
+export const libraryGetFringe = <ThrowOnError extends boolean = false>(options: Options<LibraryGetFringeData, ThrowOnError>) => (options.client ?? client).get<LibraryGetFringeResponses, LibraryGetFringeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/fringes/{fringeId}',
     ...options
 });
 
 /**
- * Update a workspace fringe template
+ * Update a fringe
  */
-export const libraryUpdateFringeTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateFringeTemplateData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateFringeTemplateResponses, LibraryUpdateFringeTemplateErrors, ThrowOnError>({
+export const libraryUpdateFringe = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateFringeData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateFringeResponses, LibraryUpdateFringeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/fringes/{fringeId}',
     ...options,
@@ -671,18 +561,18 @@ export const libraryUpdateFringeTemplate = <ThrowOnError extends boolean = false
 });
 
 /**
- * List workspace global templates
+ * List globals
  */
-export const libraryListGlobalTemplates = <ThrowOnError extends boolean = false>(options?: Options<LibraryListGlobalTemplatesData, ThrowOnError>) => (options?.client ?? client).get<LibraryListGlobalTemplatesResponses, LibraryListGlobalTemplatesErrors, ThrowOnError>({
+export const libraryListGlobals = <ThrowOnError extends boolean = false>(options?: Options<LibraryListGlobalsData, ThrowOnError>) => (options?.client ?? client).get<LibraryListGlobalsResponses, LibraryListGlobalsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/globals',
     ...options
 });
 
 /**
- * Create a workspace global template
+ * Create a global
  */
-export const libraryCreateGlobalTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateGlobalTemplateData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateGlobalTemplateResponses, LibraryCreateGlobalTemplateErrors, ThrowOnError>({
+export const libraryCreateGlobal = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateGlobalData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateGlobalResponses, LibraryCreateGlobalErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/globals',
     ...options,
@@ -693,27 +583,27 @@ export const libraryCreateGlobalTemplate = <ThrowOnError extends boolean = false
 });
 
 /**
- * Soft-delete a workspace global template
+ * Delete a global
  */
-export const libraryDeleteGlobalTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteGlobalTemplateData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteGlobalTemplateResponses, LibraryDeleteGlobalTemplateErrors, ThrowOnError>({
+export const libraryDeleteGlobal = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteGlobalData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteGlobalResponses, LibraryDeleteGlobalErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/globals/{globalId}',
     ...options
 });
 
 /**
- * Get a workspace global template
+ * Get a global
  */
-export const libraryGetGlobalTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryGetGlobalTemplateData, ThrowOnError>) => (options.client ?? client).get<LibraryGetGlobalTemplateResponses, LibraryGetGlobalTemplateErrors, ThrowOnError>({
+export const libraryGetGlobal = <ThrowOnError extends boolean = false>(options: Options<LibraryGetGlobalData, ThrowOnError>) => (options.client ?? client).get<LibraryGetGlobalResponses, LibraryGetGlobalErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/globals/{globalId}',
     ...options
 });
 
 /**
- * Update a workspace global template
+ * Update a global
  */
-export const libraryUpdateGlobalTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateGlobalTemplateData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateGlobalTemplateResponses, LibraryUpdateGlobalTemplateErrors, ThrowOnError>({
+export const libraryUpdateGlobal = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateGlobalData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateGlobalResponses, LibraryUpdateGlobalErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/globals/{globalId}',
     ...options,
@@ -724,18 +614,18 @@ export const libraryUpdateGlobalTemplate = <ThrowOnError extends boolean = false
 });
 
 /**
- * List workspace currency templates
+ * List currencies
  */
-export const libraryListCurrencyTemplates = <ThrowOnError extends boolean = false>(options?: Options<LibraryListCurrencyTemplatesData, ThrowOnError>) => (options?.client ?? client).get<LibraryListCurrencyTemplatesResponses, LibraryListCurrencyTemplatesErrors, ThrowOnError>({
+export const libraryListCurrencies = <ThrowOnError extends boolean = false>(options?: Options<LibraryListCurrenciesData, ThrowOnError>) => (options?.client ?? client).get<LibraryListCurrenciesResponses, LibraryListCurrenciesErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/currencies',
     ...options
 });
 
 /**
- * Create a workspace currency template
+ * Create a currency
  */
-export const libraryCreateCurrencyTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateCurrencyTemplateData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateCurrencyTemplateResponses, LibraryCreateCurrencyTemplateErrors, ThrowOnError>({
+export const libraryCreateCurrency = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateCurrencyData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateCurrencyResponses, LibraryCreateCurrencyErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/currencies',
     ...options,
@@ -746,27 +636,27 @@ export const libraryCreateCurrencyTemplate = <ThrowOnError extends boolean = fal
 });
 
 /**
- * Soft-delete a workspace currency template
+ * Delete a currency
  */
-export const libraryDeleteCurrencyTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteCurrencyTemplateData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteCurrencyTemplateResponses, LibraryDeleteCurrencyTemplateErrors, ThrowOnError>({
+export const libraryDeleteCurrency = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteCurrencyData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteCurrencyResponses, LibraryDeleteCurrencyErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/currencies/{currencyId}',
     ...options
 });
 
 /**
- * Get a workspace currency template
+ * Get a currency
  */
-export const libraryGetCurrencyTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryGetCurrencyTemplateData, ThrowOnError>) => (options.client ?? client).get<LibraryGetCurrencyTemplateResponses, LibraryGetCurrencyTemplateErrors, ThrowOnError>({
+export const libraryGetCurrency = <ThrowOnError extends boolean = false>(options: Options<LibraryGetCurrencyData, ThrowOnError>) => (options.client ?? client).get<LibraryGetCurrencyResponses, LibraryGetCurrencyErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/currencies/{currencyId}',
     ...options
 });
 
 /**
- * Update a workspace currency template
+ * Update a currency
  */
-export const libraryUpdateCurrencyTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateCurrencyTemplateData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateCurrencyTemplateResponses, LibraryUpdateCurrencyTemplateErrors, ThrowOnError>({
+export const libraryUpdateCurrency = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateCurrencyData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateCurrencyResponses, LibraryUpdateCurrencyErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/library/currencies/{currencyId}',
     ...options,
@@ -777,22 +667,20 @@ export const libraryUpdateCurrencyTemplate = <ThrowOnError extends boolean = fal
 });
 
 /**
- * List workspace fringe-tag templates
- *
- * Fringe groups.
+ * List fringe groups
  */
-export const libraryListFringeTagTemplates = <ThrowOnError extends boolean = false>(options?: Options<LibraryListFringeTagTemplatesData, ThrowOnError>) => (options?.client ?? client).get<LibraryListFringeTagTemplatesResponses, LibraryListFringeTagTemplatesErrors, ThrowOnError>({
+export const libraryListFringeGroups = <ThrowOnError extends boolean = false>(options?: Options<LibraryListFringeGroupsData, ThrowOnError>) => (options?.client ?? client).get<LibraryListFringeGroupsResponses, LibraryListFringeGroupsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/fringe-tags',
+    url: '/library/fringe-groups',
     ...options
 });
 
 /**
- * Create a workspace fringe-tag template
+ * Create a fringe group
  */
-export const libraryCreateFringeTagTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateFringeTagTemplateData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateFringeTagTemplateResponses, LibraryCreateFringeTagTemplateErrors, ThrowOnError>({
+export const libraryCreateFringeGroup = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateFringeGroupData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateFringeGroupResponses, LibraryCreateFringeGroupErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/fringe-tags',
+    url: '/library/fringe-groups',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -801,29 +689,29 @@ export const libraryCreateFringeTagTemplate = <ThrowOnError extends boolean = fa
 });
 
 /**
- * Soft-delete a workspace fringe-tag template
+ * Delete a fringe group
  */
-export const libraryDeleteFringeTagTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteFringeTagTemplateData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteFringeTagTemplateResponses, LibraryDeleteFringeTagTemplateErrors, ThrowOnError>({
+export const libraryDeleteFringeGroup = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteFringeGroupData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteFringeGroupResponses, LibraryDeleteFringeGroupErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/fringe-tags/{fringeTagId}',
+    url: '/library/fringe-groups/{fringeGroupId}',
     ...options
 });
 
 /**
- * Get a workspace fringe-tag template
+ * Get a fringe group
  */
-export const libraryGetFringeTagTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryGetFringeTagTemplateData, ThrowOnError>) => (options.client ?? client).get<LibraryGetFringeTagTemplateResponses, LibraryGetFringeTagTemplateErrors, ThrowOnError>({
+export const libraryGetFringeGroup = <ThrowOnError extends boolean = false>(options: Options<LibraryGetFringeGroupData, ThrowOnError>) => (options.client ?? client).get<LibraryGetFringeGroupResponses, LibraryGetFringeGroupErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/fringe-tags/{fringeTagId}',
+    url: '/library/fringe-groups/{fringeGroupId}',
     ...options
 });
 
 /**
- * Update a workspace fringe-tag template
+ * Update a fringe group
  */
-export const libraryUpdateFringeTagTemplate = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateFringeTagTemplateData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateFringeTagTemplateResponses, LibraryUpdateFringeTagTemplateErrors, ThrowOnError>({
+export const libraryUpdateFringeGroup = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateFringeGroupData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateFringeGroupResponses, LibraryUpdateFringeGroupErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/fringe-tags/{fringeTagId}',
+    url: '/library/fringe-groups/{fringeGroupId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -832,7 +720,7 @@ export const libraryUpdateFringeTagTemplate = <ThrowOnError extends boolean = fa
 });
 
 /**
- * List the workspace tag pool
+ * List tags
  */
 export const libraryListTags = <ThrowOnError extends boolean = false>(options?: Options<LibraryListTagsData, ThrowOnError>) => (options?.client ?? client).get<LibraryListTagsResponses, LibraryListTagsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -843,7 +731,7 @@ export const libraryListTags = <ThrowOnError extends boolean = false>(options?: 
 /**
  * Create a workspace tag
  *
- * Idempotent on a supplied `id`. `color` must be a Tailwind key or null (else `422`).
+ * Create a workspace tag. `color` accepts a supported display color or `null`.
  */
 export const libraryCreateTag = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateTagData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateTagResponses, LibraryCreateTagErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -856,9 +744,9 @@ export const libraryCreateTag = <ThrowOnError extends boolean = false>(options: 
 });
 
 /**
- * Soft-delete a workspace tag
+ * Delete a workspace tag
  *
- * Soft-deletes the tag; historical assignments stay resolvable. Idempotent.
+ * Delete a tag. Existing historical references remain available.
  */
 export const libraryDeleteTag = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteTagData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteTagResponses, LibraryDeleteTagErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -889,9 +777,9 @@ export const libraryUpdateTag = <ThrowOnError extends boolean = false>(options: 
 });
 
 /**
- * List units (built-in + custom)
+ * List units
  *
- * The 17 read-only built-in units merged with the workspace's live custom units.
+ * List built-in and workspace units. Built-in units are read-only.
  */
 export const libraryListUnits = <ThrowOnError extends boolean = false>(options?: Options<LibraryListUnitsData, ThrowOnError>) => (options?.client ?? client).get<LibraryListUnitsResponses, LibraryListUnitsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -900,22 +788,13 @@ export const libraryListUnits = <ThrowOnError extends boolean = false>(options?:
 });
 
 /**
- * List workspace custom units
- */
-export const libraryListCustomUnits = <ThrowOnError extends boolean = false>(options?: Options<LibraryListCustomUnitsData, ThrowOnError>) => (options?.client ?? client).get<LibraryListCustomUnitsResponses, LibraryListCustomUnitsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/units/custom',
-    ...options
-});
-
-/**
- * Create a workspace custom unit
+ * Create a unit
  *
- * Built-in units cannot be changed. Custom units can be created, updated, and deleted.
+ * Create a workspace unit. Built-in units cannot be changed.
  */
-export const libraryCreateCustomUnit = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateCustomUnitData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateCustomUnitResponses, LibraryCreateCustomUnitErrors, ThrowOnError>({
+export const libraryCreateUnit = <ThrowOnError extends boolean = false>(options: Options<LibraryCreateUnitData, ThrowOnError>) => (options.client ?? client).post<LibraryCreateUnitResponses, LibraryCreateUnitErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/units/custom',
+    url: '/library/units',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -924,20 +803,31 @@ export const libraryCreateCustomUnit = <ThrowOnError extends boolean = false>(op
 });
 
 /**
- * Soft-delete a workspace custom unit
+ * Delete a unit
  */
-export const libraryDeleteCustomUnit = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteCustomUnitData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteCustomUnitResponses, LibraryDeleteCustomUnitErrors, ThrowOnError>({
+export const libraryDeleteUnit = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteUnitData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteUnitResponses, LibraryDeleteUnitErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/units/custom/{unitId}',
+    url: '/library/units/{unitId}',
     ...options
 });
 
 /**
- * Update a workspace custom unit
+ * Get a unit
+ *
+ * Get a built-in or workspace unit.
  */
-export const libraryUpdateCustomUnit = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateCustomUnitData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateCustomUnitResponses, LibraryUpdateCustomUnitErrors, ThrowOnError>({
+export const libraryGetUnit = <ThrowOnError extends boolean = false>(options: Options<LibraryGetUnitData, ThrowOnError>) => (options.client ?? client).get<LibraryGetUnitResponses, LibraryGetUnitErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/library/units/custom/{unitId}',
+    url: '/library/units/{unitId}',
+    ...options
+});
+
+/**
+ * Update a unit
+ */
+export const libraryUpdateUnit = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateUnitData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateUnitResponses, LibraryUpdateUnitErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/library/units/{unitId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -946,39 +836,38 @@ export const libraryUpdateCustomUnit = <ThrowOnError extends boolean = false>(op
 });
 
 /**
- * List rate packs installed in the project
+ * List project rate packs
  */
 export const libraryListProjectRatePacks = <ThrowOnError extends boolean = false>(options: Options<LibraryListProjectRatePacksData, ThrowOnError>) => (options.client ?? client).get<LibraryListProjectRatePacksResponses, LibraryListProjectRatePacksErrors, ThrowOnError>({
-    querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/rates',
+    url: '/projects/{projectId}/library/rate-packs',
     ...options
 });
 
 /**
  * Remove a rate pack from the project
  *
- * Soft-deletes the project rate pack link. Idempotent.
+ * Remove a rate pack from a project. Repeating the request has no additional effect.
  */
 export const libraryRemoveRatePack = <ThrowOnError extends boolean = false>(options: Options<LibraryRemoveRatePackData, ThrowOnError>) => (options.client ?? client).delete<LibraryRemoveRatePackResponses, LibraryRemoveRatePackErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/rates/{packId}/add',
+    url: '/projects/{projectId}/library/rate-packs/{packId}',
     ...options
 });
 
 /**
- * Add a rate pack into the project
+ * Add a rate pack to a project
  *
- * Two-step ENABLE→ADD: requires a live workspace-enable link, else `400 validation` (`ERR_RATE_PACK_NOT_ENABLED_FOR_WORKSPACE`). Rejects deprecated (`400`); missing project/pack (`404`). Idempotent upsert/resurrect (deterministic id).
+ * Add an enabled rate pack to a project. Disabled or deprecated packs return `400 validation`.
  */
-export const libraryAddRatePack = <ThrowOnError extends boolean = false>(options: Options<LibraryAddRatePackData, ThrowOnError>) => (options.client ?? client).post<LibraryAddRatePackResponses, LibraryAddRatePackErrors, ThrowOnError>({
+export const libraryAddRatePack = <ThrowOnError extends boolean = false>(options: Options<LibraryAddRatePackData, ThrowOnError>) => (options.client ?? client).put<LibraryAddRatePackResponses, LibraryAddRatePackErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/rates/{packId}/add',
+    url: '/projects/{projectId}/library/rate-packs/{packId}',
     ...options
 });
 
 /**
- * List the project's incentives
+ * List project incentives
  */
 export const libraryListProjectIncentives = <ThrowOnError extends boolean = false>(options: Options<LibraryListProjectIncentivesData, ThrowOnError>) => (options.client ?? client).get<LibraryListProjectIncentivesResponses, LibraryListProjectIncentivesErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -988,13 +877,13 @@ export const libraryListProjectIncentives = <ThrowOnError extends boolean = fals
 });
 
 /**
- * Add an incentive program into the project
+ * Add an incentive to a project
  *
- * Adds a program (its current published version) as a project incentive. Keyed on `(projectId, sourceIncentiveVersionId)`; idempotent. Rejected (`400 validation`) when the version/program/pack is not `published`, the pack is `deprecated`, or the pack is neither workspace-enabled nor workspace-owned.
+ * Add the published version of an available incentive program. Unpublished or deprecated incentives return `400 validation`.
  */
 export const libraryAddProjectIncentive = <ThrowOnError extends boolean = false>(options: Options<LibraryAddProjectIncentiveData, ThrowOnError>) => (options.client ?? client).post<LibraryAddProjectIncentiveResponses, LibraryAddProjectIncentiveErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/incentives/add',
+    url: '/projects/{projectId}/library/incentives',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1005,7 +894,7 @@ export const libraryAddProjectIncentive = <ThrowOnError extends boolean = false>
 /**
  * Remove a project incentive
  *
- * Soft-deletes the project incentive. Idempotent. Re-add resurrects (see `/add`).
+ * Remove an incentive from a project. Adding it again restores its previous settings.
  */
 export const libraryDeleteProjectIncentive = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteProjectIncentiveData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteProjectIncentiveResponses, LibraryDeleteProjectIncentiveErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1026,7 +915,7 @@ export const libraryGetProjectIncentive = <ThrowOnError extends boolean = false>
 /**
  * Update a project incentive
  *
- * The source-tracking fields (`sourceId`, `sourceIncentiveVersionId`, `sourceType`) are read-only.
+ * Update the supplied incentive fields.
  */
 export const libraryUpdateProjectIncentive = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateProjectIncentiveData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateProjectIncentiveResponses, LibraryUpdateProjectIncentiveErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1039,7 +928,7 @@ export const libraryUpdateProjectIncentive = <ThrowOnError extends boolean = fal
 });
 
 /**
- * List project fringe copies
+ * List project fringes
  */
 export const libraryListProjectFringes = <ThrowOnError extends boolean = false>(options: Options<LibraryListProjectFringesData, ThrowOnError>) => (options.client ?? client).get<LibraryListProjectFringesResponses, LibraryListProjectFringesErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1049,13 +938,13 @@ export const libraryListProjectFringes = <ThrowOnError extends boolean = false>(
 });
 
 /**
- * Copy a workspace fringe into the project
+ * Add a fringe to a project
  *
- * Copies a workspace template in (idempotent on `(projectId, sourceId)`). A live copy → `200` no-op; an edited-then-soft-deleted copy → resurrect **as-is** (edits preserved); `?reset=true` → explicit re-snapshot from source.
+ * Add a workspace fringe to a project. Adding it again keeps project edits. Use `reset=true` to restore workspace values.
  */
 export const libraryAddProjectFringe = <ThrowOnError extends boolean = false>(options: Options<LibraryAddProjectFringeData, ThrowOnError>) => (options.client ?? client).post<LibraryAddProjectFringeResponses, LibraryAddProjectFringeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/fringes/add',
+    url: '/projects/{projectId}/library/fringes',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1064,9 +953,9 @@ export const libraryAddProjectFringe = <ThrowOnError extends boolean = false>(op
 });
 
 /**
- * Remove a project fringe copy
+ * Remove a project fringe
  *
- * Soft-deletes the copy. Re-`add` resurrects it as-is unless `?reset=true`. Idempotent.
+ * Remove a fringe from a project. Adding it again restores its previous settings unless `reset=true`.
  */
 export const libraryDeleteProjectFringe = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteProjectFringeData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteProjectFringeResponses, LibraryDeleteProjectFringeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1075,7 +964,7 @@ export const libraryDeleteProjectFringe = <ThrowOnError extends boolean = false>
 });
 
 /**
- * Get a project fringe copy
+ * Get a project fringe
  */
 export const libraryGetProjectFringe = <ThrowOnError extends boolean = false>(options: Options<LibraryGetProjectFringeData, ThrowOnError>) => (options.client ?? client).get<LibraryGetProjectFringeResponses, LibraryGetProjectFringeErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1085,9 +974,9 @@ export const libraryGetProjectFringe = <ThrowOnError extends boolean = false>(op
 });
 
 /**
- * Update a project fringe copy
+ * Update a project fringe
  *
- * Diverges the copy from its source; `sourceId`/`sourceType` are read-only.
+ * Update the supplied project fringe fields.
  */
 export const libraryUpdateProjectFringe = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateProjectFringeData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateProjectFringeResponses, LibraryUpdateProjectFringeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1100,7 +989,7 @@ export const libraryUpdateProjectFringe = <ThrowOnError extends boolean = false>
 });
 
 /**
- * List project global copies
+ * List project globals
  */
 export const libraryListProjectGlobals = <ThrowOnError extends boolean = false>(options: Options<LibraryListProjectGlobalsData, ThrowOnError>) => (options.client ?? client).get<LibraryListProjectGlobalsResponses, LibraryListProjectGlobalsErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1110,13 +999,13 @@ export const libraryListProjectGlobals = <ThrowOnError extends boolean = false>(
 });
 
 /**
- * Copy a workspace global into the project
+ * Add a global to a project
  *
- * Idempotent on `(projectId, sourceId)`. Live copy → `200`; soft-deleted edited copy → resurrect as-is; `?reset=true` → re-snapshot from source.
+ * Add a workspace global to a project. Adding it again keeps project edits. Use `reset=true` to restore workspace values.
  */
 export const libraryAddProjectGlobal = <ThrowOnError extends boolean = false>(options: Options<LibraryAddProjectGlobalData, ThrowOnError>) => (options.client ?? client).post<LibraryAddProjectGlobalResponses, LibraryAddProjectGlobalErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/globals/add',
+    url: '/projects/{projectId}/library/globals',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1125,7 +1014,7 @@ export const libraryAddProjectGlobal = <ThrowOnError extends boolean = false>(op
 });
 
 /**
- * Remove a project global copy
+ * Remove a project global
  */
 export const libraryDeleteProjectGlobal = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteProjectGlobalData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteProjectGlobalResponses, LibraryDeleteProjectGlobalErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1134,7 +1023,7 @@ export const libraryDeleteProjectGlobal = <ThrowOnError extends boolean = false>
 });
 
 /**
- * Get a project global copy
+ * Get a project global
  */
 export const libraryGetProjectGlobal = <ThrowOnError extends boolean = false>(options: Options<LibraryGetProjectGlobalData, ThrowOnError>) => (options.client ?? client).get<LibraryGetProjectGlobalResponses, LibraryGetProjectGlobalErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1144,7 +1033,7 @@ export const libraryGetProjectGlobal = <ThrowOnError extends boolean = false>(op
 });
 
 /**
- * Update a project global copy
+ * Update a project global
  */
 export const libraryUpdateProjectGlobal = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateProjectGlobalData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateProjectGlobalResponses, LibraryUpdateProjectGlobalErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1157,7 +1046,7 @@ export const libraryUpdateProjectGlobal = <ThrowOnError extends boolean = false>
 });
 
 /**
- * List project currency copies
+ * List project currencies
  */
 export const libraryListProjectCurrencies = <ThrowOnError extends boolean = false>(options: Options<LibraryListProjectCurrenciesData, ThrowOnError>) => (options.client ?? client).get<LibraryListProjectCurrenciesResponses, LibraryListProjectCurrenciesErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1167,13 +1056,13 @@ export const libraryListProjectCurrencies = <ThrowOnError extends boolean = fals
 });
 
 /**
- * Copy a workspace currency into the project
+ * Add a currency to a project
  *
- * Idempotent on `(projectId, sourceId)`. Live copy → `200`; soft-deleted edited copy → resurrect as-is; `?reset=true` → re-snapshot from source.
+ * Add a workspace currency to a project. Adding it again keeps project edits. Use `reset=true` to restore workspace values.
  */
 export const libraryAddProjectCurrency = <ThrowOnError extends boolean = false>(options: Options<LibraryAddProjectCurrencyData, ThrowOnError>) => (options.client ?? client).post<LibraryAddProjectCurrencyResponses, LibraryAddProjectCurrencyErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/currencies/add',
+    url: '/projects/{projectId}/library/currencies',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1182,7 +1071,7 @@ export const libraryAddProjectCurrency = <ThrowOnError extends boolean = false>(
 });
 
 /**
- * Remove a project currency copy
+ * Remove a project currency
  */
 export const libraryDeleteProjectCurrency = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteProjectCurrencyData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteProjectCurrencyResponses, LibraryDeleteProjectCurrencyErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1191,7 +1080,7 @@ export const libraryDeleteProjectCurrency = <ThrowOnError extends boolean = fals
 });
 
 /**
- * Get a project currency copy
+ * Get a project currency
  */
 export const libraryGetProjectCurrency = <ThrowOnError extends boolean = false>(options: Options<LibraryGetProjectCurrencyData, ThrowOnError>) => (options.client ?? client).get<LibraryGetProjectCurrencyResponses, LibraryGetProjectCurrencyErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1201,7 +1090,7 @@ export const libraryGetProjectCurrency = <ThrowOnError extends boolean = false>(
 });
 
 /**
- * Update a project currency copy
+ * Update a project currency
  */
 export const libraryUpdateProjectCurrency = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateProjectCurrencyData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateProjectCurrencyResponses, LibraryUpdateProjectCurrencyErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1214,23 +1103,23 @@ export const libraryUpdateProjectCurrency = <ThrowOnError extends boolean = fals
 });
 
 /**
- * List project fringe-tag copies
+ * List project fringe groups
  */
-export const libraryListProjectFringeTags = <ThrowOnError extends boolean = false>(options: Options<LibraryListProjectFringeTagsData, ThrowOnError>) => (options.client ?? client).get<LibraryListProjectFringeTagsResponses, LibraryListProjectFringeTagsErrors, ThrowOnError>({
+export const libraryListProjectFringeGroups = <ThrowOnError extends boolean = false>(options: Options<LibraryListProjectFringeGroupsData, ThrowOnError>) => (options.client ?? client).get<LibraryListProjectFringeGroupsResponses, LibraryListProjectFringeGroupsErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/fringe-tags',
+    url: '/projects/{projectId}/library/fringe-groups',
     ...options
 });
 
 /**
- * Copy a workspace fringe-tag into the project
+ * Add a fringe group to a project
  *
- * Idempotent on `(projectId, sourceId)`. Resurrect as-is; `?reset=true` re-snapshots.
+ * Add a workspace Fringe Group to a project. Adding it again keeps project edits. Use `reset=true` to restore workspace values.
  */
-export const libraryAddProjectFringeTag = <ThrowOnError extends boolean = false>(options: Options<LibraryAddProjectFringeTagData, ThrowOnError>) => (options.client ?? client).post<LibraryAddProjectFringeTagResponses, LibraryAddProjectFringeTagErrors, ThrowOnError>({
+export const libraryAddProjectFringeGroup = <ThrowOnError extends boolean = false>(options: Options<LibraryAddProjectFringeGroupData, ThrowOnError>) => (options.client ?? client).post<LibraryAddProjectFringeGroupResponses, LibraryAddProjectFringeGroupErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/fringe-tags/add',
+    url: '/projects/{projectId}/library/fringe-groups',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1239,30 +1128,30 @@ export const libraryAddProjectFringeTag = <ThrowOnError extends boolean = false>
 });
 
 /**
- * Remove a project fringe-tag copy
+ * Remove a project fringe group
  */
-export const libraryDeleteProjectFringeTag = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteProjectFringeTagData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteProjectFringeTagResponses, LibraryDeleteProjectFringeTagErrors, ThrowOnError>({
+export const libraryDeleteProjectFringeGroup = <ThrowOnError extends boolean = false>(options: Options<LibraryDeleteProjectFringeGroupData, ThrowOnError>) => (options.client ?? client).delete<LibraryDeleteProjectFringeGroupResponses, LibraryDeleteProjectFringeGroupErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/fringe-tags/{fringeTagId}',
+    url: '/projects/{projectId}/library/fringe-groups/{fringeGroupId}',
     ...options
 });
 
 /**
- * Get a project fringe-tag copy
+ * Get a project fringe group
  */
-export const libraryGetProjectFringeTag = <ThrowOnError extends boolean = false>(options: Options<LibraryGetProjectFringeTagData, ThrowOnError>) => (options.client ?? client).get<LibraryGetProjectFringeTagResponses, LibraryGetProjectFringeTagErrors, ThrowOnError>({
+export const libraryGetProjectFringeGroup = <ThrowOnError extends boolean = false>(options: Options<LibraryGetProjectFringeGroupData, ThrowOnError>) => (options.client ?? client).get<LibraryGetProjectFringeGroupResponses, LibraryGetProjectFringeGroupErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/fringe-tags/{fringeTagId}',
+    url: '/projects/{projectId}/library/fringe-groups/{fringeGroupId}',
     ...options
 });
 
 /**
- * Update a project fringe-tag copy
+ * Update a project fringe group
  */
-export const libraryUpdateProjectFringeTag = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateProjectFringeTagData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateProjectFringeTagResponses, LibraryUpdateProjectFringeTagErrors, ThrowOnError>({
+export const libraryUpdateProjectFringeGroup = <ThrowOnError extends boolean = false>(options: Options<LibraryUpdateProjectFringeGroupData, ThrowOnError>) => (options.client ?? client).patch<LibraryUpdateProjectFringeGroupResponses, LibraryUpdateProjectFringeGroupErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/fringe-tags/{fringeTagId}',
+    url: '/projects/{projectId}/library/fringe-groups/{fringeGroupId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1271,9 +1160,9 @@ export const libraryUpdateProjectFringeTag = <ThrowOnError extends boolean = fal
 });
 
 /**
- * List tags associated with the project
+ * List project tags
  *
- * Tags with an active `is linked to` edge to the project (definitions, not assignments).
+ * List tags used in the project.
  */
 export const libraryListProjectTags = <ThrowOnError extends boolean = false>(options: Options<LibraryListProjectTagsData, ThrowOnError>) => (options.client ?? client).get<LibraryListProjectTagsResponses, LibraryListProjectTagsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1282,37 +1171,11 @@ export const libraryListProjectTags = <ThrowOnError extends boolean = false>(opt
 });
 
 /**
- * Remove a tag from the project
- *
- * Soft-deletes the `is linked to` edge. Idempotent. The edge is auto-reconciled from line/transaction tag assignments, so it may be silently re-created.
- */
-export const libraryRemoveProjectTag = <ThrowOnError extends boolean = false>(options: Options<LibraryRemoveProjectTagData, ThrowOnError>) => (options.client ?? client).delete<LibraryRemoveProjectTagResponses, LibraryRemoveProjectTagErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/tags/{tagId}/add',
-    ...options
-});
-
-/**
- * Add a workspace tag to the project
- *
- * Creates/reactivates the `is linked to` edge (idempotent). Supply `tag` in the body to create the workspace tag first if `{tagId}` does not yet exist. The edge is auto-reconciled from line/transaction tag assignments, so a manual remove may be silently re-created.
- */
-export const libraryAddProjectTag = <ThrowOnError extends boolean = false>(options: Options<LibraryAddProjectTagData, ThrowOnError>) => (options.client ?? client).post<LibraryAddProjectTagResponses, LibraryAddProjectTagErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/library/tags/{tagId}/add',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
  * List projects
  *
- * List the workspace's projects, permission-filtered to those the token can read. Paginated (cap-100). Soft-deleted projects are hidden unless `includeDeleted=true`. Legacy parity note: the project filter set is intentionally narrower than legacy. The high-value facets are kept (`status`, `spaceId`, `q`); the legacy `labels[]` project-label filter is NOT ported, Next has no project-label primitive (projects are grouped by `spaceId`, and per-entity tagging is the Library tag pool, not a project label). Deep, saved filters belong to a `view` (), not the query string.
+ * List projects you can access. Results are paginated and exclude deleted projects by default.
  */
-export const masterDataListProjects = <ThrowOnError extends boolean = false>(options?: Options<MasterDataListProjectsData, ThrowOnError>) => (options?.client ?? client).get<MasterDataListProjectsResponses, MasterDataListProjectsErrors, ThrowOnError>({
+export const projectsList = <ThrowOnError extends boolean = false>(options?: Options<ProjectsListData, ThrowOnError>) => (options?.client ?? client).get<ProjectsListResponses, ProjectsListErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/projects',
     ...options
@@ -1321,9 +1184,9 @@ export const masterDataListProjects = <ThrowOnError extends boolean = false>(opt
 /**
  * Create a project
  *
- * Create a project in the workspace. Requires `create` on the `Project` subject (request-derived). Server-owned fields are rejected with `422 field_read_only`.
+ * Create a project in the workspace. Read-only fields return `422 field_read_only` when supplied.
  */
-export const masterDataCreateProject = <ThrowOnError extends boolean = false>(options: Options<MasterDataCreateProjectData, ThrowOnError>) => (options.client ?? client).post<MasterDataCreateProjectResponses, MasterDataCreateProjectErrors, ThrowOnError>({
+export const projectsCreate = <ThrowOnError extends boolean = false>(options: Options<ProjectsCreateData, ThrowOnError>) => (options.client ?? client).post<ProjectsCreateResponses, ProjectsCreateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/projects',
     ...options,
@@ -1334,35 +1197,24 @@ export const masterDataCreateProject = <ThrowOnError extends boolean = false>(op
 });
 
 /**
- * Delete a project
- *
- * Soft-delete a project (sets `soft-delete timestamp`; lineage preserved). Idempotent, deleting an already-deleted project returns `204`.
- */
-export const masterDataDeleteProject = <ThrowOnError extends boolean = false>(options: Options<MasterDataDeleteProjectData, ThrowOnError>) => (options.client ?? client).delete<MasterDataDeleteProjectResponses, MasterDataDeleteProjectErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{slugOrId}',
-    ...options
-});
-
-/**
  * Get a project
  *
- * Fetch one project by canonical id or slug. `404 not_found` also covers exists-but-unauthorized.
+ * Get a project by ID or slug.
  */
-export const masterDataGetProject = <ThrowOnError extends boolean = false>(options: Options<MasterDataGetProjectData, ThrowOnError>) => (options.client ?? client).get<MasterDataGetProjectResponses, MasterDataGetProjectErrors, ThrowOnError>({
+export const projectsGet = <ThrowOnError extends boolean = false>(options: Options<ProjectsGetData, ThrowOnError>) => (options.client ?? client).get<ProjectsGetResponses, ProjectsGetErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{slugOrId}',
+    url: '/projects/{projectId}',
     ...options
 });
 
 /**
  * Update a project
  *
- * Partially update a project. Gated on `update` against the row-derived `Project` subject (`{kind:'Project', workspaceId, projectId}`).
+ * Update the supplied project fields.
  */
-export const masterDataUpdateProject = <ThrowOnError extends boolean = false>(options: Options<MasterDataUpdateProjectData, ThrowOnError>) => (options.client ?? client).patch<MasterDataUpdateProjectResponses, MasterDataUpdateProjectErrors, ThrowOnError>({
+export const projectsUpdate = <ThrowOnError extends boolean = false>(options: Options<ProjectsUpdateData, ThrowOnError>) => (options.client ?? client).patch<ProjectsUpdateResponses, ProjectsUpdateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{slugOrId}',
+    url: '/projects/{projectId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1373,9 +1225,9 @@ export const masterDataUpdateProject = <ThrowOnError extends boolean = false>(op
 /**
  * List spaces
  *
- * List the workspace's spaces. Paginated.
+ * List spaces in the workspace.
  */
-export const masterDataListSpaces = <ThrowOnError extends boolean = false>(options?: Options<MasterDataListSpacesData, ThrowOnError>) => (options?.client ?? client).get<MasterDataListSpacesResponses, MasterDataListSpacesErrors, ThrowOnError>({
+export const spacesList = <ThrowOnError extends boolean = false>(options?: Options<SpacesListData, ThrowOnError>) => (options?.client ?? client).get<SpacesListResponses, SpacesListErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/spaces',
     ...options
@@ -1384,7 +1236,7 @@ export const masterDataListSpaces = <ThrowOnError extends boolean = false>(optio
 /**
  * Create a space
  */
-export const masterDataCreateSpace = <ThrowOnError extends boolean = false>(options: Options<MasterDataCreateSpaceData, ThrowOnError>) => (options.client ?? client).post<MasterDataCreateSpaceResponses, MasterDataCreateSpaceErrors, ThrowOnError>({
+export const spacesCreate = <ThrowOnError extends boolean = false>(options: Options<SpacesCreateData, ThrowOnError>) => (options.client ?? client).post<SpacesCreateResponses, SpacesCreateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/spaces',
     ...options,
@@ -1397,9 +1249,9 @@ export const masterDataCreateSpace = <ThrowOnError extends boolean = false>(opti
 /**
  * Delete a space
  *
- * Soft-delete a space. Projects filed under it are not deleted; they become ungrouped (`spaceId` cleared). Idempotent.
+ * Delete a space. Its projects become ungrouped. Repeating the request has no additional effect.
  */
-export const masterDataDeleteSpace = <ThrowOnError extends boolean = false>(options: Options<MasterDataDeleteSpaceData, ThrowOnError>) => (options.client ?? client).delete<MasterDataDeleteSpaceResponses, MasterDataDeleteSpaceErrors, ThrowOnError>({
+export const spacesDelete = <ThrowOnError extends boolean = false>(options: Options<SpacesDeleteData, ThrowOnError>) => (options.client ?? client).delete<SpacesDeleteResponses, SpacesDeleteErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/spaces/{spaceId}',
     ...options
@@ -1408,7 +1260,7 @@ export const masterDataDeleteSpace = <ThrowOnError extends boolean = false>(opti
 /**
  * Update a space
  */
-export const masterDataUpdateSpace = <ThrowOnError extends boolean = false>(options: Options<MasterDataUpdateSpaceData, ThrowOnError>) => (options.client ?? client).patch<MasterDataUpdateSpaceResponses, MasterDataUpdateSpaceErrors, ThrowOnError>({
+export const spacesUpdate = <ThrowOnError extends boolean = false>(options: Options<SpacesUpdateData, ThrowOnError>) => (options.client ?? client).patch<SpacesUpdateResponses, SpacesUpdateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/spaces/{spaceId}',
     ...options,
@@ -1421,9 +1273,9 @@ export const masterDataUpdateSpace = <ThrowOnError extends boolean = false>(opti
 /**
  * List contacts
  *
- * List the workspace's contacts. Paginated. Supports `expand=documents,transactions` (permission-projected, an empty/partial expanded array means "not-readable-or-absent", indicated by the response's `truncated` flag). Legacy parity note: the contact filter set is intentionally narrower than legacy. The high-value facets are kept (`q`, `type`, `tags`/`tagMode`, `track1099`, `hasTaxId`); legacy origin / linked-user / start-work facets are not ported, and the full tax / bank numbers are never filterable or returned (only the display-safe `taxIdLast4` / `hasTaxId` hints). Deep, saved filters belong to a `view` ().
+ * List contacts in the workspace. Use `expand` to include accessible documents or transactions.
  */
-export const masterDataListContacts = <ThrowOnError extends boolean = false>(options?: Options<MasterDataListContactsData, ThrowOnError>) => (options?.client ?? client).get<MasterDataListContactsResponses, MasterDataListContactsErrors, ThrowOnError>({
+export const contactsList = <ThrowOnError extends boolean = false>(options?: Options<ContactsListData, ThrowOnError>) => (options?.client ?? client).get<ContactsListResponses, ContactsListErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/contacts',
@@ -1433,7 +1285,7 @@ export const masterDataListContacts = <ThrowOnError extends boolean = false>(opt
 /**
  * Create a contact
  */
-export const masterDataCreateContact = <ThrowOnError extends boolean = false>(options: Options<MasterDataCreateContactData, ThrowOnError>) => (options.client ?? client).post<MasterDataCreateContactResponses, MasterDataCreateContactErrors, ThrowOnError>({
+export const contactsCreate = <ThrowOnError extends boolean = false>(options: Options<ContactsCreateData, ThrowOnError>) => (options.client ?? client).post<ContactsCreateResponses, ContactsCreateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/contacts',
     ...options,
@@ -1446,9 +1298,9 @@ export const masterDataCreateContact = <ThrowOnError extends boolean = false>(op
 /**
  * Delete a contact
  *
- * Soft-delete a contact. Idempotent.
+ * Delete a contact. Repeating the request has no additional effect.
  */
-export const masterDataDeleteContact = <ThrowOnError extends boolean = false>(options: Options<MasterDataDeleteContactData, ThrowOnError>) => (options.client ?? client).delete<MasterDataDeleteContactResponses, MasterDataDeleteContactErrors, ThrowOnError>({
+export const contactsDelete = <ThrowOnError extends boolean = false>(options: Options<ContactsDeleteData, ThrowOnError>) => (options.client ?? client).delete<ContactsDeleteResponses, ContactsDeleteErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/contacts/{contactId}',
     ...options
@@ -1457,7 +1309,7 @@ export const masterDataDeleteContact = <ThrowOnError extends boolean = false>(op
 /**
  * Get a contact
  */
-export const masterDataGetContact = <ThrowOnError extends boolean = false>(options: Options<MasterDataGetContactData, ThrowOnError>) => (options.client ?? client).get<MasterDataGetContactResponses, MasterDataGetContactErrors, ThrowOnError>({
+export const contactsGet = <ThrowOnError extends boolean = false>(options: Options<ContactsGetData, ThrowOnError>) => (options.client ?? client).get<ContactsGetResponses, ContactsGetErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/contacts/{contactId}',
@@ -1467,7 +1319,7 @@ export const masterDataGetContact = <ThrowOnError extends boolean = false>(optio
 /**
  * Update a contact
  */
-export const masterDataUpdateContact = <ThrowOnError extends boolean = false>(options: Options<MasterDataUpdateContactData, ThrowOnError>) => (options.client ?? client).patch<MasterDataUpdateContactResponses, MasterDataUpdateContactErrors, ThrowOnError>({
+export const contactsUpdate = <ThrowOnError extends boolean = false>(options: Options<ContactsUpdateData, ThrowOnError>) => (options.client ?? client).patch<ContactsUpdateResponses, ContactsUpdateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/contacts/{contactId}',
     ...options,
@@ -1480,22 +1332,22 @@ export const masterDataUpdateContact = <ThrowOnError extends boolean = false>(op
 /**
  * List comments
  *
- * List comments across the workspace, permission-filtered to the projects the token can read. Narrow to one entity with `targetKind` + `targetId`, or one project with `projectId`. Paginated.
+ * List comments in a project. Use `targetKind` and `targetId` together to filter by resource.
  */
-export const masterDataListComments = <ThrowOnError extends boolean = false>(options?: Options<MasterDataListCommentsData, ThrowOnError>) => (options?.client ?? client).get<MasterDataListCommentsResponses, MasterDataListCommentsErrors, ThrowOnError>({
+export const commentsList = <ThrowOnError extends boolean = false>(options: Options<CommentsListData, ThrowOnError>) => (options.client ?? client).get<CommentsListResponses, CommentsListErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/comments',
+    url: '/projects/{projectId}/comments',
     ...options
 });
 
 /**
  * Create a comment
  *
- * Post a comment anchored to a typed target entity. The author is the token's principal; the comment's project is derived from the target. Gated on `update` against the target entity's permission subject (you can comment where you can edit the thing).
+ * Add a comment to a project resource you can edit.
  */
-export const masterDataCreateComment = <ThrowOnError extends boolean = false>(options: Options<MasterDataCreateCommentData, ThrowOnError>) => (options.client ?? client).post<MasterDataCreateCommentResponses, MasterDataCreateCommentErrors, ThrowOnError>({
+export const commentsCreate = <ThrowOnError extends boolean = false>(options: Options<CommentsCreateData, ThrowOnError>) => (options.client ?? client).post<CommentsCreateResponses, CommentsCreateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/comments',
+    url: '/projects/{projectId}/comments',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1506,22 +1358,22 @@ export const masterDataCreateComment = <ThrowOnError extends boolean = false>(op
 /**
  * Delete a comment
  *
- * Soft-delete a comment. Replies under it are deleted with it. Idempotent.
+ * Delete a comment and its replies. Repeating the request has no additional effect.
  */
-export const masterDataDeleteComment = <ThrowOnError extends boolean = false>(options: Options<MasterDataDeleteCommentData, ThrowOnError>) => (options.client ?? client).delete<MasterDataDeleteCommentResponses, MasterDataDeleteCommentErrors, ThrowOnError>({
+export const commentsDelete = <ThrowOnError extends boolean = false>(options: Options<CommentsDeleteData, ThrowOnError>) => (options.client ?? client).delete<CommentsDeleteResponses, CommentsDeleteErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/comments/{commentId}',
+    url: '/projects/{projectId}/comments/{commentId}',
     ...options
 });
 
 /**
  * Update a comment
  *
- * Edit the body (author only) or toggle resolution. Re-anchoring the target is not allowed.
+ * Edit the comment body or resolution. Only the author can edit the body.
  */
-export const masterDataUpdateComment = <ThrowOnError extends boolean = false>(options: Options<MasterDataUpdateCommentData, ThrowOnError>) => (options.client ?? client).patch<MasterDataUpdateCommentResponses, MasterDataUpdateCommentErrors, ThrowOnError>({
+export const commentsUpdate = <ThrowOnError extends boolean = false>(options: Options<CommentsUpdateData, ThrowOnError>) => (options.client ?? client).patch<CommentsUpdateResponses, CommentsUpdateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/comments/{commentId}',
+    url: '/projects/{projectId}/comments/{commentId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1530,74 +1382,23 @@ export const masterDataUpdateComment = <ThrowOnError extends boolean = false>(op
 });
 
 /**
- * List saved views
+ * Get the current identity
  *
- * List the project's saved views the token can see (personal views of the principal plus workspace-visible views). Paginated.
+ * Returns the identity and workspaces associated with the token.
  */
-export const masterDataListViews = <ThrowOnError extends boolean = false>(options: Options<MasterDataListViewsData, ThrowOnError>) => (options.client ?? client).get<MasterDataListViewsResponses, MasterDataListViewsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/views',
-    ...options
-});
-
-/**
- * Get a saved view
- *
- * Fetch one view's definition (its persisted filter + shape). Use `/data` to resolve its rows.
- */
-export const masterDataGetView = <ThrowOnError extends boolean = false>(options: Options<MasterDataGetViewData, ThrowOnError>) => (options.client ?? client).get<MasterDataGetViewResponses, MasterDataGetViewErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/views/{viewId}',
-    ...options
-});
-
-/**
- * Resolve a view's rows
- *
- * Apply the view's persisted filter and return the resolved rows (shape determined by the view's `subjectType`). Inline `expand` and flat filters layer on top of the view's filter; the result is permission-projected and paginated. An unknown `expand` key returns `400 expand_invalid`.
- */
-export const masterDataGetViewData = <ThrowOnError extends boolean = false>(options: Options<MasterDataGetViewDataData, ThrowOnError>) => (options.client ?? client).get<MasterDataGetViewDataResponses, MasterDataGetViewDataErrors, ThrowOnError>({
-    querySerializer: { parameters: { expand: { array: { explode: false } } } },
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/views/{viewId}/data',
-    ...options
-});
-
-/**
- * Liveness / readiness check
- *
- * Unauthenticated liveness + readiness probe for the public API edge. Confirms the dedicated database pool is reachable. Returns `200` when healthy and `503` when a dependency check fails, never a misleading `200` on a degraded edge (fail-loud).
- */
-export const metaAuthHealth = <ThrowOnError extends boolean = false>(options?: Options<MetaAuthHealthData, ThrowOnError>) => (options?.client ?? client).get<MetaAuthHealthResponses, MetaAuthHealthErrors, ThrowOnError>({ url: '/healthz', ...options });
-
-/**
- * The token's identity and workspace
- *
- * Returns the token's principal identity and the one workspace it acts in, with **no path params**. Roles resolve live per request. Never leaks teamId / teamRole.
- */
-export const metaAuthGetMe = <ThrowOnError extends boolean = false>(options?: Options<MetaAuthGetMeData, ThrowOnError>) => (options?.client ?? client).get<MetaAuthGetMeResponses, MetaAuthGetMeErrors, ThrowOnError>({
+export const meGet = <ThrowOnError extends boolean = false>(options?: Options<MeGetData, ThrowOnError>) => (options?.client ?? client).get<MeGetResponses, MeGetErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/me',
     ...options
 });
 
 /**
- * List the workspaces this token can act on
- *
- * The token's workspace, permission-filtered to the principal's live reach. Tokens are workspace-scoped, so the list contains at most one item. Paginated (cap 100). Each item carries the principal's current `workspaceRole`.
- */
-export const metaAuthListWorkspaces = <ThrowOnError extends boolean = false>(options?: Options<MetaAuthListWorkspacesData, ThrowOnError>) => (options?.client ?? client).get<MetaAuthListWorkspacesResponses, MetaAuthListWorkspacesErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/workspaces',
-    ...options
-});
-
-/**
  * List payment requests
  *
- * Returns requests to pay. Use expand to include linked records.
+ * Returns payment requests. Use `expand` to include related records.
  */
 export const paymentRequestsList = <ThrowOnError extends boolean = false>(options?: Options<PaymentRequestsListData, ThrowOnError>) => (options?.client ?? client).get<PaymentRequestsListResponses, PaymentRequestsListErrors, ThrowOnError>({
+    querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/payment-requests',
     ...options
@@ -1606,9 +1407,10 @@ export const paymentRequestsList = <ThrowOnError extends boolean = false>(option
 /**
  * Get a payment request
  *
- * Returns one request and any linked records you ask to include.
+ * Returns a payment request. Use `expand` to include related records.
  */
 export const paymentRequestsGet = <ThrowOnError extends boolean = false>(options: Options<PaymentRequestsGetData, ThrowOnError>) => (options.client ?? client).get<PaymentRequestsGetResponses, PaymentRequestsGetErrors, ThrowOnError>({
+    querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/payment-requests/{paymentRequestId}',
     ...options
@@ -1617,9 +1419,10 @@ export const paymentRequestsGet = <ThrowOnError extends boolean = false>(options
 /**
  * List payments
  *
- * Returns each payment from request through settlement.
+ * Returns payments.
  */
 export const paymentsList = <ThrowOnError extends boolean = false>(options?: Options<PaymentsListData, ThrowOnError>) => (options?.client ?? client).get<PaymentsListResponses, PaymentsListErrors, ThrowOnError>({
+    querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/payments',
     ...options
@@ -1628,9 +1431,10 @@ export const paymentsList = <ThrowOnError extends boolean = false>(options?: Opt
 /**
  * Get a payment
  *
- * Returns one payment and any linked records you ask to include.
+ * Returns a payment. Use `expand` to include related records.
  */
 export const paymentsGet = <ThrowOnError extends boolean = false>(options: Options<PaymentsGetData, ThrowOnError>) => (options.client ?? client).get<PaymentsGetResponses, PaymentsGetErrors, ThrowOnError>({
+    querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/payments/{paymentId}',
     ...options
@@ -1641,7 +1445,7 @@ export const paymentsGet = <ThrowOnError extends boolean = false>(options: Optio
  *
  * Returns payment history, newest first.
  */
-export const paymentsTimeline = <ThrowOnError extends boolean = false>(options: Options<PaymentsTimelineData, ThrowOnError>) => (options.client ?? client).get<PaymentsTimelineResponses, PaymentsTimelineErrors, ThrowOnError>({
+export const paymentsGetTimeline = <ThrowOnError extends boolean = false>(options: Options<PaymentsGetTimelineData, ThrowOnError>) => (options.client ?? client).get<PaymentsGetTimelineResponses, PaymentsGetTimelineErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/payments/{paymentId}/timeline',
     ...options
@@ -1650,7 +1454,7 @@ export const paymentsTimeline = <ThrowOnError extends boolean = false>(options: 
 /**
  * List purchase orders
  *
- * Lists purchase orders you can read. Use `projectId` to limit the list to one project or unassigned orders. Deleted orders are hidden unless `includeDeleted=true`.
+ * Returns purchase orders you can access. Deleted orders are excluded by default.
  */
 export const purchaseOrdersList = <ThrowOnError extends boolean = false>(options?: Options<PurchaseOrdersListData, ThrowOnError>) => (options?.client ?? client).get<PurchaseOrdersListResponses, PurchaseOrdersListErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1662,7 +1466,7 @@ export const purchaseOrdersList = <ThrowOnError extends boolean = false>(options
 /**
  * Create a purchase order
  *
- * Create a purchase order. The server forces `status='draft'` and sets `createdById`. Pass an optional `projectId` in the body to assign the PO to a project; omit it to create a workspace-level (unassigned) purchase order. Naming a server-owned field (`status`, `createdById`, `workspaceId`, any `flow*`/`activity*` column) returns `422 field_read_only`. Requires an `Idempotency-Key` header.
+ * Creates a draft purchase order. Use `projectId` to assign it to a project. Requires an `Idempotency-Key`.
  */
 export const purchaseOrdersCreate = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersCreateData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersCreateResponses, PurchaseOrdersCreateErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1678,7 +1482,7 @@ export const purchaseOrdersCreate = <ThrowOnError extends boolean = false>(optio
 /**
  * Delete a purchase order
  *
- * Soft-delete a purchase order (sets `soft-delete timestamp`). Allowed only while `status = draft`; otherwise `409 po_invalid_status` (not a silent no-op). Idempotent.
+ * Deletes a draft purchase order. Other statuses return `409 po_invalid_status`.
  */
 export const purchaseOrdersDelete = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersDeleteData, ThrowOnError>) => (options.client ?? client).delete<PurchaseOrdersDeleteResponses, PurchaseOrdersDeleteErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1689,7 +1493,7 @@ export const purchaseOrdersDelete = <ThrowOnError extends boolean = false>(optio
 /**
  * Get a purchase order
  *
- * Fetch one purchase order. An id that does not exist, or exists but is not readable by the principal, returns the same `404 not_found`, so existence never leaks.
+ * Returns a purchase order you can access. Otherwise returns `404 not_found`.
  */
 export const purchaseOrdersGet = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersGetData, ThrowOnError>) => (options.client ?? client).get<PurchaseOrdersGetResponses, PurchaseOrdersGetErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1701,7 +1505,7 @@ export const purchaseOrdersGet = <ThrowOnError extends boolean = false>(options:
 /**
  * Update a purchase order
  *
- * Partially update a purchase order. Allowed only while `status ∈ {draft, rejected}`; otherwise `409 po_invalid_status`. `status` is server-owned, naming it (or any other server-owned field) returns `422 field_read_only` and mutates nothing.
+ * Updates a draft or rejected purchase order. Other statuses return `409 po_invalid_status`.
  */
 export const purchaseOrdersUpdate = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersUpdateData, ThrowOnError>) => (options.client ?? client).patch<PurchaseOrdersUpdateResponses, PurchaseOrdersUpdateErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1715,11 +1519,11 @@ export const purchaseOrdersUpdate = <ThrowOnError extends boolean = false>(optio
 });
 
 /**
- * Reserved purchase order approval submission
+ * Submit a purchase order for approval
  *
- * Public v1 validates that the PO is submittable, assigned to a project, and has an active approval flow, then returns `409 po_invalid_status` until this endpoint is wired to the workspace approval-run service. Use the workspace PO submit route for now; this endpoint deliberately does not fake a `pending` status or emit `purchaseOrder.pending` without a real run.
+ * Submits a draft or rejected purchase order for approval. Requires an `Idempotency-Key`.
  */
-export const purchaseOrdersSubmit = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersSubmitData, ThrowOnError>) => (options.client ?? client).post<unknown, PurchaseOrdersSubmitErrors, ThrowOnError>({
+export const purchaseOrdersSubmit = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersSubmitData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersSubmitResponses, PurchaseOrdersSubmitErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/purchase-orders/{purchaseOrderId}/submit',
     ...options
@@ -1728,7 +1532,7 @@ export const purchaseOrdersSubmit = <ThrowOnError extends boolean = false>(optio
 /**
  * Cancel a pending submission
  *
- * Cancel the approval request and move a pending PO back to `draft`. Other statuses return `409 po_invalid_status`.
+ * Cancels a pending approval and returns the purchase order to `draft`. Other statuses return `409 po_invalid_status`.
  */
 export const purchaseOrdersCancelSubmission = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersCancelSubmissionData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersCancelSubmissionResponses, PurchaseOrdersCancelSubmissionErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1739,7 +1543,7 @@ export const purchaseOrdersCancelSubmission = <ThrowOnError extends boolean = fa
 /**
  * Void a purchase order
  *
- * Move an `approved` or `actualizing` PO to `void`. Other statuses return `409 po_invalid_status`. Emits `purchaseOrder.void`.
+ * Voids an approved or actualizing purchase order. Other statuses return `409 po_invalid_status`.
  */
 export const purchaseOrdersVoid = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersVoidData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersVoidResponses, PurchaseOrdersVoidErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1750,7 +1554,7 @@ export const purchaseOrdersVoid = <ThrowOnError extends boolean = false>(options
 /**
  * Mark a purchase order as paid
  *
- * Mark an `approved` or `actualizing` PO as `paid`. The PO must have at least one linked, non-deleted transaction. The action records the settlement time and emits `purchaseOrder.paid`.
+ * Marks an approved or actualizing purchase order as paid. The purchase order must have a linked transaction.
  */
 export const purchaseOrdersMarkPaid = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersMarkPaidData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersMarkPaidResponses, PurchaseOrdersMarkPaidErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1759,54 +1563,20 @@ export const purchaseOrdersMarkPaid = <ThrowOnError extends boolean = false>(opt
 });
 
 /**
- * Link a transaction to a purchase order
- *
- * Link a transaction to a purchase order. This records only the relationship and does not change project, coding, itemization, actualization, or purchase-order status. A transaction already linked to a different PO returns `409 already_assigned`.
- */
-export const purchaseOrdersLink = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersLinkData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersLinkResponses, PurchaseOrdersLinkErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/purchase-orders/{purchaseOrderId}/link',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
  * Unlink a transaction from a purchase order
- *
- * Remove a transaction link. This does not change the project, coding, items, actualization, or PO status.
  */
-export const purchaseOrdersUnlink = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersUnlinkData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersUnlinkResponses, PurchaseOrdersUnlinkErrors, ThrowOnError>({
+export const purchaseOrdersUnlinkTransaction = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersUnlinkTransactionData, ThrowOnError>) => (options.client ?? client).delete<PurchaseOrdersUnlinkTransactionResponses, PurchaseOrdersUnlinkTransactionErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/purchase-orders/{purchaseOrderId}/unlink',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Get current purchase order activity
- *
- * Returns the live invoice, payment, and matching conditions shown in the product Activity column. Conditions disappear when resolved. This is current state, not event history.
- */
-export const purchaseOrdersActivity = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersActivityData, ThrowOnError>) => (options.client ?? client).get<PurchaseOrdersActivityResponses, PurchaseOrdersActivityErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/purchase-orders/{purchaseOrderId}/activity',
+    url: '/purchase-orders/{purchaseOrderId}/transactions/{transactionId}',
     ...options
 });
 
 /**
- * List suggested purchase order matches
- *
- * Returns records that may belong to the purchase order but are not linked. Accepting a suggestion uses the record's normal link action.
+ * Link a transaction to a purchase order
  */
-export const purchaseOrdersSuggestedMatches = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersSuggestedMatchesData, ThrowOnError>) => (options.client ?? client).get<PurchaseOrdersSuggestedMatchesResponses, PurchaseOrdersSuggestedMatchesErrors, ThrowOnError>({
+export const purchaseOrdersLinkTransaction = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersLinkTransactionData, ThrowOnError>) => (options.client ?? client).put<PurchaseOrdersLinkTransactionResponses, PurchaseOrdersLinkTransactionErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/purchase-orders/{purchaseOrderId}/suggested-matches',
+    url: '/purchase-orders/{purchaseOrderId}/transactions/{transactionId}',
     ...options
 });
 
@@ -1815,7 +1585,7 @@ export const purchaseOrdersSuggestedMatches = <ThrowOnError extends boolean = fa
  *
  * Returns purchase-order history, newest first.
  */
-export const purchaseOrdersTimeline = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersTimelineData, ThrowOnError>) => (options.client ?? client).get<PurchaseOrdersTimelineResponses, PurchaseOrdersTimelineErrors, ThrowOnError>({
+export const purchaseOrdersGetTimeline = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersGetTimelineData, ThrowOnError>) => (options.client ?? client).get<PurchaseOrdersGetTimelineResponses, PurchaseOrdersGetTimelineErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/purchase-orders/{purchaseOrderId}/timeline',
     ...options
@@ -1824,7 +1594,7 @@ export const purchaseOrdersTimeline = <ThrowOnError extends boolean = false>(opt
 /**
  * List purchase order items
  *
- * The line items of a purchase order, paginated.
+ * Returns the items in a purchase order.
  */
 export const purchaseOrdersListItems = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersListItemsData, ThrowOnError>) => (options.client ?? client).get<PurchaseOrdersListItemsResponses, PurchaseOrdersListItemsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1835,7 +1605,7 @@ export const purchaseOrdersListItems = <ThrowOnError extends boolean = false>(op
 /**
  * Add a purchase order item
  *
- * Add a line item. Allowed only while the parent PO `status ∈ {draft, rejected}`; otherwise `409 po_invalid_status`. `id` and `purchaseOrderId` are server-owned. This billable create requires an `Idempotency-Key` header for exactly-once retries; replaying the same key with a different body returns `409 idempotency_conflict`.
+ * Adds an item to a draft or rejected purchase order. Other statuses return `409 po_invalid_status`. Requires an `Idempotency-Key`.
  */
 export const purchaseOrdersCreateItem = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersCreateItemData, ThrowOnError>) => (options.client ?? client).post<PurchaseOrdersCreateItemResponses, PurchaseOrdersCreateItemErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1850,7 +1620,7 @@ export const purchaseOrdersCreateItem = <ThrowOnError extends boolean = false>(o
 /**
  * Delete a purchase order item
  *
- * Delete a line item. Allowed only while the parent PO `status ∈ {draft, rejected}`; otherwise `409 po_invalid_status`. Idempotent.
+ * Deletes an item from a draft or rejected purchase order. Other statuses return `409 po_invalid_status`.
  */
 export const purchaseOrdersDeleteItem = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersDeleteItemData, ThrowOnError>) => (options.client ?? client).delete<PurchaseOrdersDeleteItemResponses, PurchaseOrdersDeleteItemErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1861,7 +1631,7 @@ export const purchaseOrdersDeleteItem = <ThrowOnError extends boolean = false>(o
 /**
  * Update a purchase order item
  *
- * Update a line item. Allowed only while the parent PO `status ∈ {draft, rejected}`; otherwise `409 po_invalid_status`. Naming a server-owned field returns `422 field_read_only`.
+ * Updates an item on a draft or rejected purchase order. Other statuses return `409 po_invalid_status`.
  */
 export const purchaseOrdersUpdateItem = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersUpdateItemData, ThrowOnError>) => (options.client ?? client).patch<PurchaseOrdersUpdateItemResponses, PurchaseOrdersUpdateItemErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1874,20 +1644,9 @@ export const purchaseOrdersUpdateItem = <ThrowOnError extends boolean = false>(o
 });
 
 /**
- * List transactions linked to a purchase order
+ * Search the workspace or one project
  *
- * Lists linked transactions you can read.
- */
-export const purchaseOrdersListTransactions = <ThrowOnError extends boolean = false>(options: Options<PurchaseOrdersListTransactionsData, ThrowOnError>) => (options.client ?? client).get<PurchaseOrdersListTransactionsResponses, PurchaseOrdersListTransactionsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/purchase-orders/{purchaseOrderId}/transactions',
-    ...options
-});
-
-/**
- * Search (workspace scope)
- *
- * Ranked, mixed-type search across the workspace, permission-filtered so a token never sees results from projects it cannot read. Each hit is `{kind, id, label, snippet, score}`; fetch the full object by `{kind, id}`. `searchedTypes` echoes which kinds were actually queried so partial coverage is visible, never a silent empty (a project-scoped token, for example, drops `contacts`, they are workspace-level only). Results are returned in a stable order so pagination is consistent.
+ * Searches the workspace or one project. Results are ranked by relevance and include only records available to the token.
  */
 export const searchWorkspace = <ThrowOnError extends boolean = false>(options: Options<SearchWorkspaceData, ThrowOnError>) => (options.client ?? client).get<SearchWorkspaceResponses, SearchWorkspaceErrors, ThrowOnError>({
     querySerializer: { parameters: { types: { array: { explode: false } } } },
@@ -1897,21 +1656,9 @@ export const searchWorkspace = <ThrowOnError extends boolean = false>(options: O
 });
 
 /**
- * Search (project scope)
- *
- * The project-scoped variant of search: every kind is restricted to this `projectId` (intersected with the token's visibility), so results can only come from that project. As at workspace scope, the permission / view-access filter is applied before ranking and cap, `searchedTypes` is echoed, and results are returned in a stable order so pagination is consistent. `contacts` are workspace-level only and so are never returned at project scope; they are dropped from `searchedTypes`. A `projectId` the token cannot read returns `404 not_found` (same shape as exists-but-unauthorized, so existence never leaks).
- */
-export const searchProject = <ThrowOnError extends boolean = false>(options: Options<SearchProjectData, ThrowOnError>) => (options.client ?? client).get<SearchProjectResponses, SearchProjectErrors, ThrowOnError>({
-    querySerializer: { parameters: { types: { array: { explode: false } } } },
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/search',
-    ...options
-});
-
-/**
  * List transactions
  *
- * Flat, AND-composed list of the unified ledger for a workspace. Every returned row passes a request-derived permission `read` on `{kind:'Transaction', workspaceId, projectId}`; a row the token cannot read is never returned (enumeration-safe). Paginated (cap 100). `q` runs the text `similarity(description)` search. The page also echoes the `statusReachability` matrix.
+ * Returns transactions you can access. Filters combine with AND. Each page contains up to 100 transactions.
  */
 export const transactionsList = <ThrowOnError extends boolean = false>(options?: Options<TransactionsListData, ThrowOnError>) => (options?.client ?? client).get<TransactionsListResponses, TransactionsListErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
@@ -1921,9 +1668,9 @@ export const transactionsList = <ThrowOnError extends boolean = false>(options?:
 });
 
 /**
- * Create a journal transaction
+ * Create a manual transaction
  *
- * Create a manual (journal) transaction. `source` is forced to `journal`; a sourced `source` in the body -> `422 source_not_postable` (sourced rows arrive via their rail). The optional `projectId` body field assigns the row to a project (omit for a workspace-level / unassigned transaction). permission `create` with the request-derived `{kind:'Transaction', workspaceId, projectId}` subject. The `status` is validated against the status x source reachability matrix. Fires `transaction.created`. This billable create requires an `Idempotency-Key` header; replaying a key with a different body -> `409 idempotency_conflict`.
+ * Creates a manual transaction. Use `projectId` to assign it to a project. Requires an `Idempotency-Key`.
  */
 export const transactionsCreate = <ThrowOnError extends boolean = false>(options: Options<TransactionsCreateData, ThrowOnError>) => (options.client ?? client).post<TransactionsCreateResponses, TransactionsCreateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1936,35 +1683,24 @@ export const transactionsCreate = <ThrowOnError extends boolean = false>(options
 });
 
 /**
- * Transaction stats (count + sum)
+ * Get transaction totals
  *
- * Aggregate count and summed amount for the same filter vocabulary as the list, permission-scoped. Keeps the text `q` search branch. Filter to one `currency` for a meaningful summed `amount` across mixed-currency ledgers.
+ * Returns the number and total amount of matching transactions in one currency.
  */
-export const transactionsStats = <ThrowOnError extends boolean = false>(options?: Options<TransactionsStatsData, ThrowOnError>) => (options?.client ?? client).get<TransactionsStatsResponses, TransactionsStatsErrors, ThrowOnError>({
+export const transactionsStats = <ThrowOnError extends boolean = false>(options: Options<TransactionsStatsData, ThrowOnError>) => (options.client ?? client).get<TransactionsStatsResponses, TransactionsStatsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/transactions/stats',
     ...options
 });
 
 /**
- * Distinct visible transaction types
+ * Create manual transactions in bulk
  *
- * The distinct `type` values the token can actually see - permission-filtered, never the raw workspace-wide set, so a project-scoped token's dropdown can't enumerate values that exist only on other projects' rows. Casing preserved.
+ * Creates up to 500 manual transactions in one request. If any transaction fails, none are created. Requires an `Idempotency-Key`.
  */
-export const transactionsTypes = <ThrowOnError extends boolean = false>(options?: Options<TransactionsTypesData, ThrowOnError>) => (options?.client ?? client).get<TransactionsTypesResponses, TransactionsTypesErrors, ThrowOnError>({
+export const transactionsCreateBulk = <ThrowOnError extends boolean = false>(options: Options<TransactionsCreateBulkData, ThrowOnError>) => (options.client ?? client).post<TransactionsCreateBulkResponses, TransactionsCreateBulkErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/transactions/types',
-    ...options
-});
-
-/**
- * Bulk journal import
- *
- * Create many JOURNAL transactions in one request. Every row is forced to `source=journal`; a non-journal source on any row -> `422 source_not_postable`. Each row may carry an optional `projectId` to assign it to a project (omit for a workspace-level / unassigned row). Over the cap (500) -> `413 batch_too_large`. Requires an `Idempotency-Key` header; replaying a key with a different body -> `409 idempotency_conflict`. This is the highest-stakes billable create (one credit charge per created row). Fires one `transaction.created` per created row.
- */
-export const transactionsBatchCreate = <ThrowOnError extends boolean = false>(options: Options<TransactionsBatchCreateData, ThrowOnError>) => (options.client ?? client).post<TransactionsBatchCreateResponses, TransactionsBatchCreateErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/transactions/batch',
+    url: '/transactions/bulk',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1973,36 +1709,36 @@ export const transactionsBatchCreate = <ThrowOnError extends boolean = false>(op
 });
 
 /**
- * Delete a journal transaction
+ * Delete a manual transaction
  *
- * Soft-delete (`soft-delete timestamp`/`deletedReason`) restricted to `source=journal`; a sourced row -> `409` (the rail owns the record). Re-POST or the resurrect path restores. Row-derived permission `delete`. Returns `204`.
+ * Deletes a manual transaction. Other transaction sources return `409`.
  */
 export const transactionsDelete = <ThrowOnError extends boolean = false>(options: Options<TransactionsDeleteData, ThrowOnError>) => (options.client ?? client).delete<TransactionsDeleteResponses, TransactionsDeleteErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/transactions/{txId}',
+    url: '/transactions/{transactionId}',
     ...options
 });
 
 /**
  * Get a transaction
  *
- * Fetch one transaction by id. Returns `404 not_found` for both a missing id and an exists-but-unauthorized id (no existence oracle). Row-derived permission `read`.
+ * Returns a transaction you can access. Otherwise returns `404 not_found`.
  */
 export const transactionsGet = <ThrowOnError extends boolean = false>(options: Options<TransactionsGetData, ThrowOnError>) => (options.client ?? client).get<TransactionsGetResponses, TransactionsGetErrors, ThrowOnError>({
     querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/transactions/{txId}',
+    url: '/transactions/{transactionId}',
     ...options
 });
 
 /**
  * Update a transaction
  *
- * Partial update. Which fields are writable depends on the transaction's `source`. Assignment fields succeed on any source; setting `projectId` assigns the row to a project (or `null` unassigns it back to the workspace level). Core fields (`amount`, `currency`, `timestamp`, `type`, `status`, `merchant`, `sourceLast4`, `sourceName`) are writable only on `journal` - naming one on a sourced row -> `422 field_read_only`. Server-owned fields are never writable. A `status` change is validated against the reachability matrix -> `409 status_unreachable_for_source`. Row-derived permission `update`. Fires `transaction.updated`.
+ * Updates a transaction. Financial fields can be changed only on manual transactions.
  */
 export const transactionsUpdate = <ThrowOnError extends boolean = false>(options: Options<TransactionsUpdateData, ThrowOnError>) => (options.client ?? client).patch<TransactionsUpdateResponses, TransactionsUpdateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/transactions/{txId}',
+    url: '/transactions/{transactionId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -2013,22 +1749,22 @@ export const transactionsUpdate = <ThrowOnError extends boolean = false>(options
 /**
  * List transaction items
  *
- * The itemized lines of a transaction. Row-derived permission `read` on the parent.
+ * Returns the items in a transaction.
  */
-export const transactionsItemsList = <ThrowOnError extends boolean = false>(options: Options<TransactionsItemsListData, ThrowOnError>) => (options.client ?? client).get<TransactionsItemsListResponses, TransactionsItemsListErrors, ThrowOnError>({
+export const transactionsListItems = <ThrowOnError extends boolean = false>(options: Options<TransactionsListItemsData, ThrowOnError>) => (options.client ?? client).get<TransactionsListItemsResponses, TransactionsListItemsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/transactions/{txId}/items',
+    url: '/transactions/{transactionId}/items',
     ...options
 });
 
 /**
  * Add a transaction item
  *
- * Create an item. The server assigns `lineNumber`. The first item flips the parent `isItemized=true` and coding moves from `transaction.budgetLineId` to the items. Row-derived permission `update` on the parent. Fires `transaction.updated`. This billable create requires an `Idempotency-Key` header; replaying a key with a different body -> `409 idempotency_conflict`.
+ * Adds an item to a transaction. Adding the first item moves budget coding from the transaction to its items. Requires an `Idempotency-Key`.
  */
-export const transactionsItemsCreate = <ThrowOnError extends boolean = false>(options: Options<TransactionsItemsCreateData, ThrowOnError>) => (options.client ?? client).post<TransactionsItemsCreateResponses, TransactionsItemsCreateErrors, ThrowOnError>({
+export const transactionsCreateItem = <ThrowOnError extends boolean = false>(options: Options<TransactionsCreateItemData, ThrowOnError>) => (options.client ?? client).post<TransactionsCreateItemResponses, TransactionsCreateItemErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/transactions/{txId}/items',
+    url: '/transactions/{transactionId}/items',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -2039,22 +1775,22 @@ export const transactionsItemsCreate = <ThrowOnError extends boolean = false>(op
 /**
  * Delete a transaction item
  *
- * Soft-delete an item (for unsplit recovery). Deleting the last item recomputes the parent `isItemized` back to `false`. Row-derived permission `update` on the parent. Fires `transaction.updated`. Returns `204`.
+ * Deletes a transaction item. Deleting the last item marks the transaction as not itemized.
  */
-export const transactionsItemsDelete = <ThrowOnError extends boolean = false>(options: Options<TransactionsItemsDeleteData, ThrowOnError>) => (options.client ?? client).delete<TransactionsItemsDeleteResponses, TransactionsItemsDeleteErrors, ThrowOnError>({
+export const transactionsDeleteItem = <ThrowOnError extends boolean = false>(options: Options<TransactionsDeleteItemData, ThrowOnError>) => (options.client ?? client).delete<TransactionsDeleteItemResponses, TransactionsDeleteItemErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/transactions/{txId}/items/{itemId}',
+    url: '/transactions/{transactionId}/items/{itemId}',
     ...options
 });
 
 /**
  * Update a transaction item
  *
- * Partial update of an item. `id`/`lineNumber`/tenant keys are server-owned -> `422 field_read_only` if named. Row-derived permission `update` on the parent. Fires `transaction.updated`.
+ * Updates a transaction item. Read-only fields return `422 field_read_only`.
  */
-export const transactionsItemsUpdate = <ThrowOnError extends boolean = false>(options: Options<TransactionsItemsUpdateData, ThrowOnError>) => (options.client ?? client).patch<TransactionsItemsUpdateResponses, TransactionsItemsUpdateErrors, ThrowOnError>({
+export const transactionsUpdateItem = <ThrowOnError extends boolean = false>(options: Options<TransactionsUpdateItemData, ThrowOnError>) => (options.client ?? client).patch<TransactionsUpdateItemResponses, TransactionsUpdateItemErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/transactions/{txId}/items/{itemId}',
+    url: '/transactions/{transactionId}/items/{itemId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -2063,56 +1799,12 @@ export const transactionsItemsUpdate = <ThrowOnError extends boolean = false>(op
 });
 
 /**
- * Workspace usage rollups
- *
- * Pre-aggregated usage rollups for the workspace over a capped time window, grouped by `operation`, `token`, `agent`, `source`, `day` or `hour`. Combines API calls, agent runs, and document extraction (by `source`) into one view. Counts / latency p50/p95 / error-rate / rate-limit-hits come from the raw/rollup streams; `credits` are **usage credits** summed from the usage-credit ledger ONLY. permission-projected to the caller's reach.
- */
-export const usageListRollups = <ThrowOnError extends boolean = false>(options?: Options<UsageListRollupsData, ThrowOnError>) => (options?.client ?? client).get<UsageListRollupsResponses, UsageListRollupsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/usage',
-    ...options
-});
-
-/**
- * Project usage rollups
- *
- * The same usage rollups as the workspace endpoint, scoped to a single project. Scoped to a single project and permission-filtered, so a project-scoped token never sees another project's volume. A project the token cannot read returns `404 not_found` (existence is never leaked).
- */
-export const usageListProjectRollups = <ThrowOnError extends boolean = false>(options: Options<UsageListProjectRollupsData, ThrowOnError>) => (options.client ?? client).get<UsageListProjectRollupsResponses, UsageListProjectRollupsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/projects/{projectId}/usage',
-    ...options
-});
-
-/**
- * Usage-credit burn (ledger-derived)
- *
- * The **usage-credit** burn for the window, sourced from the usage-credit ledger ONLY (never a recorded usage charge). Returns per-settlement consumed rows, a summed `totalCredits` (net burn) and the projected `balance`, balance is a pure projection over settled ledger amounts, never a stored row. Same project-permission filter and date cap as the rollup endpoints.
- */
-export const usageListCredits = <ThrowOnError extends boolean = false>(options?: Options<UsageListCreditsData, ThrowOnError>) => (options?.client ?? client).get<UsageListCreditsResponses, UsageListCreditsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/usage/credits',
-    ...options
-});
-
-/**
- * Per-operation usage breakdown
- *
- * Per-operation usage breakdown for the window, each templated operation/route with its volume, latency, error/rate-limit trend and settled **usage credits** (from the usage-credit ledger ONLY). Operations are templated (never the populated path), so account codes stay out of logs. Same project-permission filter and date cap as the rollup endpoints.
- */
-export const usageListOperations = <ThrowOnError extends boolean = false>(options?: Options<UsageListOperationsData, ThrowOnError>) => (options?.client ?? client).get<UsageListOperationsResponses, UsageListOperationsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/usage/operations',
-    ...options
-});
-
-/**
  * List webhook subscriptions
  *
- * List the workspace's outbound webhook subscriptions the caller can manage, permission-filtered and paginated. Secrets are never included. Filter by subscribed `events` or by `active` state.
+ * Returns webhook subscriptions. Filter by event type or active state.
  */
 export const webhooksList = <ThrowOnError extends boolean = false>(options?: Options<WebhooksListData, ThrowOnError>) => (options?.client ?? client).get<WebhooksListResponses, WebhooksListErrors, ThrowOnError>({
-    querySerializer: { parameters: { expand: { array: { explode: false } }, events: { array: { explode: false } } } },
+    querySerializer: { parameters: { events: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/webhooks',
     ...options
@@ -2121,7 +1813,7 @@ export const webhooksList = <ThrowOnError extends boolean = false>(options?: Opt
 /**
  * Create a webhook subscription
  *
- * Register an outbound webhook. `manage`-gated. The `url` must be HTTPS and pass the SSRF guard at registration (private / loopback / link-local / cloud-metadata / IPv6-mapped / decimal-octal-hex / internal-DNS targets are rejected). A `secret` is generated when not supplied and returned in this response only, it never appears on any later read. Naming a server-owned field (`id`, `workspaceId`, owning identity, `isActive`) returns `422 field_read_only`.
+ * Creates a webhook subscription. The URL must use HTTPS and resolve to a public address. If `secret` is omitted, the response includes a generated secret once.
  */
 export const webhooksCreate = <ThrowOnError extends boolean = false>(options: Options<WebhooksCreateData, ThrowOnError>) => (options.client ?? client).post<WebhooksCreateResponses, WebhooksCreateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -2136,7 +1828,7 @@ export const webhooksCreate = <ThrowOnError extends boolean = false>(options: Op
 /**
  * Delete a webhook subscription
  *
- * Permanently unsubscribe. Idempotent, deleting an already-deleted subscription returns `204`. A subscription that exists but the caller cannot manage returns `404 not_found`.
+ * Deletes the subscription. Repeating the request returns `204`.
  */
 export const webhooksDelete = <ThrowOnError extends boolean = false>(options: Options<WebhooksDeleteData, ThrowOnError>) => (options.client ?? client).delete<WebhooksDeleteResponses, WebhooksDeleteErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -2147,10 +1839,9 @@ export const webhooksDelete = <ThrowOnError extends boolean = false>(options: Op
 /**
  * Get a webhook subscription
  *
- * Fetch one subscription. The `secret` is never returned. A subscription that exists but the caller cannot manage returns the same `404 not_found` as a genuine miss (existence never leaks).
+ * Returns one webhook subscription.
  */
 export const webhooksGet = <ThrowOnError extends boolean = false>(options: Options<WebhooksGetData, ThrowOnError>) => (options.client ?? client).get<WebhooksGetResponses, WebhooksGetErrors, ThrowOnError>({
-    querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/webhooks/{webhookId}',
     ...options
@@ -2159,7 +1850,7 @@ export const webhooksGet = <ThrowOnError extends boolean = false>(options: Optio
 /**
  * Update a webhook subscription
  *
- * Update `url`, `events`, `payloadStyle` or `isActive` (explicit allow-list). Tenant keys (`workspaceId` / `projectId`), the owning identity, and `secret` are server-owned, naming any returns `422 field_read_only` (fail-loud, never a silent strip). A `url` change re-runs the SSRF guard. The `secret` is never returned.
+ * Updates the destination, event types, or active state.
  */
 export const webhooksUpdate = <ThrowOnError extends boolean = false>(options: Options<WebhooksUpdateData, ThrowOnError>) => (options.client ?? client).patch<WebhooksUpdateResponses, WebhooksUpdateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -2174,18 +1865,18 @@ export const webhooksUpdate = <ThrowOnError extends boolean = false>(options: Op
 /**
  * Send a test delivery
  *
- * Issue a synthetic `ping` event through the same signed, SSRF-guarded delivery path and record a `WebhookDelivery` row (readable via `GET.../deliveries`). Use it to confirm an endpoint is reachable and the signature verifies. No request body.
+ * Sends a signed test event and records the delivery attempt.
  */
-export const webhooksPing = <ThrowOnError extends boolean = false>(options: Options<WebhooksPingData, ThrowOnError>) => (options.client ?? client).post<WebhooksPingResponses, WebhooksPingErrors, ThrowOnError>({
+export const webhooksSendTestDelivery = <ThrowOnError extends boolean = false>(options: Options<WebhooksSendTestDeliveryData, ThrowOnError>) => (options.client ?? client).post<WebhooksSendTestDeliveryResponses, WebhooksSendTestDeliveryErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/webhooks/{webhookId}/ping',
+    url: '/webhooks/{webhookId}/test-delivery',
     ...options
 });
 
 /**
  * List recent deliveries
  *
- * Inspect recent delivery attempts for one subscription (debugging), paginated and newest-first by default. Filter by attempt `status`, by `event` type, or by `since`.
+ * Returns delivery attempts, newest first. Filter by status, event type, or time.
  */
 export const webhooksListDeliveries = <ThrowOnError extends boolean = false>(options: Options<WebhooksListDeliveriesData, ThrowOnError>) => (options.client ?? client).get<WebhooksListDeliveriesResponses, WebhooksListDeliveriesErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],

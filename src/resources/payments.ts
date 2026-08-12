@@ -9,7 +9,7 @@ import type {
   PaymentTimelineEvent,
 } from '../generated/types.gen.js';
 import { Transport, List } from '../http.js';
-import { Expanded, type ExpandMap } from '../expand.js';
+import { Expanded, type ExpandMap, serializeExpand } from '../expand.js';
 
 const paymentRequestExpandMap = {
   contact: 'contact',
@@ -53,10 +53,6 @@ export interface PaymentListParams<E extends PaymentExpand = never> {
   cursor?: string;
 }
 
-function expandValue(keys: readonly string[] | undefined): string | undefined {
-  return keys?.length ? keys.join(',') : undefined;
-}
-
 export class PaymentRequestsResource {
   constructor(
     private readonly t: Transport,
@@ -72,7 +68,7 @@ export class PaymentRequestsResource {
         projectId: params.projectId ?? this.projectId,
         purchaseOrderId: params.purchaseOrderId,
         contactId: params.contactId,
-        expand: expandValue(params.expand),
+        expand: serializeExpand(params.expand),
         limit: params.limit,
         cursor: params.cursor,
       },
@@ -90,7 +86,7 @@ export class PaymentRequestsResource {
   ): Promise<Expanded<PaymentRequest, PaymentRequestExpandMap, E>> {
     return this.t.run(sdk.paymentRequestsGet, {
       path: { paymentRequestId },
-      query: { expand: expandValue(params.expand) },
+      query: { expand: serializeExpand(params.expand) },
     }) as Promise<Expanded<PaymentRequest, PaymentRequestExpandMap, E>>;
   }
 }
@@ -111,7 +107,7 @@ export class PaymentsResource {
         purchaseOrderId: params.purchaseOrderId,
         paymentRequestId: params.paymentRequestId,
         contactId: params.contactId,
-        expand: expandValue(params.expand),
+        expand: serializeExpand(params.expand),
         limit: params.limit,
         cursor: params.cursor,
       },
@@ -129,7 +125,7 @@ export class PaymentsResource {
   ): Promise<Expanded<Payment, PaymentExpandMap, E>> {
     return this.t.run(sdk.paymentsGet, {
       path: { paymentId },
-      query: { expand: expandValue(params.expand) },
+      query: { expand: serializeExpand(params.expand) },
     }) as Promise<Expanded<Payment, PaymentExpandMap, E>>;
   }
 
@@ -139,8 +135,8 @@ export class PaymentsResource {
   ): List<PaymentTimelineEvent> {
     const options = { path: { paymentId }, query: params };
     return new List<PaymentTimelineEvent>(
-      () => this.t.paginate<typeof options, PaymentTimelineEvent>(sdk.paymentsTimeline, options),
-      () => this.t.runPage<typeof options, PaymentTimelineEvent>(sdk.paymentsTimeline, options),
+      () => this.t.paginate<typeof options, PaymentTimelineEvent>(sdk.paymentsGetTimeline, options),
+      () => this.t.runPage<typeof options, PaymentTimelineEvent>(sdk.paymentsGetTimeline, options),
     );
   }
 }

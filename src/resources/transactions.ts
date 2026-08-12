@@ -4,11 +4,10 @@ import type {
   TransactionExpandKey,
   TransactionSource,
   TransactionStatus,
-  TransactionJournalCreate,
+  TransactionManualCreate,
   TransactionPatch,
-  TransactionBatchCreate,
+  TransactionBulkCreate,
   TransactionStats,
-  TransactionTypes,
   TransactionItem,
   TransactionItemCreate,
   TransactionItemPatch,
@@ -18,14 +17,14 @@ import { Transport, List } from '../http.js';
 import { Expanded, type ExpandMap, serializeExpand } from '../expand.js';
 
 /**
- * Transaction expand widening. `itemized` populates `items`; the rest are 1:1.
- * `itemized.account` is a valid depth-2 key with no dedicated property, so it
+ * Transaction expand widening. `items` populates `items`; the rest are 1:1.
+ * `items.account` is a valid depth-2 key with no dedicated property, so it
  * stays a valid `expand` value without a widening entry.
  */
 const transactionExpandMap = {
   contact: 'contact',
   documents: 'documents',
-  itemized: 'items',
+  items: 'items',
   account: 'account',
   purchaseOrder: 'purchaseOrder',
 } satisfies ExpandMap<TransactionExpandKey>;
@@ -38,6 +37,8 @@ export interface TransactionListParams<E extends TransactionExpandKey = never> {
   isReversal?: boolean;
   contactId?: string;
   budgetLineId?: string;
+  purchaseOrderId?: string;
+  currency?: string;
   dateFrom?: string;
   dateTo?: string;
   amountMin?: number;
@@ -53,7 +54,6 @@ export interface TransactionListParams<E extends TransactionExpandKey = never> {
   limit?: number;
   cursor?: string;
   withCount?: boolean;
-  view?: string;
 }
 
 /** The project-scoped transactions namespace: `sat.projects(p).transactions`. */
@@ -76,6 +76,8 @@ export class TransactionsResource {
         isReversal: params.isReversal,
         contactId: params.contactId,
         budgetLineId: params.budgetLineId,
+        purchaseOrderId: params.purchaseOrderId,
+        currency: params.currency,
         dateFrom: params.dateFrom,
         dateTo: params.dateTo,
         amountMin: params.amountMin,
@@ -90,7 +92,6 @@ export class TransactionsResource {
         limit: params.limit,
         cursor: params.cursor,
         withCount: params.withCount,
-        view: params.view,
       },
     };
     type Row = Expanded<Transaction, TransactionExpandMap, E>;
@@ -106,14 +107,14 @@ export class TransactionsResource {
     params: { expand?: readonly E[] } = {},
   ): Promise<Expanded<Transaction, TransactionExpandMap, E>> {
     return this.t.run(sdk.transactionsGet, {
-      path: { txId },
+      path: { transactionId: txId },
       query: { expand: serializeExpand(params.expand) },
     }) as Promise<Expanded<Transaction, TransactionExpandMap, E>>;
   }
 
-  /** Create a journal transaction. Pass `idempotencyKey` for a safe retry of the billable create. */
+  /** Create a manual transaction. Pass `idempotencyKey` for a safe retry of the billable create. */
   async create(
-    body: TransactionJournalCreate,
+    body: TransactionManualCreate,
     opts: { idempotencyKey: string },
   ): Promise<Transaction> {
     return this.t.run(sdk.transactionsCreate, {
@@ -122,12 +123,12 @@ export class TransactionsResource {
     }) as Promise<Transaction>;
   }
 
-  /** Batch-create journal transactions (replaces legacy `/actuals/batch`). */
-  async batchCreate(
-    body: TransactionBatchCreate,
+  /** Bulk-create manual transactions. */
+  async bulkCreate(
+    body: TransactionBulkCreate,
     opts: { idempotencyKey: string },
   ): Promise<unknown> {
-    return this.t.run(sdk.transactionsBatchCreate, {
+    return this.t.run(sdk.transactionsCreateBulk, {
       headers: { 'Idempotency-Key': opts.idempotencyKey },
       body: {
         transactions: body.transactions.map((transaction) => ({
@@ -141,7 +142,7 @@ export class TransactionsResource {
   /** Patch a transaction. */
   async update(txId: string, body: TransactionPatch): Promise<Transaction> {
     return this.t.run(sdk.transactionsUpdate, {
-      path: { txId },
+      path: { transactionId: txId },
       body,
     }) as Promise<Transaction>;
   }
@@ -149,24 +150,17 @@ export class TransactionsResource {
   /** Soft-delete a transaction. */
   async delete(txId: string): Promise<void> {
     await this.t.run(sdk.transactionsDelete, {
-      path: { txId },
+      path: { transactionId: txId },
     });
   }
 
   /** Aggregate stats for a transaction filter. */
   async stats(
-    params: Omit<TransactionListParams, 'expand' | 'sort' | 'order' | 'limit' | 'cursor' | 'withCount'> = {},
+    params: Omit<TransactionListParams, 'expand' | 'sort' | 'order' | 'limit' | 'cursor' | 'withCount'> & { currency: string },
   ): Promise<TransactionStats> {
     return this.t.run(sdk.transactionsStats, {
       query: { ...params, projectId: this.projectId },
     }) as Promise<TransactionStats>;
-  }
-
-  /** Distinct visible `type` values in the project. */
-  async types(): Promise<TransactionTypes> {
-    return this.t.run(sdk.transactionsTypes, {
-      query: { projectId: this.projectId },
-    }) as Promise<TransactionTypes>;
   }
 
   /** Itemized lines on a transaction. */
@@ -182,11 +176,11 @@ export class TransactionItemsResource {
 
   list(txId: string): List<TransactionItem> {
     const options = {
-      path: { txId },
+      path: { transactionId: txId },
     };
     return new List<TransactionItem>(
-      () => this.t.paginate<typeof options, TransactionItem>(sdk.transactionsItemsList, options),
-      () => this.t.runPage<typeof options, TransactionItem>(sdk.transactionsItemsList, options),
+      () => this.t.paginate<typeof options, TransactionItem>(sdk.transactionsListItems, options),
+      () => this.t.runPage<typeof options, TransactionItem>(sdk.transactionsListItems, options),
     );
   }
 
@@ -196,23 +190,23 @@ export class TransactionItemsResource {
     body: TransactionItemCreate,
     opts: { idempotencyKey: string },
   ): Promise<TransactionItem> {
-    return this.t.run(sdk.transactionsItemsCreate, {
-      path: { txId },
+    return this.t.run(sdk.transactionsCreateItem, {
+      path: { transactionId: txId },
       headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<TransactionItem>;
   }
 
   async update(txId: string, itemId: string, body: TransactionItemPatch): Promise<TransactionItem> {
-    return this.t.run(sdk.transactionsItemsUpdate, {
-      path: { txId, itemId },
+    return this.t.run(sdk.transactionsUpdateItem, {
+      path: { transactionId: txId, itemId },
       body,
     }) as Promise<TransactionItem>;
   }
 
   async delete(txId: string, itemId: string): Promise<void> {
-    await this.t.run(sdk.transactionsItemsDelete, {
-      path: { txId, itemId },
+    await this.t.run(sdk.transactionsDeleteItem, {
+      path: { transactionId: txId, itemId },
     });
   }
 }

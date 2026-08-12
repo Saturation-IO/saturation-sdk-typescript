@@ -9,7 +9,7 @@ describe('catalog teaches enums and Money minor units (B0 findings W-1/W-2)', ()
   });
 
   it('expands Money inline with unambiguous minor-units semantics', () => {
-    for (const op of ['transactionsCreate', 'masterDataUpdateContact'] as const) {
+    for (const op of ['transactionsCreate', 'contactsUpdate'] as const) {
       const body = WRITE_OPS[op].bodyType;
       expect(body).toContain('MINOR units');
       expect(body).toContain('475000');
@@ -17,44 +17,46 @@ describe('catalog teaches enums and Money minor units (B0 findings W-1/W-2)', ()
     }
   });
 
-  it('expands money-bearing object aliases + PO item money fields inline (R6-F1)', () => {
+  it('expands money-bearing object aliases without coercing PO formula strings (R6-F1)', () => {
     // The PO create's items array rendered as `Array<PurchaseOrderItemWrite>`
     // and taught nothing about units: a $16,850 PO committed as $168.50.
     const body = WRITE_OPS.purchaseOrdersCreate.bodyType;
     expect(body).not.toContain('PurchaseOrderItemWrite');
     expect(body).toContain('amount?: number (integer MINOR units - $12,400.00 = 1240000');
-    expect(body).toContain('rate?: number (MINOR units per unit');
+    expect(body).toContain('qty?: string | null');
+    expect(body).toContain('rate?: string | null');
     for (const op of ['purchaseOrdersCreateItem', 'purchaseOrdersUpdateItem'] as const) {
       expect(WRITE_OPS[op].bodyType).toContain('integer MINOR units');
-      expect(WRITE_OPS[op].bodyType).toContain('MINOR units per unit');
+      expect(WRITE_OPS[op].bodyType).toContain('qty?: string | null');
+      expect(WRITE_OPS[op].bodyType).toContain('rate?: string | null');
     }
     // Ratio rates stay untaught - a currency rate is not money.
-    expect(WRITE_OPS.libraryUpdateCurrencyTemplate.bodyType).not.toContain('MINOR units per unit');
+    expect(WRITE_OPS.libraryUpdateCurrency.bodyType).not.toContain('MINOR units per unit');
   });
 
   it('expansion never disturbs the top-level field contract', () => {
     expect(WRITE_OPS.transactionsCreate.requiredBodyFields).toEqual(['type', 'amount', 'timestamp']);
-    expect(WRITE_OPS.masterDataUpdateContact.allowedBodyFields).toContain('defaultRate');
+    expect(WRITE_OPS.contactsUpdate.allowedBodyFields).toContain('rate');
   });
 });
 
 describe('validateMutateArgs', () => {
   it('accepts a generated request envelope without dispatching it', () => {
-    expect(() => validateMutateArgs('masterDataUpdateContact', {
+    expect(() => validateMutateArgs('contactsUpdate', {
       path: { contactId: 'con_1' },
       body: { name: 'Jane Doe', email: 'jane@example.com' },
     })).not.toThrow();
   });
 
   it('rejects missing generated path parameters', () => {
-    expect(() => validateMutateArgs('budgetUpsertLinePhaseData', {
+    expect(() => validateMutateArgs('budgetUpdateLinePhaseData', {
       path: { projectId: 'prj_1' },
       body: {},
     })).toThrow(/lineId, phaseId/);
   });
 
   it('rejects missing and unknown generated body fields', () => {
-    expect(() => validateMutateArgs('masterDataUpdateContact', {
+    expect(() => validateMutateArgs('contactsUpdate', {
       path: { contactId: 'con_1' },
       body: { invented: true },
     })).toThrow(/unknown body field.*invented/);
@@ -85,37 +87,34 @@ describe('validateMutateArgs', () => {
     const keyed = posts.filter((op) => op.idempotency === 'required').map((op) => op.op).sort();
     expect(keyed).toEqual([
       'budgetCreateLine',
-      'budgetCreateLinesBatch',
+      'budgetCreateLinesBulk',
       'budgetCreatePhase',
-      'budgetUpsertLinePhaseDataBatch',
-      'libraryCreateCurrencyTemplate',
-      'libraryCreateCustomUnit',
-      'libraryCreateFringeTagTemplate',
-      'libraryCreateFringeTemplate',
-      'libraryCreateGlobalTemplate',
+      'budgetUpdateLinePhaseDataBulk',
+      'commentsCreate',
+      'contactsCreate',
+      'libraryCreateCurrency',
+      'libraryCreateFringe',
+      'libraryCreateFringeGroup',
+      'libraryCreateGlobal',
       'libraryCreateRatePack',
       'libraryCreateRatePackItem',
       'libraryCreateTag',
-      'masterDataCreateComment',
-      'masterDataCreateContact',
-      'masterDataCreateProject',
-      'masterDataCreateSpace',
+      'libraryCreateUnit',
+      'projectsCreate',
       'purchaseOrdersCreate',
       'purchaseOrdersCreateItem',
-      'transactionsBatchCreate',
+      'spacesCreate',
       'transactionsCreate',
-      'transactionsItemsCreate',
+      'transactionsCreateBulk',
+      'transactionsCreateItem',
     ]);
     const natural = posts.filter((op) => op.idempotency === 'natural').map((op) => op.op).sort();
     expect(natural).toEqual([
-      'documentsAssign',
       'libraryAddProjectCurrency',
       'libraryAddProjectFringe',
-      'libraryAddProjectFringeTag',
+      'libraryAddProjectFringeGroup',
       'libraryAddProjectGlobal',
       'libraryAddProjectIncentive',
-      'libraryAddProjectTag',
-      'libraryAddRatePack',
       'libraryEnableIncentivePack',
       'libraryEnableRatePack',
     ]);
@@ -123,24 +122,21 @@ describe('validateMutateArgs', () => {
     // status preconditions — a repeat is a typed 4xx / same-state no-op.
     const transitions = posts.filter((op) => op.idempotency === 'transition').map((op) => op.op).sort();
     expect(transitions).toEqual([
-      'documentsUnassign',
       'purchaseOrdersCancelSubmission',
-      'purchaseOrdersLink',
       'purchaseOrdersMarkPaid',
-      'purchaseOrdersUnlink',
       'purchaseOrdersVoid',
       'webhooksCreate',
-      'webhooksPing',
+      'webhooksSendTestDelivery',
     ]);
 
     // Full-surface ruling (2026-08-07): only the two STRUCTURAL carve-outs
     // remain out — the reserved /v1 submit stub (always 409 until approval
-    // wiring) and documentsDrop (multipart bytes ride the upload tool).
+    // wiring) and documentsUpload (multipart bytes ride the upload tool).
     expect(WRITE_OPS).not.toHaveProperty('purchaseOrdersSubmit');
-    expect(WRITE_OPS).not.toHaveProperty('documentsDrop');
+    expect(WRITE_OPS).not.toHaveProperty('documentsUpload');
     expect(WRITE_OPS).toHaveProperty('webhooksCreate');
     expect(WRITE_OPS).toHaveProperty('webhooksUpdate');
-    expect(WRITE_OPS).toHaveProperty('masterDataDeleteProject');
+    expect(WRITE_OPS).not.toHaveProperty('masterDataDeleteProject');
     expect(WRITE_OPS).toHaveProperty('libraryDisableRatePack');
   });
 });

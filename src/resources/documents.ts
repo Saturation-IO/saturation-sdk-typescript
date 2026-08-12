@@ -3,40 +3,39 @@ import type {
   Document,
   DocumentCreateRequest,
   DocumentUpdateRequest,
-  DocumentExpand,
   DocumentStatus,
   DocumentExtraction,
-  DocumentTargetKind,
-  DocumentAssignmentsCollection,
+  DocumentWritableTargetKind,
+  DocumentLinkRequest,
 } from '../generated/types.gen.js';
 import { Transport, List } from '../http.js';
-import { serializeExpand } from '../expand.js';
 
 /**
- * A typed assign/unassign target. Exactly one of the relation keys is supplied;
+ * A typed document link target. Exactly one relation key is supplied;
  * its value is the target entity's canonical id. This collapses the OpenAPI
  * `{ kind, id }` ref into an ergonomic discriminated shape so the SDK never
- * surfaces a hand-built domain address — `sat.documents.assign(doc, { transaction: txId })`.
+ * surfaces a hand-built domain address. Use `sat.documents.link(doc, { transaction: txId })`.
  */
-export type AssignTarget =
+export type LinkTarget =
   | { transaction: string }
+  | { payment: string }
   | { budgetLine: string }
   | { purchaseOrder: string }
   | { contact: string }
   | { project: string };
 
-/** Translate the ergonomic `AssignTarget` to the wire `{ kind, id }` ref. */
-function toTargetRef(target: AssignTarget): { kind: DocumentTargetKind; id: string } {
+/** Translate the ergonomic `LinkTarget` to the wire `{ kind, id }` ref. */
+function toTargetRef(target: LinkTarget): { kind: DocumentWritableTargetKind; id: string } {
   const entries = Object.entries(target);
   // A single-key object by construction of the union; guard defensively.
-  const [kind, id] = entries[0] as [DocumentTargetKind, string];
+  const [kind, id] = entries[0] as [DocumentWritableTargetKind, string];
   return { kind, id };
 }
 
 export interface DocumentListParams {
-  /** Restrict to documents assigned to a target, as `kind:id` (e.g. `transaction:txn_…`). */
-  assignedTo?: string;
-  /** Restrict to documents with no entity assignment. */
+  /** Restrict to documents linked to a target, as `kind:id` (e.g. `transaction:txn_…`). */
+  linkedTo?: string;
+  /** Restrict to documents with no links. */
   unassigned?: boolean;
   /** Restrict to documents in this folder (`fld_…`). */
   folder?: string;
@@ -44,7 +43,6 @@ export interface DocumentListParams {
   status?: DocumentStatus;
   /** Restrict to documents scoped to this project (`prj_…`). */
   project?: string;
-  expand?: readonly DocumentExpand[];
   limit?: number;
   cursor?: string;
   sort?: string;
@@ -61,12 +59,11 @@ export class DocumentsResource {
   list(params: DocumentListParams = {}): List<Document> {
     const options = {
       query: {
-        assignedTo: params.assignedTo,
+        linkedTo: params.linkedTo,
         unassigned: params.unassigned,
         folder: params.folder,
         status: params.status,
         project: params.project,
-        expand: serializeExpand(params.expand),
         limit: params.limit,
         cursor: params.cursor,
         sort: params.sort,
@@ -82,20 +79,19 @@ export class DocumentsResource {
   }
 
   /** Get a document by id. */
-  async get(documentId: string, params: { expand?: readonly DocumentExpand[] } = {}): Promise<Document> {
+  async get(documentId: string): Promise<Document> {
     return this.t.run(sdk.documentsGet, {
       path: { documentId },
-      query: { expand: serializeExpand(params.expand) },
     }) as Promise<Document>;
   }
 
-  /** Drop a new document. Pass `idempotencyKey` to make the billable drop safe to retry. */
-  async drop(
+  /** Upload a document. Pass `idempotencyKey` to make the upload safe to retry. */
+  async upload(
     body: DocumentCreateRequest,
-    opts: { idempotencyKey?: string } = {},
+    opts: { idempotencyKey: string },
   ): Promise<Document> {
-    return this.t.run(sdk.documentsDrop, {
-      headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
+    return this.t.run(sdk.documentsUpload, {
+      headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<Document>;
   }
@@ -123,35 +119,26 @@ export class DocumentsResource {
   }
 
   /**
-   * Assign a dropped document to a typed target — `{ transaction }`,
-   * `{ purchaseOrder }`, `{ contact }` or `{ project }`. Idempotent on the same id;
-   * a same-kind assignment to a different id needs `replace: true` or it returns
-   * `409 already_assigned`. There is no address-string overload.
+   * Link an uploaded document to `{ transaction }`, `{ purchaseOrder }`,
+   * `{ contact }` or `{ project }`. A different target for the same kind needs
+   * `replace: true` or returns a conflict. There is no address-string overload.
    */
-  async assign(
+  async link(
     documentId: string,
-    target: AssignTarget,
+    target: LinkTarget,
     opts: { replace?: boolean } = {},
   ): Promise<Document> {
-    return this.t.run(sdk.documentsAssign, {
-      path: { documentId },
-      body: { target: toTargetRef(target), replace: opts.replace ?? false },
+    const { kind, id: targetId } = toTargetRef(target);
+    const body: DocumentLinkRequest = { targetId, replace: opts.replace };
+    return this.t.run(sdk.documentsLink, {
+      path: { documentId, kind },
+      body,
     }) as Promise<Document>;
   }
 
-  /** Unassign a document from a typed target. Idempotent (`200` no-op if not assigned). */
-  async unassign(documentId: string, target: AssignTarget): Promise<Document> {
-    return this.t.run(sdk.documentsUnassign, {
-      path: { documentId },
-      body: { target: toTargetRef(target) },
-    }) as Promise<Document>;
-  }
-
-  /** The set of typed targets this document is currently assigned to. */
-  async assignments(documentId: string): Promise<DocumentAssignmentsCollection> {
-    return this.t.run(sdk.documentsListAssignments, {
-      path: { documentId },
-    }) as Promise<DocumentAssignmentsCollection>;
+  /** Remove the current document link for one kind. */
+  async unlink(documentId: string, kind: DocumentWritableTargetKind): Promise<void> {
+    await this.t.run(sdk.documentsUnlink, { path: { documentId, kind } });
   }
 
   /** The compiled content blob for a `READY` document. */
@@ -161,50 +148,4 @@ export class DocumentsResource {
     }) as Promise<Blob>;
   }
 
-  /** Reverse lookup: documents assigned to a workspace contact. */
-  byContact(contactId: string): List<Document> {
-    const options = { path: { contactId } };
-    return new List<Document>(
-      () => this.t.paginate<typeof options, Document>(sdk.documentsListByContact, options),
-      () => this.t.runPage<typeof options, Document>(sdk.documentsListByContact, options),
-    );
-  }
-}
-
-/**
- * Project-scoped reverse document lookups, reached via `sat.projects(p).documents`.
- * These routes carry a `projectId`, distinct from the workspace-level `sat.documents`.
- */
-export class ProjectDocumentsResource {
-  constructor(
-    private readonly t: Transport,
-    private readonly projectId: string,
-  ) {}
-
-  /** All documents scoped to this project. */
-  list(): List<Document> {
-    const options = { path: { projectId: this.projectId } };
-    return new List<Document>(
-      () => this.t.paginate<typeof options, Document>(sdk.documentsListByProject, options),
-      () => this.t.runPage<typeof options, Document>(sdk.documentsListByProject, options),
-    );
-  }
-
-  /** Documents assigned to a transaction. */
-  byTransaction(txId: string): List<Document> {
-    const options = { path: { projectId: this.projectId, txId } };
-    return new List<Document>(
-      () => this.t.paginate<typeof options, Document>(sdk.documentsListByTransaction, options),
-      () => this.t.runPage<typeof options, Document>(sdk.documentsListByTransaction, options),
-    );
-  }
-
-  /** Documents assigned to a purchase order. */
-  byPurchaseOrder(purchaseOrderId: string): List<Document> {
-    const options = { path: { projectId: this.projectId, purchaseOrderId } };
-    return new List<Document>(
-      () => this.t.paginate<typeof options, Document>(sdk.documentsListByPurchaseOrder, options),
-      () => this.t.runPage<typeof options, Document>(sdk.documentsListByPurchaseOrder, options),
-    );
-  }
 }

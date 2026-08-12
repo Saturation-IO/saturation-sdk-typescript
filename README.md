@@ -1,211 +1,239 @@
 # @saturationio/sdk
 
-The official TypeScript SDK for the [Saturation](https://saturation.io) Public API (`/v1`) — the metered, token-authenticated surface for production-finance data: budgets, transactions, purchase orders, documents, the Library (rates, incentives, fringes, globals, currencies, tags, units), search and outbound webhooks.
+The official TypeScript client for the [Saturation Public API](https://docs.saturation.io). It provides typed access to budgets, transactions, purchase orders, payments, documents, contacts, the Library, comments, search, and webhooks.
 
-The SDK is a thin, fully typed layer over the API's OpenAPI contract. All types are generated from that contract, so the surface always matches the live API. The ergonomic client adds resource namespaces, transparent keyset pagination, typed `expand` with return-type widening, typed document targets, and a status-keyed error model.
-
-- Works in Node.js (18+) and the browser.
-- Ships ESM, CommonJS, and TypeScript declarations.
-- No floating casts, no `?.` sprawl: an expanded relation is present in the type; an un-expanded one is absent.
+- Node.js 18 or later and modern browsers
+- ESM, CommonJS, and TypeScript declarations
+- Types generated from the OpenAPI contract
+- Resource-based helpers for pagination, expansion, writes, and errors
 
 ## Install
 
 ```bash
 pnpm add @saturationio/sdk
-# or: npm install @saturationio/sdk
+# or
+npm install @saturationio/sdk
 ```
 
-## Authentication
+## Create a client
 
-The API authenticates with a single header — `Authorization: Bearer <token>`. A token acts **as a user** (or a workspace-owned service identity) and inherits that principal's live permissions in the workspace. Permissions resolve per request, so a token stops working the instant its principal loses access.
+Create a token in Saturation under **Settings > Developers > API**, then set it in your environment:
 
-Mint a token in the Saturation app under **Settings → Developers**. Treat it like a password: it carries the full reach of the principal it was issued for.
-
-## Quickstart
+```bash
+export SATURATION_TOKEN="your-token"
+```
 
 ```ts
-import { Saturation, SaturationError } from '@saturationio/sdk';
+import { Saturation } from '@saturationio/sdk';
 
-// Inject the token once. The token determines the workspace.
 const sat = new Saturation({
   token: process.env.SATURATION_TOKEN!,
 });
 
-// Confirm who the token is and which workspace it can reach.
 const me = await sat.me();
+const projects = await sat.projects.list({ limit: 10 }).page();
 
-// Open a project scope, then read its budget lines (keyset-paginated).
-const project = sat.projects('feature-film-2026'); // accepts a slug or prj_… id
-for await (const line of project.budget.lines.list({ kind: 'line' })) {
-  console.log(line.name, line.code);
-}
-
-// Write a transaction; non-2xx throws a typed error.
-try {
-  const tx = await project.transactions.create({
-    type: 'Invoice',
-    amount: { amount: 152900, currency: 'USD' }, // integer minor units
-    timestamp: new Date().toISOString(),
-  });
-  console.log('created', tx.id);
-} catch (err) {
-  if (err instanceof SaturationError) {
-    console.error(err.code, err.message, err.requestId);
-  }
+console.log(me.workspaces[0]?.workspaceName);
+for (const project of projects.data) {
+  console.log(project.name, project.id);
 }
 ```
 
-## The shape of the client
+The token selects one workspace. You do not pass a workspace ID with each request. Tokens use the current permissions of their user or service identity, so removing access takes effect on the next request.
 
-The grammar mirrors the API routes and the product UI exactly:
+## Client structure
 
-| Scope | Reach |
+The client follows the same workspace and project hierarchy as Saturation:
+
+| Scope | Resources |
 | --- | --- |
-| Workspace | `sat.library.*`, `sat.documents.*`, `sat.contacts.*`, `sat.spaces.*`, `sat.search(q)`, `sat.me()`, `sat.workspaces()` |
-| Project | `sat.projects(p).budget.*`, `.transactions.*`, `.library.*`, `.search(q)` |
+| Workspace | `sat.projects`, `sat.library`, `sat.contacts`, `sat.spaces`, `sat.documents`, `sat.purchaseOrders`, `sat.paymentRequests`, `sat.payments`, `sat.webhooks`, `sat.search()`, `sat.me()` |
+| Project | `sat.projects(id).budget`, `.transactions`, `.purchaseOrders`, `.paymentRequests`, `.payments`, `.library`, `.comments`, `.search()` |
 
-The token is bound to one workspace, so there is no workspace id to configure or pass per call. The two-scope Library is visible at the call site: `sat.library.*` is the workspace **source**, `sat.projects(p).library.*` is the project-**resident** copy.
-
-## Examples
-
-### The two-scope Library
-
-Packs are enabled at the workspace, then installed into a project (copy-on-use).
+Project handles accept a project ID or slug:
 
 ```ts
-// Workspace source: enable a rate pack so projects can install it.
-await sat.library.rates.enable('rtp_iatse_2026');
-
-// Project resident: install the enabled pack, then add an incentive program.
 const project = sat.projects('prj_8a12');
-await project.library.rates.install('rtp_iatse_2026');
-await project.library.incentives.add({ programId: 'inc_ga_film_30' });
+const sameProject = sat.projects('feature-film-2026');
 ```
 
-### Typed `expand` with return-type widening
-
-An expanded relation is **present and non-optional** in the return type. A relation you did not expand is **absent** — accessing it is a compile error, not a silent `undefined`.
-
-```ts
-const line = await project.budget.lines.get('lin_3d77', {
-  expand: ['contact', 'documents'],
-});
-
-line.contact.name;        // OK — `contact` was expanded, no `?.` needed
-line.documents.length;    // OK — `documents` is present
-
-const lean = await project.budget.lines.get('lin_3d77');
-// @ts-expect-error — `contact` was not expanded, so it is not on the type.
-lean.contact;
-```
+## Read data
 
 ### Pagination
 
-`list()` returns a value that is both an async-iterable over **every** row (it follows `nextCursor` for you, capped at 100 per page) and awaitable to a single raw page.
+Collection methods return a `List`. Iterate through every page, fetch one page, or collect all rows.
 
 ```ts
-// Iterate every matching transaction across all pages.
-for await (const tx of project.transactions.list({ source: 'journal', status: 'posted' })) {
+const project = sat.projects('feature-film-2026');
+
+for await (const tx of project.transactions.list({
+  source: 'manual',
+  status: 'posted',
+})) {
   console.log(tx.id, tx.amount);
 }
 
-// Or take one raw page when you want the cursor and count yourself.
 const page = await project.transactions.list({ withCount: true }).page();
-console.log(page.data.length, page.count, page.nextCursor);
+console.log(page.data, page.nextCursor, page.count);
 
-// Or collect everything into an array (use with care on large sets).
-const all = await sat.contacts.list({ q: 'acme' }).all();
+const contacts = await sat.contacts.list({ q: 'Acme' }).all();
 ```
 
-### Drop a document, then assign it to a typed target
+`page()` fetches one page. Async iteration and `all()` follow `nextCursor` until the collection ends. Page size defaults to 50 and cannot exceed 100.
 
-Documents are dropped once, then assigned to a typed `{ transaction | budgetLine | purchaseOrder | contact | project }` target — never a hand-built address.
+### Expand related data
+
+`expand` adds related records to the response type. Unexpanded relations stay absent from the type.
 
 ```ts
-const doc = await sat.documents.drop({ file: invoiceFile });
+const line = await project.budget.lines.get('lin_3d77', {
+  expand: ['contact', 'phaseData', 'phaseTotals'],
+});
 
-await sat.documents.assign(doc.id, { transaction: 'txn_8f2a1c9e' });
-// Move it to a budget line instead (an explicit move needs replace: true):
-await sat.documents.assign(doc.id, { budgetLine: 'lin_3d77' }, { replace: true });
+line.contact;
+line.phaseData;
+line.phaseTotals;
 
-const assignments = await sat.documents.assignments(doc.id);
+const leanLine = await project.budget.lines.get('lin_3d77');
+// @ts-expect-error: contact was not expanded
+leanLine.contact;
 ```
 
-### Read a positional cell
+### Read budget data
 
-Cells are read by explicit `{ account, column }` coordinates — the internal address grammar is never exposed.
+Phase data contains editable values. Totals come from the budget engine.
 
 ```ts
-const cell = await project.budget.cells.get({ account: '1100/1110', column: 'estimate' });
-console.log(cell.value.combined, cell.computedAt); // engine truth + freshness
+await project.budget.lines.upsertPhaseData('lin_3d77', 'phase_estimate', {
+  quantity: 5,
+  rate: 12000,
+});
+
+const totals = await project.budget.totals.get({ phase: 'phase_estimate' });
+console.log(totals.totals, totals.computedAt);
 ```
 
-### Idempotent retries
+## Write data
 
-Actions such as `enable`, `disable`, `install`, `uninstall`, and `add` are safe to repeat. Creates that could duplicate data accept an `Idempotency-Key`; using the same key with a different body returns `idempotency_conflict`.
+Methods that require an idempotency key take it as a second argument. Reuse the key when retrying the same request.
 
 ```ts
-const key = crypto.randomUUID();
+const transaction = await project.transactions.create(
+  {
+    type: 'Invoice',
+    amount: { amount: 152900, currency: 'USD' },
+    timestamp: new Date().toISOString(),
+    description: 'Camera rental',
+  },
+  { idempotencyKey: crypto.randomUUID() },
+);
+```
+
+Reusing a key with a different request body returns `idempotency_conflict`.
+
+### Link a document
+
+Upload a document once, then link it to a typed target. A document can have one link of each kind.
+
+```ts
+const document = await sat.documents.upload(
+  { file: invoiceFile },
+  { idempotencyKey: crypto.randomUUID() },
+);
+
+await sat.documents.link(document.id, { transaction: transaction.id });
+await sat.documents.link(document.id, { purchaseOrder: 'po_3d77' });
+
+const currentLinks = (await sat.documents.get(document.id)).links;
+```
+
+Use `{ replace: true }` to replace an existing link of the same kind:
+
+```ts
+await sat.documents.link(
+  document.id,
+  { transaction: 'txn_replacement' },
+  { replace: true },
+);
+```
+
+### Use the Library
+
+The workspace Library contains reusable sources. A project's Library contains the items added to that project.
+
+```ts
+await sat.library.ratePacks.enable('rtp_iatse_2026');
+
+await project.library.ratePacks.add('rtp_iatse_2026');
+await project.library.incentives.add({ programId: 'inc_ga_film_30' });
+```
+
+### Update comment reactions
+
+`reactionEmojis` replaces the current user's reactions and leaves other users unchanged.
+
+```ts
+await project.comments.update('cmt_123', {
+  reactionEmojis: ['👍', '🎬'],
+});
+```
+
+Send an empty array to remove your reactions.
+
+## Handle errors
+
+Non-2xx responses throw `SaturationError`. Branch on `code`, and include `requestId` when contacting support.
+
+```ts
+import { SaturationError } from '@saturationio/sdk';
+
 try {
-  await project.transactions.create(
-    { type: 'Invoice', amount: { amount: 50000, currency: 'USD' }, timestamp: now },
-    { idempotencyKey: key },
-  );
-} catch (err) {
-  if (err instanceof SaturationError && err.isIdempotencyConflict) {
-    // The same key was already used with a different body.
+  await sat.contacts.update('con_missing', { name: 'New name' });
+} catch (error) {
+  if (error instanceof SaturationError) {
+    console.error(error.status, error.code, error.message, error.requestId);
+    console.error(error.fieldErrors);
+    console.error(error.retryAfter);
   }
 }
 ```
 
-### Error handling
-
-Success is the bare resource (or a `{ data, nextCursor }` page) — there is no `success: true` wrapper. The client keys success off the HTTP status and throws a `SaturationError` on anything else, carrying the typed `code`, the human-readable `message`, the `requestId` to quote in support tickets, and `fieldErrors` on validation failures.
-
-```ts
-try {
-  await sat.contacts.update('con_404', { name: 'New' });
-} catch (err) {
-  if (err instanceof SaturationError) {
-    err.code;          // e.g. 'not_found' | 'permission_revoked' | 'validation'
-    err.status;        // the HTTP status
-    err.requestId;     // correlate with usage logs / support
-    err.fieldErrors;   // { field: string[] } on validation errors
-    err.requiredAbility; // on permission_revoked: the missing action:subject
-  }
-}
-```
-
-`404 not_found` is returned for exists-but-unauthorized as well, so existence never leaks.
+Success responses return the resource or collection page directly. They do not use a `success: true` wrapper.
 
 ## Configuration
 
 ```ts
-new Saturation({
-  token: '…',          // required: Bearer token (acts as a user)
-  baseURL: '…',        // optional: override for local/staging
+const sat = new Saturation({
+  token: 'your-token',
+  baseURL: 'http://127.0.0.1:4300/v1',
 });
 ```
 
-| Option | Default |
-| --- | --- |
-| `baseURL` | `https://next-api.saturation.io/v1` |
+`baseURL` defaults to `https://next-api.saturation.io/v1`. The SDK also accepts a custom `fetch` implementation through the constructor.
 
-## Conventions
+## Data conventions
 
-- **Money** is always an integer count of minor units plus an explicit ISO-4217 `currency` (`{ amount: 152900, currency: 'USD' }`) — never a float.
-- **Dates** are ISO-8601 strings.
-- **Identifiers** are stable, prefixed strings (`ws_…`, `prj_…`, `txn_…`, `lin_…`, `doc_…`). The internal domain address is never exposed.
-- **Pagination** caps at `limit` 100 (default 50).
+- Money uses integer minor units and an ISO 4217 currency code: `{ amount: 152900, currency: 'USD' }`.
+- Dates use ISO 8601 strings.
+- IDs use prefixed strings such as `prj_`, `txn_`, `lin_`, and `doc_`.
+- List cursors are opaque. Pass `nextCursor` back unchanged.
 
-## Regenerating types
+## Development and releases
 
-The generated layer (`src/generated/`) is produced from the OpenAPI document and must not be edited by hand. To refresh it after the contract changes:
+Generated files under `src/generated/` come from the canonical OpenAPI contract. Do not edit them by hand.
+
+Run the package checks before opening a pull request:
 
 ```bash
-pnpm generate
+pnpm install --frozen-lockfile
+pnpm typecheck
+pnpm test
+pnpm build
+npm pack --dry-run
 ```
+
+Publishing a GitHub release runs the same checks, then publishes the matching package version to npm. See the [API documentation](https://docs.saturation.io) for the HTTP contract.
 
 ## License
 
-Proprietary. See [LICENSE](./LICENSE).
+[MIT](LICENSE)

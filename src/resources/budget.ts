@@ -4,19 +4,15 @@ import type {
   BudgetLineCreate,
   BudgetLineUpdate,
   BudgetLineExpand,
-  BudgetLineBatchCreate,
-  BudgetLineBatchCreateResponse,
+  BudgetLineBulkCreate,
+  BudgetLineBulkCreateResponse,
   BudgetLinePhaseDataUpsert,
   BudgetLinePhaseDataUpsertResponse,
-  BudgetLinePhaseDataBatchUpsert,
-  BudgetLinePhaseDataBatchUpsertResponse,
-  BudgetCell,
+  BudgetLinePhaseDataBulkUpsert,
+  BudgetLinePhaseDataBulkUpsertResponse,
   BudgetDocument,
   BudgetTotals,
-  BudgetRollup,
-  BudgetVariance,
   BudgetPhase,
-  BudgetAccount,
   TagMode,
   BudgetCreatePhaseData,
   BudgetUpdatePhaseData,
@@ -31,7 +27,7 @@ import { Expanded, type ExpandMap, serializeExpand } from '../expand.js';
 /**
  * Map each budget-line expand key to the property it populates on `BudgetLine`,
  * so an expanded relation is widened to present-and-required in the return type.
- * `phases` populates the computed `values` matrix; `phaseData` populates the
+ * `phaseTotals` populates computed values; `phaseData` populates the
  * raw editable phase-data matrix; the rest are 1:1 with their property name.
  *
  * `account` is a valid expand key but projects classifier fields (`code`/`path`)
@@ -40,10 +36,9 @@ import { Expanded, type ExpandMap, serializeExpand } from '../expand.js';
  * `BudgetLineExpand` union on `expand`).
  */
 const budgetLineExpandMap = {
-  phases: 'values',
+  phaseTotals: 'phaseTotals',
   phaseData: 'phaseData',
   contact: 'contact',
-  sourceItem: 'sourceItem',
 } satisfies ExpandMap<BudgetLineExpand>;
 type BudgetLineExpandMap = typeof budgetLineExpandMap;
 
@@ -103,16 +98,8 @@ export class BudgetResource {
     return new BudgetPhasesResource(this.t, this.projectId);
   }
 
-  get accounts(): BudgetAccountsResource {
-    return new BudgetAccountsResource(this.t, this.projectId);
-  }
-
   get totals(): BudgetTotalsResource {
     return new BudgetTotalsResource(this.t, this.projectId);
-  }
-
-  get cells(): BudgetCellsResource {
-    return new BudgetCellsResource(this.t, this.projectId);
   }
 
   get phaseData(): BudgetPhaseDataResource {
@@ -121,7 +108,7 @@ export class BudgetResource {
 
   /** The full budget document: lines, visible phases, totals, and editable phase data. */
   async document(params: BudgetDocumentParams = {}): Promise<BudgetDocument> {
-    return this.t.run(sdk.budgetGetDocument, {
+    return this.t.run(sdk.budgetGet, {
       path: { projectId: this.projectId },
       query: {
         path: params.path,
@@ -131,21 +118,6 @@ export class BudgetResource {
     }) as Promise<BudgetDocument>;
   }
 
-  /** Engine-computed rollup for one phase (id or `type`, e.g. `estimate`). */
-  async rollup(phase: string): Promise<BudgetRollup> {
-    return this.t.run(sdk.budgetGetRollup, {
-      path: { projectId: this.projectId },
-      query: { phase },
-    }) as Promise<BudgetRollup>;
-  }
-
-  /** Engine-computed variance between two phases (`from` → `to`). */
-  async variance(from: string, to: string): Promise<BudgetVariance> {
-    return this.t.run(sdk.budgetGetVariance, {
-      path: { projectId: this.projectId },
-      query: { from, to },
-    }) as Promise<BudgetVariance>;
-  }
 }
 
 export class BudgetLinesResource {
@@ -206,16 +178,16 @@ export class BudgetLinesResource {
     }) as Promise<BudgetLine>;
   }
 
-  /** Create budget lines in one all-or-nothing batch. */
-  async createBatch(
-    body: BudgetLineBatchCreate,
+  /** Create budget lines in one all-or-nothing bulk write. */
+  async createBulk(
+    body: BudgetLineBulkCreate,
     opts: { idempotencyKey: string },
-  ): Promise<BudgetLineBatchCreateResponse> {
-    return this.t.run(sdk.budgetCreateLinesBatch, {
+  ): Promise<BudgetLineBulkCreateResponse> {
+    return this.t.run(sdk.budgetCreateLinesBulk, {
       path: { projectId: this.projectId },
       headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
-    }) as Promise<BudgetLineBatchCreateResponse>;
+    }) as Promise<BudgetLineBulkCreateResponse>;
   }
 
   /** Patch a budget line (allow-list only; server-owned fields → `field_read_only`). */
@@ -232,17 +204,16 @@ export class BudgetLinesResource {
     phaseId: string,
     body: BudgetLinePhaseDataUpsert,
   ): Promise<BudgetLinePhaseDataUpsertResponse> {
-    return this.t.run(sdk.budgetUpsertLinePhaseData, {
+    return this.t.run(sdk.budgetUpdateLinePhaseData, {
       path: { projectId: this.projectId, lineId, phaseId },
       body,
     }) as Promise<BudgetLinePhaseDataUpsertResponse>;
   }
 
-  /** Soft-delete a budget line. `reset` re-snapshots from source on resurrect. */
-  async delete(lineId: string, opts: { reset?: boolean } = {}): Promise<void> {
+  /** Delete a budget line. */
+  async delete(lineId: string): Promise<void> {
     await this.t.run(sdk.budgetDeleteLine, {
       path: { projectId: this.projectId, lineId },
-      query: opts.reset ? { reset: true } : undefined,
     });
   }
 }
@@ -253,16 +224,16 @@ export class BudgetPhaseDataResource {
     private readonly projectId: string,
   ) {}
 
-  /** Upsert editable line phase data in one all-or-nothing batch. */
-  async upsertBatch(
-    body: BudgetLinePhaseDataBatchUpsert,
+  /** Upsert editable line phase data in one all-or-nothing bulk write. */
+  async upsertBulk(
+    body: BudgetLinePhaseDataBulkUpsert,
     opts: { idempotencyKey: string },
-  ): Promise<BudgetLinePhaseDataBatchUpsertResponse> {
-    return this.t.run(sdk.budgetUpsertLinePhaseDataBatch, {
+  ): Promise<BudgetLinePhaseDataBulkUpsertResponse> {
+    return this.t.run(sdk.budgetUpdateLinePhaseDataBulk, {
       path: { projectId: this.projectId },
       headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
-    }) as Promise<BudgetLinePhaseDataBatchUpsertResponse>;
+    }) as Promise<BudgetLinePhaseDataBulkUpsertResponse>;
   }
 }
 
@@ -310,23 +281,6 @@ export class BudgetPhasesResource {
   }
 }
 
-export class BudgetAccountsResource {
-  constructor(
-    private readonly t: Transport,
-    private readonly projectId: string,
-  ) {}
-
-  list(): List<BudgetAccount> {
-    const options = {
-      path: { projectId: this.projectId },
-    };
-    return new List<BudgetAccount>(
-      () => this.t.paginate<typeof options, BudgetAccount>(sdk.budgetListAccounts, options),
-      () => this.t.runPage<typeof options, BudgetAccount>(sdk.budgetListAccounts, options),
-    );
-  }
-}
-
 export class BudgetTotalsResource {
   constructor(
     private readonly t: Transport,
@@ -343,25 +297,6 @@ export class BudgetTotalsResource {
         path: params.path,
       },
     }) as Promise<BudgetTotals>;
-  }
-}
-
-export class BudgetCellsResource {
-  constructor(
-    private readonly t: Transport,
-    private readonly projectId: string,
-  ) {}
-
-  /**
-   * Read one positional cell by explicit `{ account, column }` — never a raw
-   * domain address. `account` is a path/code (`1100/1110`); `column` names a
-   * value column (a phase id or `type` such as `estimate`).
-   */
-  async get(coords: { account: string; column: string }): Promise<BudgetCell> {
-    return this.t.run(sdk.budgetGetCell, {
-      path: { projectId: this.projectId },
-      query: { account: coords.account, column: coords.column },
-    }) as Promise<BudgetCell>;
   }
 }
 

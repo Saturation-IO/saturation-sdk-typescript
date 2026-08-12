@@ -15,7 +15,7 @@ function transport(): { t: Transport; run: ReturnType<typeof vi.fn>; runPage: Re
 }
 
 describe('payment resources', () => {
-  it('uses the project default and serializes linked-record expansions', async () => {
+  it('uses the project default and passes typed linked-record expansions', async () => {
     const { t, runPage } = transport();
     const payments = new PaymentsResource(t, 'project_1');
     const requests = new PaymentRequestsResource(t, 'project_1');
@@ -25,11 +25,11 @@ describe('payment resources', () => {
 
     expect((runPage.mock.calls[0]?.[1] as Options).query).toEqual(expect.objectContaining({
       projectId: 'project_1',
-      expand: 'request,transactions',
+      expand: ['request', 'transactions'],
     }));
     expect((runPage.mock.calls[1]?.[1] as Options).query).toEqual(expect.objectContaining({
       projectId: 'project_1',
-      expand: 'payment,document',
+      expand: ['payment', 'document'],
     }));
   });
 
@@ -39,7 +39,7 @@ describe('payment resources', () => {
 
     await payments.timeline('pay_1', { limit: 25, cursor: 'cursor_1' }).page();
 
-    expect(runPage.mock.calls[0]?.[0]).toBe(sdk.paymentsTimeline);
+    expect(runPage.mock.calls[0]?.[0]).toBe(sdk.paymentsGetTimeline);
     expect(runPage.mock.calls[0]?.[1]).toEqual({
       path: { paymentId: 'pay_1' },
       query: { limit: 25, cursor: 'cursor_1' },

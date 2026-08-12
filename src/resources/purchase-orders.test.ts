@@ -45,7 +45,7 @@ describe('PurchaseOrdersResource scope defaults', () => {
     const { t, run, runPage } = transport();
     const projectResource = new PurchaseOrdersResource(t, 'project_1');
     const workspaceResource = new PurchaseOrdersResource(t);
-    const body: PurchaseOrderCreate = { title: 'Camera package' };
+    const body: PurchaseOrderCreate = { name: 'Camera package' };
 
     await projectResource.list().page();
     expect((runPage.mock.calls[0]?.[1] as Options).query).toEqual(expect.objectContaining({
@@ -54,28 +54,22 @@ describe('PurchaseOrdersResource scope defaults', () => {
 
     await projectResource.create(body, { idempotencyKey: 'itg-po-key-0123456789' });
     expect((run.mock.calls[0]?.[1] as Options).body).toEqual({
-      title: 'Camera package',
+      name: 'Camera package',
       projectId: 'project_1',
     });
 
     await workspaceResource.create(body, { idempotencyKey: 'itg-po-key-9876543210' });
     expect((run.mock.calls[1]?.[1] as Options).body).toEqual({
-      title: 'Camera package',
+      name: 'Camera package',
     });
   });
 
-  it('exposes Activity and Timeline through their generated operations', async () => {
-    const { t, run, runPage } = transport();
+  it('exposes Timeline through its generated operation', async () => {
+    const { t, runPage } = transport();
     const resource = new PurchaseOrdersResource(t);
 
-    await resource.activity('po_1');
-    expect(run.mock.calls[0]?.[0]).toBe(sdk.purchaseOrdersActivity);
-
-    await resource.suggestedMatches('po_1');
-    expect(run.mock.calls[1]?.[0]).toBe(sdk.purchaseOrdersSuggestedMatches);
-
     await resource.timeline('po_1', { limit: 25, cursor: 'cursor_1' }).page();
-    expect(runPage.mock.calls[0]?.[0]).toBe(sdk.purchaseOrdersTimeline);
+    expect(runPage.mock.calls[0]?.[0]).toBe(sdk.purchaseOrdersGetTimeline);
     expect(runPage.mock.calls[0]?.[1]).toEqual({
       path: { purchaseOrderId: 'po_1' },
       query: { limit: 25, cursor: 'cursor_1' },
@@ -89,11 +83,13 @@ describe('PurchaseOrdersResource scope defaults', () => {
     await resource.markPaid('po_1');
     expect(run.mock.calls[0]?.[0]).toBe(sdk.purchaseOrdersMarkPaid);
 
-    await resource.link('po_1', { transactionId: 'txn_1' });
-    expect(run.mock.calls[1]?.[0]).toBe(sdk.purchaseOrdersLink);
+    await resource.linkTransaction('po_1', 'txn_1');
+    expect(run.mock.calls[1]?.[0]).toBe(sdk.purchaseOrdersLinkTransaction);
+    expect(run.mock.calls[1]?.[1]).toEqual({ path: { purchaseOrderId: 'po_1', transactionId: 'txn_1' } });
 
-    await resource.unlink('po_1', { transactionId: 'txn_1' });
-    expect(run.mock.calls[2]?.[0]).toBe(sdk.purchaseOrdersUnlink);
+    await resource.unlinkTransaction('po_1', 'txn_1');
+    expect(run.mock.calls[2]?.[0]).toBe(sdk.purchaseOrdersUnlinkTransaction);
+    expect(run.mock.calls[2]?.[1]).toEqual({ path: { purchaseOrderId: 'po_1', transactionId: 'txn_1' } });
 
   });
 });

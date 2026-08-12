@@ -3,7 +3,7 @@ import { LibraryResource } from './resources/library-workspace.js';
 import { ProjectLibraryResource } from './resources/library-project.js';
 import { BudgetResource } from './resources/budget.js';
 import { TransactionsResource } from './resources/transactions.js';
-import { DocumentsResource, ProjectDocumentsResource } from './resources/documents.js';
+import { DocumentsResource } from './resources/documents.js';
 import { PurchaseOrdersResource } from './resources/purchase-orders.js';
 import { PaymentRequestsResource, PaymentsResource } from './resources/payments.js';
 import {
@@ -15,8 +15,6 @@ import {
 } from './resources/core.js';
 import {
   CommentsResource,
-  ViewsResource,
-  UsageResource,
   WebhooksResource,
 } from './resources/extras.js';
 import type { Me } from './generated/types.gen.js';
@@ -76,19 +74,9 @@ export class ProjectScope {
     return new ProjectLibraryResource(this.t, this.id);
   }
 
-  /** Project-scoped document reverse lookups (by transaction, budget line, PO). */
-  get documents(): ProjectDocumentsResource {
-    return new ProjectDocumentsResource(this.t, this.id);
-  }
-
-  /** Saved views for this project. */
-  get views(): ViewsResource {
-    return new ViewsResource(this.t, this.id);
-  }
-
-  /** Per-project usage rollups. */
-  usage(params?: Parameters<UsageResource['projectRollups']>[1]): ReturnType<UsageResource['projectRollups']> {
-    return new UsageResource(this.t).projectRollups(this.id, params);
+  /** Comments owned by this project. */
+  get comments(): CommentsResource {
+    return new CommentsResource(this.t, this.id);
   }
 
   /** Project-scoped Spotlight search. */
@@ -99,7 +87,7 @@ export class ProjectScope {
 
 /**
  * `sat.projects` is both callable — `sat.projects(p)` opens a {@link ProjectScope} —
- * and a resource with `list/get/create/update/delete` for workspace project master data.
+ * and a resource with `list/get/create/update` for workspace project master data.
  */
 export interface ProjectsAccessor extends ProjectsResource {
   (projectId: string): ProjectScope;
@@ -122,9 +110,9 @@ export interface ProjectsAccessor extends ProjectsResource {
 export class Saturation {
   private readonly t: Transport;
 
-  /** Workspace-source Library (rates, incentives, fringes, globals, currencies, tags, units). */
+  /** Workspace Library (rate packs, incentives, fringes, globals, currencies, tags, and units). */
   readonly library: LibraryResource;
-  /** First-class documents (drop once, then assign to typed targets). */
+  /** Workspace documents and their links to other records. */
   readonly documents: DocumentsResource;
   /** Workspace-scoped contacts (vendors, crew, payees). */
   readonly contacts: ContactsResource;
@@ -136,10 +124,6 @@ export class Saturation {
   readonly payments: PaymentsResource;
   /** Workspace spaces (folders that group projects). */
   readonly spaces: SpacesResource;
-  /** Workspace comments attached to entities. */
-  readonly comments: CommentsResource;
-  /** Metered usage and credit dashboards. */
-  readonly usage: UsageResource;
   /** Outbound webhook subscriptions. */
   readonly webhooks: WebhooksResource;
   /** Callable project accessor: `sat.projects(p)` and `sat.projects.list()`. */
@@ -160,8 +144,6 @@ export class Saturation {
     this.paymentRequests = new PaymentRequestsResource(this.t);
     this.payments = new PaymentsResource(this.t);
     this.spaces = new SpacesResource(this.t);
-    this.comments = new CommentsResource(this.t);
-    this.usage = new UsageResource(this.t);
     this.webhooks = new WebhooksResource(this.t);
     this.meta = new MetaResource(this.t);
 
@@ -184,13 +166,4 @@ export class Saturation {
     return this.meta.me();
   }
 
-  /** The workspace this token can act on. */
-  workspaces(params?: { limit?: number; cursor?: string }): ReturnType<MetaResource['workspaces']> {
-    return this.meta.workspaces(params);
-  }
-
-  /** Unauthenticated liveness check. */
-  health(): Promise<unknown> {
-    return this.meta.health();
-  }
 }
