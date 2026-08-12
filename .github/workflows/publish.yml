@@ -1,0 +1,54 @@
+name: Publish
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: pnpm
+      # Trusted publishing requires npm 11.5.1 or newer. Do not add registry-url
+      # or NODE_AUTH_TOKEN here. Either would replace OIDC with token auth.
+      - run: npm install --global npm@11.5.1
+      - run: npm --version
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm generate:check
+      - name: Verify release and select npm tag
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_version="$(node -p "require('./package.json').version")"
+          test "$RELEASE_TAG" = "v$package_version"
+
+          if [[ "$package_version" == *-* ]]; then
+            prerelease="${package_version#*-}"
+            channel="${prerelease%%.*}"
+            if [[ "$channel" != "alpha" ]]; then
+              echo "Unsupported prerelease channel: $channel" >&2
+              exit 1
+            fi
+            echo "NPM_TAG=alpha" >> "$GITHUB_ENV"
+          else
+            echo "NPM_TAG=latest" >> "$GITHUB_ENV"
+          fi
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - run: npm pack --dry-run
+      # The id-token permission is the publish credential. npm matches this
+      # workflow to the package's trusted publisher and creates provenance.
+      - run: npm publish --access public --tag "$NPM_TAG"

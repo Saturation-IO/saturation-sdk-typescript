@@ -1,0 +1,78 @@
+{
+  "name": "@saturationio/sdk",
+  "version": "0.1.0",
+  "description": "Official TypeScript SDK for the Saturation API (/v1)",
+  "keywords": [
+    "saturation",
+    "api",
+    "sdk",
+    "typescript",
+    "production-finance",
+    "budgeting"
+  ],
+  "homepage": "https://docs.saturation.io",
+  "bugs": {
+    "url": "https://github.com/Saturation-IO/saturation-sdk-typescript/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Saturation-IO/saturation-sdk-typescript.git"
+  },
+  "license": "MIT",
+  "author": "Saturation",
+  "packageManager": "pnpm@10.26.2",
+  "type": "module",
+  "exports": {
+    ".": {
+      "browser": "./dist/esm/index.js",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "browser": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "pnpm clean && pnpm build:types && pnpm build:esm && pnpm build:cjs",
+    "build:cjs": "tsc -p tsconfig.cjs.json && node scripts/write-cjs-package.mjs",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:types": "tsc -p tsconfig.types.json",
+    "clean": "rm -rf dist",
+    "generate": "pnpm generate:client && pnpm generate:mutate",
+    "generate:client": "node scripts/generate-client.mjs",
+    "generate:check": "node scripts/check-generated.mjs",
+    "generate:mutate": "tsx scripts/generate-write-surface.ts",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.typetest.json",
+    "test": "vitest run",
+    "prepublishOnly": "pnpm build"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "0.97.3",
+    "@types/node": "^22.20.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.4.3",
+    "vitest": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "pnpm": {
+    "overrides": {
+      "js-yaml": "4.3.1"
+    },
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}
