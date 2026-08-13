@@ -332,7 +332,6 @@ export type BudgetLineCreate = {
     lineColor?: string;
     emoji?: string;
     notes?: string;
-    tagIds?: Array<Id>;
     subtotalSumAllAbove?: boolean;
     subtotalIsBold?: boolean;
     markupAccountFilter?: string;
@@ -356,7 +355,6 @@ export type BudgetLineUpdate = {
     lineColor?: string | null;
     emoji?: string | null;
     notes?: string | null;
-    tagIds?: Array<Id>;
     subtotalSumAllAbove?: boolean;
     subtotalIsBold?: boolean;
     markupAccountFilter?: string | null;
@@ -3754,7 +3752,7 @@ export type BudgetListLinesData = {
          */
         path?: string;
         /**
-         * Only lines with these comma-separated tag IDs or names.
+         * Only lines with these comma-separated tag IDs.
          */
         tags?: string;
         /**
