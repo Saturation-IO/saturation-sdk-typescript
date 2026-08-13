@@ -4,7 +4,7 @@
 // (CREATE + value-UPDATE, additive only). Regenerate with:
 //   pnpm generate:mutate
 //
-// 91 write operations selected from 139 total operations.
+// 89 write operations selected from 136 total operations.
 
 /** A single write operation's static metadata, derived from the OpenAPI spec. */
 export interface WriteOpDef {
@@ -360,19 +360,6 @@ export const WRITE_OPS = {
     idempotency: 'natural',
     summary: 'Add an incentive to a project',
   },
-  libraryAddRatePack: {
-    op: 'libraryAddRatePack',
-    method: 'put',
-    url: '/projects/{projectId}/library/rate-packs/{packId}',
-    pathParams: ['projectId', 'packId'],
-    dataType: 'LibraryAddRatePackData',
-    bodyType: "never",
-    bodyRequired: false,
-    allowedBodyFields: [],
-    requiredBodyFields: [],
-    idempotency: 'natural',
-    summary: 'Add a rate pack to a project',
-  },
   libraryCreateCurrency: {
     op: 'libraryCreateCurrency',
     method: 'post',
@@ -697,19 +684,6 @@ export const WRITE_OPS = {
     requiredBodyFields: [],
     idempotency: 'natural',
     summary: 'Enable a rate pack for the workspace',
-  },
-  libraryRemoveRatePack: {
-    op: 'libraryRemoveRatePack',
-    method: 'delete',
-    url: '/projects/{projectId}/library/rate-packs/{packId}',
-    pathParams: ['projectId', 'packId'],
-    dataType: 'LibraryRemoveRatePackData',
-    bodyType: "never",
-    bodyRequired: false,
-    allowedBodyFields: [],
-    requiredBodyFields: [],
-    idempotency: 'none',
-    summary: 'Remove a rate pack from the project',
   },
   libraryUpdateCurrency: {
     op: 'libraryUpdateCurrency',
