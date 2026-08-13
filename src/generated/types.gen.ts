@@ -936,21 +936,6 @@ export type RatePackItemUpdate = {
 };
 
 /**
- * A rate pack added to a project.
- */
-export type ProjectRatePack = {
-    id: Id;
-    ratePackId: Id;
-    installedAt: string;
-    installedBy?: Id | null;
-    deprecated?: boolean;
-    /**
-     * Rate pack details. Included with `expand=installedPack`.
-     */
-    installedPack?: RatePack | SourceTombstone;
-};
-
-/**
  * A collection of incentive programs available to the workspace.
  */
 export type IncentivePack = {
@@ -1389,19 +1374,6 @@ export type IncentivePackCollection = {
 
 export type IncentiveProgramCollection = {
     data: Array<IncentiveProgram>;
-    nextCursor?: NextCursor;
-    /**
-     * Total matching items; present only when `withCount=true` was requested.
-     */
-    count?: number;
-    /**
-     * Whether some matching items were omitted from the response.
-     */
-    truncated?: boolean;
-};
-
-export type ProjectRatePackCollection = {
-    data: Array<ProjectRatePack>;
     nextCursor?: NextCursor;
     /**
      * Total matching items; present only when `withCount=true` was requested.
@@ -7489,163 +7461,6 @@ export type LibraryUpdateUnitResponses = {
 };
 
 export type LibraryUpdateUnitResponse = LibraryUpdateUnitResponses[keyof LibraryUpdateUnitResponses];
-
-export type LibraryListProjectRatePacksData = {
-    body?: never;
-    path: {
-        /**
-         * Project ID or slug.
-         */
-        projectId: string;
-    };
-    query?: {
-        /**
-         * Maximum number of items to return on a page. Capped at 100.
-         */
-        limit?: number;
-        /**
-         * Cursor from the previous page's `nextCursor`. Use it with the same filters and sort.
-         */
-        cursor?: string;
-    };
-    url: '/projects/{projectId}/library/rate-packs';
-};
-
-export type LibraryListProjectRatePacksErrors = {
-    /**
-     * The request is invalid.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * This feature is not available on the workspace plan.
-     */
-    402: Error;
-    /**
-     * Forbidden. The token does not allow this action.
-     */
-    403: Error;
-    /**
-     * Not found or unavailable to the token.
-     */
-    404: Error;
-    /**
-     * Rate limited. See `Retry-After` before retrying.
-     */
-    429: Error;
-};
-
-export type LibraryListProjectRatePacksError = LibraryListProjectRatePacksErrors[keyof LibraryListProjectRatePacksErrors];
-
-export type LibraryListProjectRatePacksResponses = {
-    /**
-     * A page of installed rate packs.
-     */
-    200: ProjectRatePackCollection;
-};
-
-export type LibraryListProjectRatePacksResponse = LibraryListProjectRatePacksResponses[keyof LibraryListProjectRatePacksResponses];
-
-export type LibraryRemoveRatePackData = {
-    body?: never;
-    path: {
-        /**
-         * Project ID or slug.
-         */
-        projectId: string;
-        packId: Id;
-    };
-    query?: never;
-    url: '/projects/{projectId}/library/rate-packs/{packId}';
-};
-
-export type LibraryRemoveRatePackErrors = {
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * This feature is not available on the workspace plan.
-     */
-    402: Error;
-    /**
-     * Forbidden. The token does not allow this action.
-     */
-    403: Error;
-    /**
-     * Not found or unavailable to the token.
-     */
-    404: Error;
-    /**
-     * Rate limited. See `Retry-After` before retrying.
-     */
-    429: Error;
-};
-
-export type LibraryRemoveRatePackError = LibraryRemoveRatePackErrors[keyof LibraryRemoveRatePackErrors];
-
-export type LibraryRemoveRatePackResponses = {
-    /**
-     * Removed.
-     */
-    204: void;
-};
-
-export type LibraryRemoveRatePackResponse = LibraryRemoveRatePackResponses[keyof LibraryRemoveRatePackResponses];
-
-export type LibraryAddRatePackData = {
-    body?: never;
-    path: {
-        /**
-         * Project ID or slug.
-         */
-        projectId: string;
-        packId: Id;
-    };
-    query?: never;
-    url: '/projects/{projectId}/library/rate-packs/{packId}';
-};
-
-export type LibraryAddRatePackErrors = {
-    /**
-     * The request is invalid.
-     */
-    400: Error;
-    /**
-     * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
-     */
-    401: Error;
-    /**
-     * This feature is not available on the workspace plan.
-     */
-    402: Error;
-    /**
-     * Forbidden. The token does not allow this action.
-     */
-    403: Error;
-    /**
-     * Not found or unavailable to the token.
-     */
-    404: Error;
-    /**
-     * Rate limited. See `Retry-After` before retrying.
-     */
-    429: Error;
-};
-
-export type LibraryAddRatePackError = LibraryAddRatePackErrors[keyof LibraryAddRatePackErrors];
-
-export type LibraryAddRatePackResponses = {
-    /**
-     * The rate pack added to the project.
-     */
-    200: ProjectRatePack;
-};
-
-export type LibraryAddRatePackResponse = LibraryAddRatePackResponses[keyof LibraryAddRatePackResponses];
 
 export type LibraryListProjectIncentivesData = {
     body?: never;

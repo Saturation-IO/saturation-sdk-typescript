@@ -8,7 +8,7 @@
 // the generated `types.gen.ts` request/response types) changes, every
 // `satisfies WriteSurface` implementation must update to match or fail `tsc`.
 //
-// 91 write operations.
+// 89 write operations.
 
 import type {
   BudgetCreateLineData,
@@ -59,8 +59,6 @@ import type {
   LibraryAddProjectGlobalResponse,
   LibraryAddProjectIncentiveData,
   LibraryAddProjectIncentiveResponse,
-  LibraryAddRatePackData,
-  LibraryAddRatePackResponse,
   LibraryCreateCurrencyData,
   LibraryCreateCurrencyResponse,
   LibraryCreateFringeData,
@@ -111,8 +109,6 @@ import type {
   LibraryEnableIncentivePackResponse,
   LibraryEnableRatePackData,
   LibraryEnableRatePackResponse,
-  LibraryRemoveRatePackData,
-  LibraryRemoveRatePackResponse,
   LibraryUpdateCurrencyData,
   LibraryUpdateCurrencyResponse,
   LibraryUpdateFringeData,
@@ -249,8 +245,6 @@ export interface WriteSurface {
   libraryAddProjectGlobal(data: LibraryAddProjectGlobalData): Promise<LibraryAddProjectGlobalResponse>;
   /** Add an incentive to a project (`POST /projects/{projectId}/library/incentives`). */
   libraryAddProjectIncentive(data: LibraryAddProjectIncentiveData): Promise<LibraryAddProjectIncentiveResponse>;
-  /** Add a rate pack to a project (`PUT /projects/{projectId}/library/rate-packs/{packId}`). */
-  libraryAddRatePack(data: LibraryAddRatePackData): Promise<LibraryAddRatePackResponse>;
   /** Create a currency (`POST /library/currencies`). */
   libraryCreateCurrency(data: LibraryCreateCurrencyData): Promise<LibraryCreateCurrencyResponse>;
   /** Create a fringe (`POST /library/fringes`). */
@@ -301,8 +295,6 @@ export interface WriteSurface {
   libraryEnableIncentivePack(data: LibraryEnableIncentivePackData): Promise<LibraryEnableIncentivePackResponse>;
   /** Enable a rate pack for the workspace (`POST /library/rate-packs/{packId}/enablement`). */
   libraryEnableRatePack(data: LibraryEnableRatePackData): Promise<LibraryEnableRatePackResponse>;
-  /** Remove a rate pack from the project (`DELETE /projects/{projectId}/library/rate-packs/{packId}`). */
-  libraryRemoveRatePack(data: LibraryRemoveRatePackData): Promise<LibraryRemoveRatePackResponse>;
   /** Update a currency (`PATCH /library/currencies/{currencyId}`). */
   libraryUpdateCurrency(data: LibraryUpdateCurrencyData): Promise<LibraryUpdateCurrencyResponse>;
   /** Update a fringe (`PATCH /library/fringes/{fringeId}`). */

@@ -23,7 +23,7 @@ describe('generated SDK contract coverage', () => {
       .map(([name]) => name)
       .sort();
 
-    expect(expected).toHaveLength(157);
+    expect(expected).toHaveLength(154);
     expect(actual).toEqual(expected);
   });
 });
