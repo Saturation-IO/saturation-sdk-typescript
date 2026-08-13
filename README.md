@@ -164,7 +164,6 @@ The workspace Library contains reusable sources. A project's Library contains th
 ```ts
 await sat.library.ratePacks.enable('rtp_iatse_2026');
 
-await project.library.ratePacks.add('rtp_iatse_2026');
 await project.library.incentives.add({ programId: 'inc_ga_film_30' });
 ```
 

@@ -7,7 +7,7 @@
 // lives in each method's signature; the runtime is the generic gated bridge.
 // Regenerate with: pnpm generate:mutate
 //
-// 91 write operations.
+// 89 write operations.
 
 import type {
   BudgetCreateLineData,
@@ -58,8 +58,6 @@ import type {
   LibraryAddProjectGlobalResponse,
   LibraryAddProjectIncentiveData,
   LibraryAddProjectIncentiveResponse,
-  LibraryAddRatePackData,
-  LibraryAddRatePackResponse,
   LibraryCreateCurrencyData,
   LibraryCreateCurrencyResponse,
   LibraryCreateFringeData,
@@ -110,8 +108,6 @@ import type {
   LibraryEnableIncentivePackResponse,
   LibraryEnableRatePackData,
   LibraryEnableRatePackResponse,
-  LibraryRemoveRatePackData,
-  LibraryRemoveRatePackResponse,
   LibraryUpdateCurrencyData,
   LibraryUpdateCurrencyResponse,
   LibraryUpdateFringeData,
@@ -320,9 +316,6 @@ export function createBridgeWriteSurface(bridge: WriteBridge): WriteSurface {
     libraryAddProjectIncentive(data: LibraryAddProjectIncentiveData): Promise<LibraryAddProjectIncentiveResponse> {
       return forward('libraryAddProjectIncentive', data) as Promise<LibraryAddProjectIncentiveResponse>;
     },
-    libraryAddRatePack(data: LibraryAddRatePackData): Promise<LibraryAddRatePackResponse> {
-      return forward('libraryAddRatePack', data) as Promise<LibraryAddRatePackResponse>;
-    },
     libraryCreateCurrency(data: LibraryCreateCurrencyData): Promise<LibraryCreateCurrencyResponse> {
       return forward('libraryCreateCurrency', data) as Promise<LibraryCreateCurrencyResponse>;
     },
@@ -397,9 +390,6 @@ export function createBridgeWriteSurface(bridge: WriteBridge): WriteSurface {
     },
     libraryEnableRatePack(data: LibraryEnableRatePackData): Promise<LibraryEnableRatePackResponse> {
       return forward('libraryEnableRatePack', data) as Promise<LibraryEnableRatePackResponse>;
-    },
-    libraryRemoveRatePack(data: LibraryRemoveRatePackData): Promise<LibraryRemoveRatePackResponse> {
-      return forward('libraryRemoveRatePack', data) as Promise<LibraryRemoveRatePackResponse>;
     },
     libraryUpdateCurrency(data: LibraryUpdateCurrencyData): Promise<LibraryUpdateCurrencyResponse> {
       return forward('libraryUpdateCurrency', data) as Promise<LibraryUpdateCurrencyResponse>;

@@ -88,13 +88,12 @@ const WRITE_OP_ALLOWLIST: ReadonlySet<string> = new Set<string>([
   'documentsUpload',
   'documentsLink',
   'documentsUpdate',
-  // ── library: workspace templates + project installs (additive) + field updates ──
+  // ── library: workspace templates + project copies + field updates ──
   'libraryAddProjectCurrency',
   'libraryAddProjectFringe',
   'libraryAddProjectFringeGroup',
   'libraryAddProjectGlobal',
   'libraryAddProjectIncentive',
-  'libraryAddRatePack',
   'libraryCreateCurrency',
   'libraryCreateUnit',
   'libraryCreateFringeGroup',
@@ -165,7 +164,6 @@ const WRITE_OP_ALLOWLIST: ReadonlySet<string> = new Set<string>([
   'libraryDeleteTag',
   'libraryDisableIncentivePack',
   'libraryDisableRatePack',
-  'libraryRemoveRatePack',
   'commentsDelete',
   'spacesDelete',
   'purchaseOrdersDeleteItem',
@@ -247,7 +245,6 @@ const AGENT_WRITE_EXPOSED_OPS: readonly string[] = [
   // ── naturally idempotent creates (no key; repeat call returns the original) ──
   'documentsLink',
   'libraryAddProjectIncentive',
-  'libraryAddRatePack',
   // ── library pack enables (Simon, 2026-08-02): enabling a pack the workspace
   //    may access is not authoring it; PUBLIC curated rows stay read-only via
   //    the routes' own scope rules ──
@@ -284,7 +281,6 @@ const AGENT_WRITE_EXPOSED_OPS: readonly string[] = [
   'libraryDeleteTag',
   'libraryDisableIncentivePack',
   'libraryDisableRatePack',
-  'libraryRemoveRatePack',
   'commentsDelete',
   'spacesDelete',
   'purchaseOrdersDeleteItem',
@@ -333,7 +329,6 @@ const KEYED_CREATE_OPS: ReadonlySet<string> = new Set([
 const NATURALLY_IDEMPOTENT_OPS: Readonly<Record<string, string>> = {
   documentsLink: 'same-id FK set; the route has an explicit same-target no-op branch',
   libraryAddProjectIncentive: 'copy-on-use `@@unique([projectId, source])` — repeat add returns the existing link',
-  libraryAddRatePack: 'copy-on-use `@@unique([projectId, ratePackId])` — repeat add returns the existing link',
   libraryEnableRatePack: 'upsert on `@@unique([workspaceId, ratePackId])` with deterministic id `wrp-<ws>-<pack>` — repeat enable returns the existing enablement',
   libraryEnableIncentivePack: 'upsert on `@@unique([workspaceId, incentivePackId])` with deterministic id `wip-<ws>-<pack>` — repeat enable returns the existing enablement',
   libraryAddProjectCurrency: 'copy-on-use add, idempotent on `@@unique([projectId, sourceId])` — repeat add returns the existing project copy',
@@ -928,7 +923,6 @@ function main(): void {
     'libraryDeleteTag',
     'libraryDisableIncentivePack',
     'libraryDisableRatePack',
-    'libraryRemoveRatePack',
     'commentsDelete',
     'spacesDelete',
     'purchaseOrdersDeleteItem',

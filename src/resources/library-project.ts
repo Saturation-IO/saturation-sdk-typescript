@@ -1,6 +1,5 @@
 import * as sdk from '../generated/sdk.gen.js';
 import type {
-  ProjectRatePack,
   ProjectIncentive,
   ProjectIncentiveAdd,
   ProjectIncentiveUpdate,
@@ -23,9 +22,8 @@ const projectIncentiveExpandMap = {
 type ProjectIncentiveExpandMap = typeof projectIncentiveExpandMap;
 
 /**
- * The project-scope Library — *resident* copies. Rate packs are installed here
- * (copy-on-use from the workspace source); incentives / fringes / globals /
- * currencies and fringe groups are added from a workspace source. Editing a resident
+ * The project-scope Library contains resident incentives, fringes, globals,
+ * currencies, and fringe groups added from a workspace source. Editing a resident
  * copy diverges it without breaking provenance (`sourceId`).
  */
 export class ProjectLibraryResource {
@@ -34,9 +32,6 @@ export class ProjectLibraryResource {
     private readonly projectId: string,
   ) {}
 
-  get ratePacks(): ProjectRatePacksResource {
-    return new ProjectRatePacksResource(this.t, this.projectId);
-  }
   get incentives(): ProjectIncentivesResource {
     return new ProjectIncentivesResource(this.t, this.projectId);
   }
@@ -54,38 +49,6 @@ export class ProjectLibraryResource {
   }
   get tags(): ProjectTagsResource {
     return new ProjectTagsResource(this.t, this.projectId);
-  }
-}
-
-export class ProjectRatePacksResource {
-  constructor(
-    private readonly t: Transport,
-    private readonly projectId: string,
-  ) {}
-
-  list(params: { limit?: number; cursor?: string } = {}): List<ProjectRatePack> {
-    const options = {
-      path: { projectId: this.projectId },
-      query: { limit: params.limit, cursor: params.cursor },
-    };
-    return new List<ProjectRatePack>(
-      () => this.t.paginate<typeof options, ProjectRatePack>(sdk.libraryListProjectRatePacks, options),
-      () => this.t.runPage<typeof options, ProjectRatePack>(sdk.libraryListProjectRatePacks, options),
-    );
-  }
-
-  /** Add a workspace-enabled rate pack to this project. Safe to call again. */
-  async add(packId: string): Promise<ProjectRatePack> {
-    return this.t.run(sdk.libraryAddRatePack, {
-      path: { projectId: this.projectId, packId },
-    }) as Promise<ProjectRatePack>;
-  }
-
-  /** Remove a rate pack from this project. Safe to call again. */
-  async remove(packId: string): Promise<void> {
-    await this.t.run(sdk.libraryRemoveRatePack, {
-      path: { projectId: this.projectId, packId },
-    });
   }
 }
 
