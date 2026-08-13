@@ -226,10 +226,10 @@ paths:
       - name: tags
         in: query
         required: false
-        description: Only lines with these comma-separated tag IDs or names.
+        description: Only lines with these comma-separated tag IDs.
         schema:
           type: string
-        example: vfx
+        example: tag_vfx
       - name: tagMode
         in: query
         required: false
@@ -8191,10 +8191,6 @@ components:
           type: string
         notes:
           type: string
-        tagIds:
-          type: array
-          items:
-            $ref: '#/components/schemas/Id'
         subtotalSumAllAbove:
           type: boolean
         subtotalIsBold:
@@ -8212,8 +8208,6 @@ components:
         accountId: '1110'
         parentId: lin_7c1a2f
         contactId: con_panavision
-        tagIds:
-        - tag_vfx
         phaseData:
           phs_estimate:
             rate: 25000
@@ -8251,10 +8245,6 @@ components:
           type:
           - string
           - 'null'
-        tagIds:
-          type: array
-          items:
-            $ref: '#/components/schemas/Id'
         subtotalSumAllAbove:
           type: boolean
         subtotalIsBold:
