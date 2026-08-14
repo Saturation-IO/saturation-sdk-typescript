@@ -12,7 +12,7 @@ import type {
   Project,
   ProjectAssumptions,
 } from "@saturationio/sdk";
-import { makeClient } from "@/lib/sat";
+import { makeClient, makeHostedClient } from "@/lib/sat";
 import { fmtMoney, inferScaleFromAmounts, type MoneyScale } from "@/lib/money";
 import { lineLabel, lineCode } from "@/lib/lines";
 import { noteFor } from "@/lib/notes";
@@ -29,11 +29,13 @@ function heroFor(slug: string | undefined): string | null {
 export function Bidbook({
   me,
   project,
+  hosted,
   onBack,
   onDisconnect,
 }: {
   me: Me;
   project: Project;
+  hosted: boolean;
   onBack: () => void;
   onDisconnect: () => void;
 }) {
@@ -43,7 +45,7 @@ export function Bidbook({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const client = makeClient();
+    const client = hosted ? makeHostedClient() : makeClient();
     let live = true;
     // The list projection omits the brief; the single-get returns it when
     // expanded with `assumptions`.
@@ -71,11 +73,16 @@ export function Bidbook({
     return () => {
       live = false;
     };
-  }, [project.id]);
+  }, [hosted, project.id]);
 
   return (
     <div className="min-h-screen">
-      <TopBar projectName={project.name} onBack={onBack} onDisconnect={onDisconnect} />
+      <TopBar
+        projectName={project.name}
+        hosted={hosted}
+        onBack={onBack}
+        onDisconnect={onDisconnect}
+      />
 
       {error && (
         <div className="mx-auto max-w-3xl px-6 pt-32 text-red-300">{error}</div>
@@ -102,31 +109,41 @@ export function Bidbook({
 
 function TopBar({
   projectName,
+  hosted,
   onBack,
   onDisconnect,
 }: {
   projectName: string;
+  hosted: boolean;
   onBack: () => void;
   onDisconnect: () => void;
 }) {
   return (
     <div className="sticky top-0 z-40 border-b hairline bg-[var(--color-ink)]/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 text-[13px] text-[var(--color-muted)] transition hover:text-[var(--color-cream)]"
-        >
-          <ArrowLeft size={15} /> Projects
-        </button>
+        {hosted ? (
+          <div className="font-display text-lg tracking-tight">
+            Bidbook<span className="text-[var(--color-gold)]">.</span>
+          </div>
+        ) : (
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 text-[13px] text-[var(--color-muted)] transition hover:text-[var(--color-cream)]"
+          >
+            <ArrowLeft size={15} /> Projects
+          </button>
+        )}
         <div className="text-[12px] uppercase tracking-[0.16em] text-[var(--color-muted)]">
           {projectName}
         </div>
-        <button
-          onClick={onDisconnect}
-          className="flex items-center gap-2 text-[13px] text-[var(--color-muted)] transition hover:text-[var(--color-cream)]"
-        >
-          <KeyRound size={14} /> Disconnect
-        </button>
+        {hosted ? <span aria-hidden="true" /> : (
+          <button
+            onClick={onDisconnect}
+            className="flex items-center gap-2 text-[13px] text-[var(--color-muted)] transition hover:text-[var(--color-cream)]"
+          >
+            <KeyRound size={14} /> Disconnect
+          </button>
+        )}
       </div>
     </div>
   );

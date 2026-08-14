@@ -47,4 +47,14 @@ export function makeClient(token?: string): Saturation {
   return new Saturation({ token: t, baseURL: getStoredBaseUrl() });
 }
 
+export function makeHostedClient(): Saturation {
+  if (typeof window === "undefined") {
+    throw new Error("The hosted client is only available in the browser.");
+  }
+  return new Saturation({
+    token: "hosted-demo",
+    baseURL: `${window.location.origin}${PROXY_PREFIX}/v1`,
+  });
+}
+
 export { DEFAULT_BASE_URL };

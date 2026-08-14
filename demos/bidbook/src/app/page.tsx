@@ -5,6 +5,7 @@ import { SaturationError } from "@saturationio/sdk";
 import type { Project, Me } from "@saturationio/sdk";
 import {
   makeClient,
+  makeHostedClient,
   storeCredentials,
   clearCredentials,
   getStoredToken,
@@ -15,24 +16,44 @@ import { Bidbook } from "@/components/Bidbook";
 type Stage =
   | { name: "connect" }
   | { name: "projects"; me: Me }
-  | { name: "bidbook"; me: Me; project: Project };
+  | { name: "bidbook"; me: Me; project: Project; hosted: boolean };
 
 export default function Home() {
   const [stage, setStage] = useState<Stage>({ name: "connect" });
   const [booting, setBooting] = useState(true);
 
-  // Reconnect silently if a token is already stored.
   useEffect(() => {
-    const token = getStoredToken();
-    if (!token) {
-      setBooting(false);
-      return;
+    let live = true;
+
+    async function boot() {
+      try {
+        const response = await fetch("/api/demo");
+        if (response.ok) {
+          const { projectId } = (await response.json()) as { projectId: string };
+          const client = makeHostedClient();
+          const [me, project] = await Promise.all([
+            client.me(),
+            client.projects.get(projectId),
+          ]);
+          if (live) setStage({ name: "bidbook", me, project, hosted: true });
+          return;
+        }
+
+        const token = getStoredToken();
+        if (!token) return;
+        const me = await makeClient(token).me();
+        if (live) setStage({ name: "projects", me });
+      } catch {
+        if (live) setStage({ name: "connect" });
+      } finally {
+        if (live) setBooting(false);
+      }
     }
-    makeClient(token)
-      .me()
-      .then((me) => setStage({ name: "projects", me }))
-      .catch(() => setStage({ name: "connect" }))
-      .finally(() => setBooting(false));
+
+    void boot();
+    return () => {
+      live = false;
+    };
   }, []);
 
   const connect = useCallback(async (token: string, baseUrl?: string) => {
@@ -62,7 +83,9 @@ export default function Home() {
     return (
       <ProjectPicker
         me={stage.me}
-        onPick={(project) => setStage({ name: "bidbook", me: stage.me, project })}
+        onPick={(project) =>
+          setStage({ name: "bidbook", me: stage.me, project, hosted: false })
+        }
         onDisconnect={disconnect}
       />
     );
@@ -72,6 +95,7 @@ export default function Home() {
     <Bidbook
       me={stage.me}
       project={stage.project}
+      hosted={stage.hosted}
       onBack={() => setStage({ name: "projects", me: stage.me })}
       onDisconnect={disconnect}
     />
