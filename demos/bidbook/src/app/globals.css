@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #0e0d0b;
+  --color-ink-2: #171512;
+  --color-ink-3: #211e19;
+  --color-line: #2c2820;
+  --color-cream: #f4f0e6;
+  --color-muted: #9a917f;
+  --color-gold: #d9a441;
+  --color-gold-2: #f0c060;
+}
+
+html,
+body {
+  background: var(--color-ink);
+  color: var(--color-cream);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 144;
+  letter-spacing: -0.01em;
+}
+
+.grain::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.hairline {
+  border-color: var(--color-line);
+}
+
+.num {
+  font-variant-numeric: tabular-nums lining-nums;
+}
