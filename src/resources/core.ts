@@ -7,6 +7,7 @@ import type {
   ContactType,
   Project,
   ProjectCreate,
+  ProjectExpand,
   ProjectUpdate,
   Space,
   SpaceCreate,
@@ -107,6 +108,7 @@ export interface ProjectListParams {
   status?: string;
   spaceId?: string;
   q?: string;
+  expand?: readonly ProjectExpand[];
   limit?: number;
   cursor?: string;
   sort?: string;
@@ -119,17 +121,26 @@ export class ProjectsResource {
   constructor(private readonly t: Transport) {}
 
   list(params: ProjectListParams = {}): List<Project> {
-    const options = { query: { ...params } };
+    const options = {
+      query: {
+        ...params,
+        expand: serializeExpand(params.expand),
+      },
+    };
     return new List<Project>(
       () => this.t.paginate<typeof options, Project>(sdk.projectsList, options),
       () => this.t.runPage<typeof options, Project>(sdk.projectsList, options),
     );
   }
 
-  /** Get a project by `id` or `slug`. */
-  async get(projectId: string): Promise<Project> {
+  /** Get a project by `id` or `slug`. Pass `expand: ['assumptions']` to include the pinned project brief. */
+  async get(
+    projectId: string,
+    params: { expand?: readonly ProjectExpand[] } = {},
+  ): Promise<Project> {
     return this.t.run(sdk.projectsGet, {
       path: { projectId },
+      query: { expand: serializeExpand(params.expand) },
     }) as Promise<Project>;
   }
 
