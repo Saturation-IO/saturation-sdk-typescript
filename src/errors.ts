@@ -3,13 +3,13 @@ import type { ErrorCode } from './generated/types.gen.js';
 export type { ErrorCode } from './generated/types.gen.js';
 
 /**
- * The §5d error envelope, thrown on any non-2xx response.
+ * The API error envelope, thrown on any non-2xx response.
  *
- * Success is keyed off the HTTP status, never a `success` field — a 2xx returns
+ * Success is keyed off the HTTP status, never a `success` field. A 2xx returns
  * the bare resource (or `{ data, nextCursor }` collection); anything else throws
  * this. The typed `code` is the stable, documented string from the OpenAPI
  * `ErrorCode` enum (`permission_revoked`, `idempotency_conflict`, `expand_invalid`,
- * `cursor_invalid`, `not_found`, …) so callers branch on a contract, not a string
+ * `cursor_invalid`, `not_found`) so callers branch on a contract, not a string
  * literal they hand-maintain.
  */
 export class SaturationError extends Error {
@@ -17,7 +17,7 @@ export class SaturationError extends Error {
   readonly status: number;
   /** Stable, typed error code from the `/v1` envelope. */
   readonly code: ErrorCode;
-  /** The id of the failed request — quote it in support tickets. */
+  /** The id of the failed request. Include it in support tickets. */
   readonly requestId: string;
   /** Per-field validation messages, including read-only fields. */
   readonly fieldErrors?: Record<string, string[]>;
@@ -63,7 +63,7 @@ export class SaturationError extends Error {
   }
 }
 
-/** Raw shape of the §5d error body, as documented in the OpenAPI `Error` schema. */
+/** Raw shape of the error body documented in the OpenAPI `Error` schema. */
 interface RawErrorBody {
   success?: false;
   code?: ErrorCode;

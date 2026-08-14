@@ -21,22 +21,19 @@ import type { Me } from './generated/types.gen.js';
 
 /** Constructor options. The bearer token determines the workspace. */
 export interface SaturationOptions {
-  /** A `Authorization: Bearer <token>` credential, minted in next-web Settings → Developers. */
+  /** An API token created under Settings > Developers > API. */
   token: string;
-  /** Override the API base URL (defaults to production). Use for local/staging. */
+  /** Override the API base URL. */
   baseURL?: string;
   /**
-   * Override the request executor. Defaults to `globalThis.fetch`. Pass a Hono
-   * `app.fetch` to run the SDK **in-process** against the live `/v1` handlers
-   * (no socket) — the seam the agent `mutate` bridge plugs into.
+   * Override the request executor. Defaults to `globalThis.fetch`.
    */
   fetch?: FetchLike;
 }
 
 /**
- * A project-scoped handle: `sat.projects(p)`. Everything reachable from here is
- * already bound to that project — budget, transactions, the resident Library,
- * and project-scoped search. The workspace comes from the bearer token.
+ * A project-scoped handle for budget, transactions, Library data, comments,
+ * and search. The workspace comes from the bearer token.
  */
 export class ProjectScope {
   constructor(
@@ -44,7 +41,7 @@ export class ProjectScope {
     readonly id: string,
   ) {}
 
-  /** Budget ledger + engine-computed reads for this project. */
+  /** Budget data for this project. */
   get budget(): BudgetResource {
     return new BudgetResource(this.t, this.id);
   }
@@ -54,22 +51,8 @@ export class ProjectScope {
     return new TransactionsResource(this.t, this.id);
   }
 
-  /** Purchase orders for this project. */
-  get purchaseOrders(): PurchaseOrdersResource {
-    return new PurchaseOrdersResource(this.t, this.id);
-  }
 
-  /** Payment requests for this project. */
-  get paymentRequests(): PaymentRequestsResource {
-    return new PaymentRequestsResource(this.t, this.id);
-  }
-
-  /** Payments for this project. */
-  get payments(): PaymentsResource {
-    return new PaymentsResource(this.t, this.id);
-  }
-
-  /** The project-resident Library (installed packs, added programs). */
+  /** Library data added to this project. */
   get library(): ProjectLibraryResource {
     return new ProjectLibraryResource(this.t, this.id);
   }
@@ -79,14 +62,14 @@ export class ProjectScope {
     return new CommentsResource(this.t, this.id);
   }
 
-  /** Project-scoped Spotlight search. */
+  /** Search within this project. */
   search(q: string, params?: Parameters<SearchResource['run']>[1]): ReturnType<SearchResource['run']> {
     return new SearchResource(this.t, this.id).run(q, params);
   }
 }
 
 /**
- * `sat.projects` is both callable — `sat.projects(p)` opens a {@link ProjectScope} —
+ * `sat.projects` is both callable. `sat.projects(p)` opens a {@link ProjectScope},
  * and a resource with `list/get/create/update` for workspace project master data.
  */
 export interface ProjectsAccessor extends ProjectsResource {
@@ -156,12 +139,12 @@ export class Saturation {
     this.projects = accessor;
   }
 
-  /** Workspace-scoped Spotlight search. */
+  /** Search within the workspace. */
   search(q: string, params?: Parameters<SearchResource['run']>[1]): ReturnType<SearchResource['run']> {
     return new SearchResource(this.t).run(q, params);
   }
 
-  /** The token's identity + permission-filtered workspace reach (the auth probe). */
+  /** Get the current identity and accessible workspace. */
   me(): Promise<Me> {
     return this.meta.me();
   }

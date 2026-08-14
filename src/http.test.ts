@@ -1,11 +1,11 @@
 /**
- * Behavior tests for `Transport.paginate` — the keyset async-iterator.
+ * Behavior tests for the `Transport.paginate` keyset async iterator.
  *
  * WHY this matters: the opaque cursor encodes the mint-time filter + sort but
  * NOT the page size. If `paginate` forwards only `{ cursor }` on follow-up
  * pages (dropping the caller's `limit`), the server silently reverts to its
  * default page size (50) after the first page. A caller iterating with
- * `limit: 100` would then get 100 rows, then 50, then 50, … — a correctness
+ * `limit: 100` would then get 100 rows, then 50, then 50. This is a correctness
  * regression that no type-test can catch, so it is pinned at runtime here.
  */
 import { describe, expect, it } from 'vitest';

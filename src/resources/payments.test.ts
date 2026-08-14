@@ -15,13 +15,13 @@ function transport(): { t: Transport; run: ReturnType<typeof vi.fn>; runPage: Re
 }
 
 describe('payment resources', () => {
-  it('uses the project default and passes typed linked-record expansions', async () => {
+  it('passes project filters and typed linked-record expansions', async () => {
     const { t, runPage } = transport();
-    const payments = new PaymentsResource(t, 'project_1');
-    const requests = new PaymentRequestsResource(t, 'project_1');
+    const payments = new PaymentsResource(t);
+    const requests = new PaymentRequestsResource(t);
 
-    await payments.list({ expand: ['request', 'transactions'] }).page();
-    await requests.list({ expand: ['payment', 'document'] }).page();
+    await payments.list({ projectId: 'project_1', expand: ['request', 'transactions'] }).page();
+    await requests.list({ projectId: 'project_1', expand: ['payment', 'document'] }).page();
 
     expect((runPage.mock.calls[0]?.[1] as Options).query).toEqual(expect.objectContaining({
       projectId: 'project_1',
@@ -33,11 +33,11 @@ describe('payment resources', () => {
     }));
   });
 
-  it('exposes payment history as Timeline', async () => {
+  it('lists payment history', async () => {
     const { t, runPage } = transport();
     const payments = new PaymentsResource(t);
 
-    await payments.timeline('pay_1', { limit: 25, cursor: 'cursor_1' }).page();
+    await payments.timeline('pay_1').list({ limit: 25, cursor: 'cursor_1' }).page();
 
     expect(runPage.mock.calls[0]?.[0]).toBe(sdk.paymentsGetTimeline);
     expect(runPage.mock.calls[0]?.[1]).toEqual({

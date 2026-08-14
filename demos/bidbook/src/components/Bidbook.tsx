@@ -5,7 +5,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowLeft, KeyRound, FileText, MessageSquare } from "lucide-react";
 import { SaturationError } from "@saturationio/sdk";
 import type {
-  BudgetDocument,
+  Budget,
   BudgetDocumentLine,
   Comment,
   Me,
@@ -39,7 +39,7 @@ export function Bidbook({
   onBack: () => void;
   onDisconnect: () => void;
 }) {
-  const [doc, setDoc] = useState<BudgetDocument | null>(null);
+  const [doc, setDoc] = useState<Budget | null>(null);
   const [assumptions, setAssumptions] = useState<ProjectAssumptions | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +57,7 @@ export function Bidbook({
       .catch(() => {});
     client
       .projects(project.id)
-      .budget.document()
+      .budget.get()
       .then((d) => live && setDoc(d))
       .catch(
         (e) =>
@@ -158,7 +158,7 @@ function Document({
 }: {
   me: Me;
   project: Project;
-  doc: BudgetDocument;
+  doc: Budget;
   assumptions: ProjectAssumptions | null;
   comments: Comment[];
 }) {
@@ -286,7 +286,7 @@ function Cover({
   grand: number;
   currency: string;
   scale: MoneyScale;
-  phases: BudgetDocument["phases"];
+  phases: Budget["phases"];
   estimateName: string;
   computedAt: string;
   accountCount: number;

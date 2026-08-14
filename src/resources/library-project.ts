@@ -18,13 +18,12 @@ import { Expanded, type ExpandMap, serializeExpand } from '../expand.js';
 
 const projectIncentiveExpandMap = {
   source: 'source',
-} satisfies ExpandMap<ProjectIncentiveExpand>;
+} as const satisfies ExpandMap<ProjectIncentiveExpand>;
 type ProjectIncentiveExpandMap = typeof projectIncentiveExpandMap;
 
 /**
- * The project-scope Library contains resident incentives, fringes, globals,
- * currencies, and fringe groups added from a workspace source. Editing a resident
- * copy diverges it without breaking provenance (`sourceId`).
+ * Library data added to one project. Editing a project copy does not change its
+ * workspace source.
  */
 export class ProjectLibraryResource {
   constructor(
@@ -120,7 +119,7 @@ export class ProjectFringesResource {
       () => this.t.runPage<typeof options, ProjectFringe>(sdk.libraryListProjectFringes, options),
     );
   }
-  async add(sourceId: string): Promise<ProjectFringe> {
+  async add({ sourceId }: { sourceId: string }): Promise<ProjectFringe> {
     return this.t.run(sdk.libraryAddProjectFringe, {
       path: { projectId: this.projectId },
       body: { sourceId },
@@ -160,7 +159,7 @@ export class ProjectGlobalsResource {
       () => this.t.runPage<typeof options, ProjectGlobal>(sdk.libraryListProjectGlobals, options),
     );
   }
-  async add(sourceId: string): Promise<ProjectGlobal> {
+  async add({ sourceId }: { sourceId: string }): Promise<ProjectGlobal> {
     return this.t.run(sdk.libraryAddProjectGlobal, {
       path: { projectId: this.projectId },
       body: { sourceId },
@@ -200,7 +199,7 @@ export class ProjectCurrenciesResource {
       () => this.t.runPage<typeof options, ProjectCurrency>(sdk.libraryListProjectCurrencies, options),
     );
   }
-  async add(sourceId: string): Promise<ProjectCurrency> {
+  async add({ sourceId }: { sourceId: string }): Promise<ProjectCurrency> {
     return this.t.run(sdk.libraryAddProjectCurrency, {
       path: { projectId: this.projectId },
       body: { sourceId },
@@ -240,7 +239,7 @@ export class ProjectFringeGroupsResource {
       () => this.t.runPage<typeof options, ProjectFringeGroup>(sdk.libraryListProjectFringeGroups, options),
     );
   }
-  async add(sourceId: string): Promise<ProjectFringeGroup> {
+  async add({ sourceId }: { sourceId: string }): Promise<ProjectFringeGroup> {
     return this.t.run(sdk.libraryAddProjectFringeGroup, {
       path: { projectId: this.projectId },
       body: { sourceId },

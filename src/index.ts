@@ -1,15 +1,15 @@
 /**
  * @saturationio/sdk - the official TypeScript SDK for the Saturation API (`/v1`).
  *
- * Types are generated from the OpenAPI 3.1 document (`src/generated`, do-not-edit);
- * the ergonomic client below is hand-written on top.
+ * Types are generated from the OpenAPI 3.1 document. The resource client adds
+ * project scopes, pagination, and typed expansions.
  */
 
 // Root client + scopes.
 export { Saturation, ProjectScope } from './saturation.js';
 export type { SaturationOptions, ProjectsAccessor } from './saturation.js';
 
-// Error model (§5d): typed, status-keyed.
+// Typed, status-keyed errors.
 export { SaturationError } from './errors.js';
 export type { ErrorCode } from './errors.js';
 
@@ -17,19 +17,28 @@ export type { ErrorCode } from './errors.js';
 export { List } from './http.js';
 export type { Page, FetchLike } from './http.js';
 
-// The `mutate` write surface (generated allowlist + generic dispatcher).
-export { MutateClient, createMutate, validateMutateArgs, WRITE_OPS, WRITE_OP_IDS } from './mutate/index.js';
-export type { MutateOptions, MutateArgs, WriteOp, WriteOpDef } from './mutate/index.js';
-
-// The generated typed write CONTRACT (`WriteSurface`) + its interim bridge impl.
-export { createBridgeWriteSurface } from './mutate/index.js';
-export type { WriteSurface, WriteBridge, WriteBridgeArgs } from './mutate/index.js';
-
 // Document link targets.
-export type { LinkTarget } from './resources/documents.js';
+export type { DocumentListParams, LinkTarget } from './resources/documents.js';
 
 // Phase write bodies, derived from the generated operation Data types.
-export type { BudgetPhaseCreate, BudgetPhaseUpdate } from './resources/budget.js';
+export type {
+  Budget,
+  BudgetGetLineParams,
+  BudgetGetParams,
+  BudgetLineListParams,
+  BudgetPhaseCreate,
+  BudgetPhaseUpdate,
+  BudgetTotalsParams,
+} from './resources/budget.js';
+export type { ContactListParams, ProjectListParams, SearchParams } from './resources/core.js';
+export type { CommentListParams } from './resources/extras.js';
+export type { PaymentListParams, PaymentRequestListParams } from './resources/payments.js';
+export type { PurchaseOrderListParams } from './resources/purchase-orders.js';
+export type {
+  ProjectTransactionBulkCreate,
+  ProjectTransactionCreate,
+  TransactionListParams,
+} from './resources/transactions.js';
 
 // Expand widening helpers (advanced; most callers only touch the typed unions).
 export type { Expanded, ExpandMap } from './expand.js';

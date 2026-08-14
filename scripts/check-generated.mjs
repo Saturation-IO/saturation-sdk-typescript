@@ -6,9 +6,6 @@ import { fileURLToPath } from 'node:url';
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const GENERATED_PATHS = [
   'src/generated',
-  'src/mutate/write-surface.gen.ts',
-  'src/mutate/write-surface.interface.gen.ts',
-  'src/mutate/write-surface.bridge.gen.ts',
 ];
 
 async function listFiles(path) {

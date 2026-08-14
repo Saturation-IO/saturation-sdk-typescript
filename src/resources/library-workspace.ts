@@ -26,11 +26,14 @@ import type {
   UnitUpdate,
 } from '../generated/types.gen.js';
 import { Transport, List } from '../http.js';
+import { Expanded, type ExpandMap, serializeExpand } from '../expand.js';
+
+const ratePackExpandMap = { items: 'items' } as const satisfies ExpandMap<'items'>;
+const incentivePackExpandMap = { programs: 'programs' } as const satisfies ExpandMap<'programs'>;
 
 /**
- * The workspace-scope Library — the *source* surface. Packs are enabled here;
- * resident copies live on a project (`sat.projects(p).library.*`). The two scopes
- * are visible at the call site by construction.
+ * Reusable Library data for the workspace. Enable packs here, then add their data
+ * to a project through `sat.projects(projectId).library`.
  */
 export class LibraryResource {
   constructor(private readonly t: Transport) {}
@@ -80,11 +83,11 @@ export class WorkspaceRatePacksResource {
     );
   }
 
-  async get(packId: string, params: { expand?: readonly 'items'[] } = {}): Promise<RatePack> {
+  async get<E extends 'items' = never>(packId: string, params: { expand?: readonly E[] } = {}): Promise<Expanded<RatePack, typeof ratePackExpandMap, E>> {
     return this.t.run(sdk.libraryGetRatePack, {
       path: { packId },
-      query: params.expand ? { expand: [...params.expand] } : undefined,
-    }) as Promise<RatePack>;
+      query: { expand: serializeExpand(params.expand) },
+    }) as Promise<Expanded<RatePack, typeof ratePackExpandMap, E>>;
   }
 
   async create(body: RatePackCreate, opts: { idempotencyKey: string }): Promise<RatePack> {
@@ -177,20 +180,16 @@ export class WorkspaceIncentivesResource {
     );
   }
 
-  async get(packId: string, params: { expand?: readonly 'programs'[] } = {}): Promise<IncentivePack> {
+  async get<E extends 'programs' = never>(packId: string, params: { expand?: readonly E[] } = {}): Promise<Expanded<IncentivePack, typeof incentivePackExpandMap, E>> {
     return this.t.run(sdk.libraryGetIncentivePack, {
       path: { packId },
-      query: params.expand ? { expand: [...params.expand] } : undefined,
-    }) as Promise<IncentivePack>;
+      query: { expand: serializeExpand(params.expand) },
+    }) as Promise<Expanded<IncentivePack, typeof incentivePackExpandMap, E>>;
   }
 
   /** Programs inside a workspace-source incentive pack. */
-  programs(packId: string): List<IncentiveProgram> {
-    const options = { path: { packId } };
-    return new List<IncentiveProgram>(
-      () => this.t.paginate<typeof options, IncentiveProgram>(sdk.libraryListIncentivePrograms, options),
-      () => this.t.runPage<typeof options, IncentiveProgram>(sdk.libraryListIncentivePrograms, options),
-    );
+  programs(packId: string): IncentiveProgramsResource {
+    return new IncentiveProgramsResource(this.t, packId);
   }
 
   async enable(packId: string): Promise<IncentivePackEnableLink> {
@@ -204,6 +203,19 @@ export class WorkspaceIncentivesResource {
       path: { packId },
     });
   }
+}
+
+export class IncentiveProgramsResource {
+  constructor(private readonly t: Transport, private readonly packId: string) {}
+
+  list(): List<IncentiveProgram> {
+    const options = { path: { packId: this.packId } };
+    return new List<IncentiveProgram>(
+      () => this.t.paginate<typeof options, IncentiveProgram>(sdk.libraryListIncentivePrograms, options),
+      () => this.t.runPage<typeof options, IncentiveProgram>(sdk.libraryListIncentivePrograms, options),
+    );
+  }
+
 }
 
 export class WorkspaceFringesResource {

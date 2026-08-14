@@ -6,12 +6,7 @@ import { toSaturationError } from './errors.js';
 export const DEFAULT_BASE_URL = 'https://next-api.saturation.io/v1';
 
 /**
- * The transport's request executor — the exact `(Request) => Promise<Response>`
- * shape the generated fetch client invokes (`client.gen.ts:99-101`). Defaults to
- * `globalThis.fetch`, but is overridable so the same SDK can run **in-process**
- * against a Hono app's `app.fetch` (the loopback the `mutate` bridge uses) with
- * no socket and no self-HTTP. This is the single transport seam Strategy D rests
- * on: `app.fetch` and this type are the same function shape.
+ * A fetch-compatible request executor. Defaults to `globalThis.fetch`.
  */
 export type FetchLike = (request: Request) => Response | Promise<Response>;
 
@@ -56,20 +51,18 @@ export class Transport {
     this.client = createClient({
       baseUrl: opts.baseURL ?? DEFAULT_BASE_URL,
       // Single auth path: `Authorization: Bearer <token>`. No X-API-Key, no
-      // workspace header — the token determines the workspace.
+      // workspace header. The token determines the workspace.
       auth: opts.token,
       throwOnError: false,
-      // The in-process seam: when provided, every request runs through this
-      // executor (e.g. a Hono `app.fetch`) instead of `globalThis.fetch`. The
-      // generated client resolves `config.fetch` at `client.gen.ts:45`.
+      // Use the caller's request executor when provided.
       ...(opts.fetch ? { fetch: opts.fetch as typeof globalThis.fetch } : {}),
     });
   }
 
   /**
-   * Run one generated operation and normalize the result to §5d:
-   *   - 2xx → resolve the bare success body (caller casts to the widened type),
-   *   - otherwise → throw a typed `SaturationError` carrying `code`/`requestId`/…
+   * Run one generated operation and normalize the result:
+   *   - 2xx resolves the bare success body (caller casts to the widened type).
+   *   - Other statuses throw a typed `SaturationError` with `code` and `requestId`.
    *
    * `204 No Content` resolves to `undefined`.
    */
@@ -82,7 +75,7 @@ export class Transport {
   }
 
   /**
-   * Like {@link run}, but also returns the raw `Response` on success — for
+   * Like {@link run}, but also returns the raw `Response` on success. This is for
    * callers that need response HEADERS (e.g. `Idempotency-Replayed` on keyed
    * creates). Error normalization is identical.
    */
@@ -124,7 +117,7 @@ export class Transport {
    * Keyset pagination as a transparent async iterator. Yields every row across
    * pages, following `nextCursor` (cap-100 per page) until it is absent. The
    * mint-time filter/sort live in the cursor, so we never re-send filters on
-   * follow-up pages — that is exactly what `400 cursor_invalid` guards against.
+   * follow-up pages. That is what `400 cursor_invalid` guards against.
    *
    * The cursor encodes filter + sort but NOT the page size, so the caller's
    * `limit` is carried forward explicitly on every follow-up page. Without it,

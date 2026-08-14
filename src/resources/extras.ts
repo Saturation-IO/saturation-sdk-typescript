@@ -102,9 +102,17 @@ export class WebhooksResource {
   }
 
   /** Inspect the delivery history of a subscription. */
-  deliveries(webhookId: string, params: { limit?: number; cursor?: string } = {}): List<WebhookDelivery> {
+  deliveries(webhookId: string): WebhookDeliveriesResource {
+    return new WebhookDeliveriesResource(this.t, webhookId);
+  }
+}
+
+export class WebhookDeliveriesResource {
+  constructor(private readonly t: Transport, private readonly webhookId: string) {}
+
+  list(params: { limit?: number; cursor?: string } = {}): List<WebhookDelivery> {
     const options = {
-      path: { webhookId },
+      path: { webhookId: this.webhookId },
       query: { ...params },
     };
     return new List<WebhookDelivery>(

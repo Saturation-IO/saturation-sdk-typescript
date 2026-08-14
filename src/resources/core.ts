@@ -23,8 +23,13 @@ import { Expanded, type ExpandMap, serializeExpand } from '../expand.js';
 const contactExpandMap = {
   documents: 'documents',
   transactions: 'transactions',
-} satisfies ExpandMap<ContactExpand>;
+} as const satisfies ExpandMap<ContactExpand>;
 type ContactExpandMap = typeof contactExpandMap;
+
+const projectExpandMap = {
+  assumptions: 'assumptions',
+} as const satisfies ExpandMap<ProjectExpand>;
+type ProjectExpandMap = typeof projectExpandMap;
 
 export interface ContactListParams<E extends ContactExpand = never> {
   q?: string;
@@ -104,11 +109,11 @@ export class ContactsResource {
   }
 }
 
-export interface ProjectListParams {
+export interface ProjectListParams<E extends ProjectExpand = never> {
   status?: string;
   spaceId?: string;
   q?: string;
-  expand?: readonly ProjectExpand[];
+  expand?: readonly E[];
   limit?: number;
   cursor?: string;
   sort?: string;
@@ -120,28 +125,29 @@ export interface ProjectListParams {
 export class ProjectsResource {
   constructor(private readonly t: Transport) {}
 
-  list(params: ProjectListParams = {}): List<Project> {
+  list<E extends ProjectExpand = never>(params: ProjectListParams<E> = {}): List<Expanded<Project, ProjectExpandMap, E>> {
     const options = {
       query: {
         ...params,
         expand: serializeExpand(params.expand),
       },
     };
-    return new List<Project>(
-      () => this.t.paginate<typeof options, Project>(sdk.projectsList, options),
-      () => this.t.runPage<typeof options, Project>(sdk.projectsList, options),
+    type Row = Expanded<Project, ProjectExpandMap, E>;
+    return new List<Row>(
+      () => this.t.paginate<typeof options, Row>(sdk.projectsList, options),
+      () => this.t.runPage<typeof options, Row>(sdk.projectsList, options),
     );
   }
 
   /** Get a project by `id` or `slug`. Pass `expand: ['assumptions']` to include the pinned project brief. */
-  async get(
+  async get<E extends ProjectExpand = never>(
     projectId: string,
-    params: { expand?: readonly ProjectExpand[] } = {},
-  ): Promise<Project> {
+    params: { expand?: readonly E[] } = {},
+  ): Promise<Expanded<Project, ProjectExpandMap, E>> {
     return this.t.run(sdk.projectsGet, {
       path: { projectId },
       query: { expand: serializeExpand(params.expand) },
-    }) as Promise<Project>;
+    }) as Promise<Expanded<Project, ProjectExpandMap, E>>;
   }
 
   async create(body: ProjectCreate, opts: { idempotencyKey: string }): Promise<Project> {
@@ -199,7 +205,7 @@ export interface SearchParams {
   withCount?: boolean;
 }
 
-/** Spotlight search, permission-scoped in-query and keyset-paginated. */
+/** Search visible workspace or project data. */
 export class SearchResource {
   constructor(
     private readonly t: Transport,
@@ -228,7 +234,7 @@ export class SearchResource {
 export class MetaResource {
   constructor(private readonly t: Transport) {}
 
-  /** The token's identity and permission-filtered workspace reach (the auth probe). */
+  /** Get the current identity and accessible workspace. */
   async me(): Promise<Me> {
     return this.t.run(sdk.meGet, {}) as Promise<Me>;
   }

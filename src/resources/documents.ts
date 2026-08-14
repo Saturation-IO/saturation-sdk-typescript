@@ -112,7 +112,7 @@ export class DocumentsResource {
   }
 
   /** The compiled, queryable extraction for a `READY` document. */
-  async extraction(documentId: string): Promise<DocumentExtraction> {
+  async getExtraction(documentId: string): Promise<DocumentExtraction> {
     return this.t.run(sdk.documentsGetExtraction, {
       path: { documentId },
     }) as Promise<DocumentExtraction>;
@@ -142,7 +142,7 @@ export class DocumentsResource {
   }
 
   /** The compiled content blob for a `READY` document. */
-  async content(documentId: string): Promise<Blob> {
+  async getContent(documentId: string): Promise<Blob> {
     return this.t.run(sdk.documentsGetContent, {
       path: { documentId },
     }) as Promise<Blob>;

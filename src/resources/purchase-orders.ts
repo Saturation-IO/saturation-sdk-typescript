@@ -23,7 +23,7 @@ const poExpandMap = {
   budgetLine: 'budgetLine',
   activity: 'activity',
   summary: 'summary',
-} satisfies ExpandMap<PurchaseOrderExpand>;
+} as const satisfies ExpandMap<PurchaseOrderExpand>;
 type PoExpandMap = typeof poExpandMap;
 
 export interface PurchaseOrderListParams<E extends PurchaseOrderExpand = never> {
@@ -48,17 +48,14 @@ export interface PurchaseOrderListParams<E extends PurchaseOrderExpand = never> 
  * transaction linking. Approval states remain flow-derived and read-only.
  */
 export class PurchaseOrdersResource {
-  constructor(
-    private readonly t: Transport,
-    private readonly projectId?: string,
-  ) {}
+  constructor(private readonly t: Transport) {}
 
   list<E extends PurchaseOrderExpand = never>(
     params: PurchaseOrderListParams<E> = {},
   ): List<Expanded<PurchaseOrder, PoExpandMap, E>> {
     const options = {
       query: {
-        projectId: params.projectId ?? this.projectId,
+        projectId: params.projectId,
         status: params.status,
         contactId: params.contactId,
         budgetLineId: params.budgetLineId,
@@ -91,10 +88,9 @@ export class PurchaseOrdersResource {
   }
 
   async create(body: PurchaseOrderCreate, opts: { idempotencyKey: string }): Promise<PurchaseOrder> {
-    const projectId = body.projectId ?? this.projectId;
     return this.t.run(sdk.purchaseOrdersCreate, {
       headers: { 'Idempotency-Key': opts.idempotencyKey },
-      body: projectId === undefined ? body : { ...body, projectId },
+      body,
     }) as Promise<PurchaseOrder>;
   }
 
@@ -158,20 +154,28 @@ export class PurchaseOrdersResource {
   }
 
   /** Immutable purchase-order history, newest first. */
-  timeline(
-    purchaseOrderId: string,
-    params: { limit?: number; cursor?: string } = {},
-  ): List<PurchaseOrderTimelineEvent> {
-    const options = { path: { purchaseOrderId }, query: params };
-    return new List<PurchaseOrderTimelineEvent>(
-      () => this.t.paginate<typeof options, PurchaseOrderTimelineEvent>(sdk.purchaseOrdersGetTimeline, options),
-      () => this.t.runPage<typeof options, PurchaseOrderTimelineEvent>(sdk.purchaseOrdersGetTimeline, options),
-    );
+  timeline(purchaseOrderId: string): PurchaseOrderTimelineResource {
+    return new PurchaseOrderTimelineResource(this.t, purchaseOrderId);
   }
 
   /** Line items on a purchase order. */
   items(purchaseOrderId: string): PurchaseOrderItemsResource {
     return new PurchaseOrderItemsResource(this.t, purchaseOrderId);
+  }
+}
+
+export class PurchaseOrderTimelineResource {
+  constructor(
+    private readonly t: Transport,
+    private readonly purchaseOrderId: string,
+  ) {}
+
+  list(params: { limit?: number; cursor?: string } = {}): List<PurchaseOrderTimelineEvent> {
+    const options = { path: { purchaseOrderId: this.purchaseOrderId }, query: params };
+    return new List<PurchaseOrderTimelineEvent>(
+      () => this.t.paginate<typeof options, PurchaseOrderTimelineEvent>(sdk.purchaseOrdersGetTimeline, options),
+      () => this.t.runPage<typeof options, PurchaseOrderTimelineEvent>(sdk.purchaseOrdersGetTimeline, options),
+    );
   }
 }
 
