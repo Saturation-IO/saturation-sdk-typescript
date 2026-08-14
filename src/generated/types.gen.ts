@@ -1619,11 +1619,38 @@ export type Project = {
      */
     updatedAt: string;
     access?: ProjectAccess;
+    /**
+     * The project brief. Present only when `expand=assumptions` is set; `null` when the project has no pinned brief.
+     */
+    assumptions?: ProjectAssumptions | null;
 };
 
 export type ProjectDefaultBudget = {
     budgetId: Id;
     estimatePhaseId: Id;
+};
+
+/**
+ * The project brief, the note pinned on the project. Present only when the request expands `assumptions`.
+ */
+export type ProjectAssumptions = {
+    noteId: Id;
+    /**
+     * Note title.
+     */
+    title: string;
+    /**
+     * The brief as Markdown.
+     */
+    content: string;
+    /**
+     * A short plain-text preview of the brief.
+     */
+    preview: string | null;
+    /**
+     * ISO 8601 last update time.
+     */
+    updatedAt: string;
 };
 
 export type ProjectCreated = {
@@ -1671,6 +1698,10 @@ export type ProjectCreated = {
      */
     updatedAt: string;
     access?: ProjectAccess;
+    /**
+     * The project brief. Present only when `expand=assumptions` is set; `null` when the project has no pinned brief.
+     */
+    assumptions?: ProjectAssumptions | null;
     defaultBudget: ProjectDefaultBudget;
 };
 
@@ -1955,6 +1986,11 @@ export type ContactList = {
  * Related contact data to include.
  */
 export type ContactExpand = 'documents' | 'transactions';
+
+/**
+ * Related project data to include.
+ */
+export type ProjectExpand = 'assumptions';
 
 /**
  * Resource type associated with a comment.
@@ -3549,6 +3585,11 @@ export type PurchaseOrderExpand2 = Array<PurchaseOrderExpand>;
  * Comma list of related data to inline on contacts (depth ≤ 2). Unknown key returns `400 expand_invalid`.
  */
 export type ContactExpand2 = Array<ContactExpand>;
+
+/**
+ * Comma list of related data to inline on projects (depth ≤ 2). Unknown key returns `400 expand_invalid`.
+ */
+export type ProjectExpand2 = Array<ProjectExpand>;
 
 /**
  * Comma list of related data to inline on budget lines (depth ≤ 2). Unknown or too-deep key returns `400 expand_invalid`.
@@ -8967,6 +9008,10 @@ export type ProjectsListData = {
          */
         withCount?: boolean;
         /**
+         * Comma list of related data to inline on projects (depth ≤ 2). Unknown key returns `400 expand_invalid`.
+         */
+        expand?: Array<ProjectExpand>;
+        /**
          * Filter by status. Separate multiple values with commas (for example, `active,archived`).
          */
         status?: string;
@@ -9095,11 +9140,20 @@ export type ProjectsGetData = {
          */
         projectId: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Comma list of related data to inline on projects (depth ≤ 2). Unknown key returns `400 expand_invalid`.
+         */
+        expand?: Array<ProjectExpand>;
+    };
     url: '/projects/{projectId}';
 };
 
 export type ProjectsGetErrors = {
+    /**
+     * The request is invalid.
+     */
+    400: Error;
     /**
      * Unauthenticated, `unauthenticated`, `invalid_token`, `missing_authorization` or `token_revoked` (expired, malformed, missing or revoked credentials).
      */
