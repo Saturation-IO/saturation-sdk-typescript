@@ -228,14 +228,11 @@ Saturation is a production finance platform. Its SDK provides typed access to
 projects, budgets, transactions, purchase orders, payments, documents,
 contacts, comments, search, webhooks, and reusable Library data.
 
-Read this README, the exported TypeScript types, and the Bidbook example in
-demos/bidbook. Help me explore what the SDK can do, choose a useful idea, and
-build it with @saturationio/sdk.
+Read this README and the exported TypeScript types. Help me explore what the
+SDK can do and build an app with @saturationio/sdk.
 ```
 
-For a starting point, [Bidbook](demos/bidbook) turns a live project brief and
-budget into a client-ready proposal while keeping its presentation and artwork
-inside the app.
+See [Bidbook](demos/bidbook) for an example app.
 
 ## Development and releases
 
