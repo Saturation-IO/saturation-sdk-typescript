@@ -4,9 +4,9 @@
   "description": "Bidbook - turn a Saturation budget into a client-ready bid. A demo for the @saturationio/sdk.",
   "main": "index.js",
   "scripts": {
-    "dev": "next dev -p 4600",
+    "dev": "next dev",
     "build": "next build",
-    "start": "next start -p 4600",
+    "start": "next start",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [],

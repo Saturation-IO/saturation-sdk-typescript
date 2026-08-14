@@ -4,11 +4,10 @@ export const dynamic = "force-dynamic";
 
 export function GET() {
   const token = process.env.SATURATION_API_TOKEN;
-  const projectId = process.env.BIDBOOK_PROJECT_ID;
 
-  if (!token || !projectId) {
+  if (!token) {
     return new NextResponse(null, { status: 404 });
   }
 
-  return NextResponse.json({ projectId });
+  return NextResponse.json({ hosted: true });
 }
