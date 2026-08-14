@@ -2,6 +2,8 @@
 
 Bidbook turns a live Saturation budget into a client-ready proposal.
 
+[Open the live demo](https://bidbook-sdk-demo.saturation.io)
+
 ![Bidbook reads a project brief and budget through the Saturation SDK](public/bidbook-demo.gif)
 
 [Watch the high-quality MP4](public/bidbook-demo.mp4)

@@ -232,7 +232,7 @@ Read this README and the exported TypeScript types. Help me explore what the
 SDK can do and build an app with @saturationio/sdk.
 ```
 
-See [Bidbook](demos/bidbook) for an example app.
+See [Bidbook](demos/bidbook) for an example app, or [try it live](https://bidbook-sdk-demo.saturation.io).
 
 ## Development and releases
 
