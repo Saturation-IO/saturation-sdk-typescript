@@ -9,7 +9,7 @@ function isAllowed(path: string[]): boolean {
   return (
     path.length === 2 ||
     path.length === 3 ||
-    (path.length === 5 && path[3] === "budget" && path[4] === "document") ||
+    (path.length === 4 && path[3] === "budget") ||
     (path.length === 4 && path[3] === "comments")
   );
 }
