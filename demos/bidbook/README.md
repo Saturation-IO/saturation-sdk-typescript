@@ -2,6 +2,10 @@
 
 Bidbook turns a live Saturation budget into a client-ready proposal.
 
+![Bidbook reads a project brief and budget through the Saturation SDK](public/bidbook-demo.gif)
+
+[Watch the high-quality MP4](public/bidbook-demo.mp4)
+
 It is a small Next.js app built on [`@saturationio/sdk`](../../README.md). Connect
 an API token, choose a project, and Bidbook presents its brief, estimate, account
 breakdown, and production notes as one shareable document.
