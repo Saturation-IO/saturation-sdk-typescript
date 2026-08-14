@@ -18,7 +18,7 @@ const paymentRequestExpandMap = {
   payment: 'payment',
   transactions: 'transactions',
   budgetLine: 'budgetLine',
-} satisfies ExpandMap<PaymentRequestExpand>;
+} as const satisfies ExpandMap<PaymentRequestExpand>;
 
 const paymentExpandMap = {
   request: 'request',
@@ -27,7 +27,7 @@ const paymentExpandMap = {
   contact: 'contact',
   budgetLine: 'budgetLine',
   document: 'document',
-} satisfies ExpandMap<PaymentExpand>;
+} as const satisfies ExpandMap<PaymentExpand>;
 
 type PaymentRequestExpandMap = typeof paymentRequestExpandMap;
 type PaymentExpandMap = typeof paymentExpandMap;
@@ -54,10 +54,7 @@ export interface PaymentListParams<E extends PaymentExpand = never> {
 }
 
 export class PaymentRequestsResource {
-  constructor(
-    private readonly t: Transport,
-    private readonly projectId?: string,
-  ) {}
+  constructor(private readonly t: Transport) {}
 
   list<E extends PaymentRequestExpand = never>(
     params: PaymentRequestListParams<E> = {},
@@ -65,7 +62,7 @@ export class PaymentRequestsResource {
     const options = {
       query: {
         status: params.status,
-        projectId: params.projectId ?? this.projectId,
+        projectId: params.projectId,
         purchaseOrderId: params.purchaseOrderId,
         contactId: params.contactId,
         expand: serializeExpand(params.expand),
@@ -92,10 +89,7 @@ export class PaymentRequestsResource {
 }
 
 export class PaymentsResource {
-  constructor(
-    private readonly t: Transport,
-    private readonly projectId?: string,
-  ) {}
+  constructor(private readonly t: Transport) {}
 
   list<E extends PaymentExpand = never>(
     params: PaymentListParams<E> = {},
@@ -103,7 +97,7 @@ export class PaymentsResource {
     const options = {
       query: {
         status: params.status,
-        projectId: params.projectId ?? this.projectId,
+        projectId: params.projectId,
         purchaseOrderId: params.purchaseOrderId,
         paymentRequestId: params.paymentRequestId,
         contactId: params.contactId,
@@ -129,11 +123,19 @@ export class PaymentsResource {
     }) as Promise<Expanded<Payment, PaymentExpandMap, E>>;
   }
 
-  timeline(
-    paymentId: string,
-    params: { limit?: number; cursor?: string } = {},
-  ): List<PaymentTimelineEvent> {
-    const options = { path: { paymentId }, query: params };
+  timeline(paymentId: string): PaymentTimelineResource {
+    return new PaymentTimelineResource(this.t, paymentId);
+  }
+}
+
+export class PaymentTimelineResource {
+  constructor(
+    private readonly t: Transport,
+    private readonly paymentId: string,
+  ) {}
+
+  list(params: { limit?: number; cursor?: string } = {}): List<PaymentTimelineEvent> {
+    const options = { path: { paymentId: this.paymentId }, query: params };
     return new List<PaymentTimelineEvent>(
       () => this.t.paginate<typeof options, PaymentTimelineEvent>(sdk.paymentsGetTimeline, options),
       () => this.t.runPage<typeof options, PaymentTimelineEvent>(sdk.paymentsGetTimeline, options),

@@ -18,7 +18,7 @@ sat.library.units.custom();
 project.budget.cells;
 // @ts-expect-error: rollup is represented by totals with a phase filter.
 project.budget.rollup('phase_1');
-// @ts-expect-error: transaction imports use bulkCreate.
+// @ts-expect-error: transaction imports use createBulk.
 project.transactions.batchCreate;
 // @ts-expect-error: webhook test delivery is not called ping.
 sat.webhooks.ping;

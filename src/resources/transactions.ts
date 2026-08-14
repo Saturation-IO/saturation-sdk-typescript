@@ -7,6 +7,7 @@ import type {
   TransactionManualCreate,
   TransactionPatch,
   TransactionBulkCreate,
+  TransactionCollection,
   TransactionStats,
   TransactionItem,
   TransactionItemCreate,
@@ -27,7 +28,7 @@ const transactionExpandMap = {
   items: 'items',
   account: 'account',
   purchaseOrder: 'purchaseOrder',
-} satisfies ExpandMap<TransactionExpandKey>;
+} as const satisfies ExpandMap<TransactionExpandKey>;
 type TransactionExpandMap = typeof transactionExpandMap;
 
 export interface TransactionListParams<E extends TransactionExpandKey = never> {
@@ -55,6 +56,11 @@ export interface TransactionListParams<E extends TransactionExpandKey = never> {
   cursor?: string;
   withCount?: boolean;
 }
+
+export type ProjectTransactionCreate = Omit<TransactionManualCreate, 'projectId'>;
+export type ProjectTransactionBulkCreate = Omit<TransactionBulkCreate, 'transactions'> & {
+  transactions: Array<Omit<TransactionBulkCreate['transactions'][number], 'projectId'>>;
+};
 
 /** The project-scoped transactions namespace: `sat.projects(p).transactions`. */
 export class TransactionsResource {
@@ -112,31 +118,31 @@ export class TransactionsResource {
     }) as Promise<Expanded<Transaction, TransactionExpandMap, E>>;
   }
 
-  /** Create a manual transaction. Pass `idempotencyKey` for a safe retry of the billable create. */
+  /** Create a manual transaction. Reuse `idempotencyKey` when retrying the same request. */
   async create(
-    body: TransactionManualCreate,
+    body: ProjectTransactionCreate,
     opts: { idempotencyKey: string },
   ): Promise<Transaction> {
     return this.t.run(sdk.transactionsCreate, {
       headers: { 'Idempotency-Key': opts.idempotencyKey },
-      body: { ...body, projectId: body.projectId ?? this.projectId },
+      body: { ...body, projectId: this.projectId },
     }) as Promise<Transaction>;
   }
 
   /** Bulk-create manual transactions. */
-  async bulkCreate(
-    body: TransactionBulkCreate,
+  async createBulk(
+    body: ProjectTransactionBulkCreate,
     opts: { idempotencyKey: string },
-  ): Promise<unknown> {
+  ): Promise<TransactionCollection> {
     return this.t.run(sdk.transactionsCreateBulk, {
       headers: { 'Idempotency-Key': opts.idempotencyKey },
       body: {
         transactions: body.transactions.map((transaction) => ({
           ...transaction,
-          projectId: transaction.projectId ?? this.projectId,
+          projectId: this.projectId,
         })),
       },
-    });
+    }) as Promise<TransactionCollection>;
   }
 
   /** Patch a transaction. */
@@ -155,7 +161,7 @@ export class TransactionsResource {
   }
 
   /** Aggregate stats for a transaction filter. */
-  async stats(
+  async getStats(
     params: Omit<TransactionListParams, 'expand' | 'sort' | 'order' | 'limit' | 'cursor' | 'withCount'> & { currency: string },
   ): Promise<TransactionStats> {
     return this.t.run(sdk.transactionsStats, {
@@ -164,19 +170,20 @@ export class TransactionsResource {
   }
 
   /** Itemized lines on a transaction. */
-  get items(): TransactionItemsResource {
-    return new TransactionItemsResource(this.t);
+  items(transactionId: string): TransactionItemsResource {
+    return new TransactionItemsResource(this.t, transactionId);
   }
 }
 
 export class TransactionItemsResource {
   constructor(
     private readonly t: Transport,
+    private readonly transactionId: string,
   ) {}
 
-  list(txId: string): List<TransactionItem> {
+  list(): List<TransactionItem> {
     const options = {
-      path: { transactionId: txId },
+      path: { transactionId: this.transactionId },
     };
     return new List<TransactionItem>(
       () => this.t.paginate<typeof options, TransactionItem>(sdk.transactionsListItems, options),
@@ -184,29 +191,28 @@ export class TransactionItemsResource {
     );
   }
 
-  /** Add a transaction item. Pass `idempotencyKey` for a safe retry of the billable create. */
+  /** Add a transaction item. Reuse `idempotencyKey` when retrying the same request. */
   async create(
-    txId: string,
     body: TransactionItemCreate,
     opts: { idempotencyKey: string },
   ): Promise<TransactionItem> {
     return this.t.run(sdk.transactionsCreateItem, {
-      path: { transactionId: txId },
+      path: { transactionId: this.transactionId },
       headers: { 'Idempotency-Key': opts.idempotencyKey },
       body,
     }) as Promise<TransactionItem>;
   }
 
-  async update(txId: string, itemId: string, body: TransactionItemPatch): Promise<TransactionItem> {
+  async update(itemId: string, body: TransactionItemPatch): Promise<TransactionItem> {
     return this.t.run(sdk.transactionsUpdateItem, {
-      path: { transactionId: txId, itemId },
+      path: { transactionId: this.transactionId, itemId },
       body,
     }) as Promise<TransactionItem>;
   }
 
-  async delete(txId: string, itemId: string): Promise<void> {
+  async delete(itemId: string): Promise<void> {
     await this.t.run(sdk.transactionsDeleteItem, {
-      path: { transactionId: txId, itemId },
+      path: { transactionId: this.transactionId, itemId },
     });
   }
 }

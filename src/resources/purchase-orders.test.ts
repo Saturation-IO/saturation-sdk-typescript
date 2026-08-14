@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { Transport, Page } from '../http.js';
 import * as sdk from '../generated/sdk.gen.js';
 import { PurchaseOrdersResource } from './purchase-orders.js';
-import type { PurchaseOrder, PurchaseOrderCreate } from '../generated/types.gen.js';
+import type { PurchaseOrder } from '../generated/types.gen.js';
 
 type Options = {
   query?: Record<string, unknown>;
@@ -25,7 +25,7 @@ function transport(): {
   return { t: fake, run, runPage };
 }
 
-describe('PurchaseOrdersResource scope defaults', () => {
+describe('PurchaseOrdersResource', () => {
   it('leaves workspace-level list calls unfiltered unless a project filter is supplied', async () => {
     const { t, runPage } = transport();
     const resource = new PurchaseOrdersResource(t);
@@ -41,34 +41,11 @@ describe('PurchaseOrdersResource scope defaults', () => {
     }));
   });
 
-  it('defaults project-scoped convenience calls to the project without changing workspace calls', async () => {
-    const { t, run, runPage } = transport();
-    const projectResource = new PurchaseOrdersResource(t, 'project_1');
-    const workspaceResource = new PurchaseOrdersResource(t);
-    const body: PurchaseOrderCreate = { name: 'Camera package' };
-
-    await projectResource.list().page();
-    expect((runPage.mock.calls[0]?.[1] as Options).query).toEqual(expect.objectContaining({
-      projectId: 'project_1',
-    }));
-
-    await projectResource.create(body, { idempotencyKey: 'itg-po-key-0123456789' });
-    expect((run.mock.calls[0]?.[1] as Options).body).toEqual({
-      name: 'Camera package',
-      projectId: 'project_1',
-    });
-
-    await workspaceResource.create(body, { idempotencyKey: 'itg-po-key-9876543210' });
-    expect((run.mock.calls[1]?.[1] as Options).body).toEqual({
-      name: 'Camera package',
-    });
-  });
-
-  it('exposes Timeline through its generated operation', async () => {
+  it('lists timeline events through the generated operation', async () => {
     const { t, runPage } = transport();
     const resource = new PurchaseOrdersResource(t);
 
-    await resource.timeline('po_1', { limit: 25, cursor: 'cursor_1' }).page();
+    await resource.timeline('po_1').list({ limit: 25, cursor: 'cursor_1' }).page();
     expect(runPage.mock.calls[0]?.[0]).toBe(sdk.purchaseOrdersGetTimeline);
     expect(runPage.mock.calls[0]?.[1]).toEqual({
       path: { purchaseOrderId: 'po_1' },

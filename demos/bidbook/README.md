@@ -16,7 +16,7 @@ SDK, then presents them as a proposal.
 const project = await sat.projects.get(projectId, {
   expand: ['assumptions'],
 });
-const budget = await sat.projects(projectId).budget.document();
+const budget = await sat.projects(projectId).budget.get();
 const comments = await sat.projects(projectId).comments.list().all();
 ```
 
@@ -39,4 +39,4 @@ SATURATION_API_TOKEN=your-token
 SATURATION_API_URL=https://next-api.saturation.io
 ```
 
-The token is read only by the Next.js server route.
+When these variables are set, the browser never receives the hosted token.

@@ -39,11 +39,11 @@ const budgetLineExpandMap = {
   phaseTotals: 'phaseTotals',
   phaseData: 'phaseData',
   contact: 'contact',
-} satisfies ExpandMap<BudgetLineExpand>;
+} as const satisfies ExpandMap<BudgetLineExpand>;
 type BudgetLineExpandMap = typeof budgetLineExpandMap;
 
 export interface BudgetLineListParams<E extends BudgetLineExpand = never> {
-  /** Account code classifier — returns a SET (a code may sit on many rows). */
+  /** Account code classifier. A code may sit on many rows. */
   accountId?: string;
   /** Coded account path for an exact single-row read (e.g. `1100/1110`). */
   path?: string;
@@ -51,8 +51,8 @@ export interface BudgetLineListParams<E extends BudgetLineExpand = never> {
   tags?: string;
   /** How `tags` composes (`any` OR, `all` AND, `none` exclude). */
   tagMode?: TagMode;
-  /** Filter by the `kind` discriminator (comma-separated). */
-  kind?: string;
+  /** Filter by line type (comma-separated). */
+  type?: string;
   /** Typed expand keys; expanding widens the row type to make them present. */
   expand?: readonly E[];
   /** Page size, capped at 100 (default 50). */
@@ -74,7 +74,7 @@ export interface BudgetTotalsParams {
   path?: string;
 }
 
-export interface BudgetDocumentParams {
+export interface BudgetGetParams {
   /** Materialized account path for one root line and its descendants. */
   path?: string;
   /** Leaf account code for one root line and its descendants. */
@@ -106,8 +106,8 @@ export class BudgetResource {
     return new BudgetPhaseDataResource(this.t, this.projectId);
   }
 
-  /** The full budget document: lines, visible phases, totals, and editable phase data. */
-  async document(params: BudgetDocumentParams = {}): Promise<BudgetDocument> {
+  /** Get the budget with its lines, visible phases, totals, and editable phase data. */
+  async get(params: BudgetGetParams = {}): Promise<Budget> {
     return this.t.run(sdk.budgetGet, {
       path: { projectId: this.projectId },
       query: {
@@ -115,7 +115,7 @@ export class BudgetResource {
         accountCode: params.accountCode,
         phase: params.phase,
       },
-    }) as Promise<BudgetDocument>;
+    }) as Promise<Budget>;
   }
 
 }
@@ -141,7 +141,7 @@ export class BudgetLinesResource {
         path: params.path,
         tags: params.tags,
         tagMode: params.tagMode,
-        kind: params.kind,
+        type: params.type,
         expand: serializeExpand(params.expand),
         limit: params.limit,
         cursor: params.cursor,
@@ -190,7 +190,7 @@ export class BudgetLinesResource {
     }) as Promise<BudgetLineBulkCreateResponse>;
   }
 
-  /** Patch a budget line (allow-list only; server-owned fields → `field_read_only`). */
+  /** Update editable fields on a budget line. */
   async update(lineId: string, body: BudgetLineUpdate): Promise<BudgetLine> {
     return this.t.run(sdk.budgetUpdateLine, {
       path: { projectId: this.projectId, lineId },
@@ -287,7 +287,7 @@ export class BudgetTotalsResource {
     private readonly projectId: string,
   ) {}
 
-  /** Engine-computed rolled-up totals, as of `computedAt`. */
+  /** Get rolled-up totals as of `computedAt`. */
   async get(params: BudgetTotalsParams = {}): Promise<BudgetTotals> {
     return this.t.run(sdk.budgetGetTotals, {
       path: { projectId: this.projectId },
@@ -301,3 +301,4 @@ export class BudgetTotalsResource {
 }
 
 export type { Page };
+export type Budget = BudgetDocument;
