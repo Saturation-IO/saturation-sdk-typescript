@@ -217,6 +217,23 @@ const sat = new Saturation({
 - IDs use prefixed strings such as `prj_`, `txn_`, `lin_`, and `doc_`.
 - List cursors are opaque. Pass `nextCursor` back unchanged.
 
+## Build with an AI coding agent
+
+Give your coding agent access to this repository, then paste this prompt:
+
+```text
+I want to build a TypeScript app with the Saturation SDK.
+
+Saturation is a production finance platform. Its SDK provides typed access to
+projects, budgets, transactions, purchase orders, payments, documents,
+contacts, comments, search, webhooks, and reusable Library data.
+
+Read this README and the exported TypeScript types. Help me explore what the
+SDK can do and build an app with @saturationio/sdk.
+```
+
+See [Bidbook](demos/bidbook) for an example app.
+
 ## Development and releases
 
 Generated files under `src/generated/` come from the canonical OpenAPI contract. Do not edit them by hand.

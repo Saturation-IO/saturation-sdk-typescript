@@ -1142,9 +1142,10 @@ export const libraryListProjectTags = <ThrowOnError extends boolean = false>(opt
 /**
  * List projects
  *
- * List projects you can access. Results are paginated and exclude deleted projects by default.
+ * List projects you can access. Results are paginated and exclude deleted projects by default. Use `expand` to include the project brief (assumptions).
  */
 export const projectsList = <ThrowOnError extends boolean = false>(options?: Options<ProjectsListData, ThrowOnError>) => (options?.client ?? client).get<ProjectsListResponses, ProjectsListErrors, ThrowOnError>({
+    querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/projects',
     ...options
@@ -1168,9 +1169,10 @@ export const projectsCreate = <ThrowOnError extends boolean = false>(options: Op
 /**
  * Get a project
  *
- * Get a project by ID or slug.
+ * Get a project by ID or slug. Use `expand` to include the project brief (assumptions).
  */
 export const projectsGet = <ThrowOnError extends boolean = false>(options: Options<ProjectsGetData, ThrowOnError>) => (options.client ?? client).get<ProjectsGetResponses, ProjectsGetErrors, ThrowOnError>({
+    querySerializer: { parameters: { expand: { array: { explode: false } } } },
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/projects/{projectId}',
     ...options

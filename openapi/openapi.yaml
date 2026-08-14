@@ -4309,13 +4309,14 @@ paths:
       tags:
       - Projects
       summary: List projects
-      description: List projects you can access. Results are paginated and exclude deleted projects by default.
+      description: List projects you can access. Results are paginated and exclude deleted projects by default. Use `expand` to include the project brief (assumptions).
       parameters:
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/cursor'
       - $ref: '#/components/parameters/sort'
       - $ref: '#/components/parameters/order'
       - $ref: '#/components/parameters/withCount'
+      - $ref: '#/components/parameters/projectExpand'
       - name: status
         in: query
         required: false
@@ -4455,7 +4456,9 @@ paths:
       tags:
       - Projects
       summary: Get a project
-      description: Get a project by ID or slug.
+      description: Get a project by ID or slug. Use `expand` to include the project brief (assumptions).
+      parameters:
+      - $ref: '#/components/parameters/projectExpand'
       responses:
         '200':
           description: The project.
@@ -4474,6 +4477,8 @@ paths:
                 spaceId: spc_1a2b3c
                 createdAt: '2026-05-01T12:00:00Z'
                 updatedAt: '2026-05-20T09:30:00Z'
+        '400':
+          $ref: '#/components/responses/Error400'
         '401':
           $ref: '#/components/responses/Error401'
         '403':
@@ -7349,6 +7354,17 @@ components:
         type: array
         items:
           $ref: '#/components/schemas/ContactExpand'
+      style: form
+      explode: false
+    projectExpand:
+      name: expand
+      in: query
+      required: false
+      description: "Comma list of related data to inline on projects (depth \u2264 2). Unknown key returns `400 expand_invalid`."
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/ProjectExpand'
       style: form
       explode: false
     budgetLineExpand:
@@ -10595,6 +10611,12 @@ components:
           description: ISO 8601 last update time.
         access: &id014
           $ref: '#/components/schemas/ProjectAccess'
+        assumptions:
+          description: The project brief. Present only when `expand=assumptions` is set; `null` when the project has no pinned brief.
+          anyOf:
+          - allOf:
+            - $ref: '#/components/schemas/ProjectAssumptions'
+          - type: 'null'
     ProjectDefaultBudget:
       type: object
       required:
@@ -10606,6 +10628,34 @@ components:
           $ref: '#/components/schemas/Id'
         estimatePhaseId:
           $ref: '#/components/schemas/Id'
+    ProjectAssumptions:
+      type: object
+      description: The project brief, the note pinned on the project. Present only when the request expands `assumptions`.
+      required:
+      - noteId
+      - title
+      - content
+      - preview
+      - updatedAt
+      additionalProperties: false
+      properties:
+        noteId:
+          $ref: '#/components/schemas/Id'
+        title:
+          type: string
+          description: Note title.
+        content:
+          type: string
+          description: The brief as Markdown.
+        preview:
+          type:
+          - string
+          - 'null'
+          description: A short plain-text preview of the brief.
+        updatedAt:
+          type: string
+          format: date-time
+          description: ISO 8601 last update time.
     ProjectCreated:
       type: object
       additionalProperties: false
@@ -10632,6 +10682,12 @@ components:
         createdAt: *id012
         updatedAt: *id013
         access: *id014
+        assumptions:
+          description: The project brief. Present only when `expand=assumptions` is set; `null` when the project has no pinned brief.
+          anyOf:
+          - allOf:
+            - $ref: '#/components/schemas/ProjectAssumptions'
+          - type: 'null'
         defaultBudget:
           $ref: '#/components/schemas/ProjectDefaultBudget'
     ProjectCreate:
@@ -11175,6 +11231,11 @@ components:
       enum:
       - documents
       - transactions
+    ProjectExpand:
+      type: string
+      description: Related project data to include.
+      enum:
+      - assumptions
     CommentTargetKind:
       type: string
       description: Resource type associated with a comment.
