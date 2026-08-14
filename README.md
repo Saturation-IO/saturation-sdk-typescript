@@ -217,6 +217,42 @@ const sat = new Saturation({
 - IDs use prefixed strings such as `prj_`, `txn_`, `lin_`, and `doc_`.
 - List cursors are opaque. Pass `nextCursor` back unchanged.
 
+## Build with an AI coding agent
+
+Give your coding agent access to this repository, then paste this prompt:
+
+```text
+Build a small, polished TypeScript app on the Saturation SDK.
+
+Saturation is the data layer for production finance: workspaces contain
+projects, budgets, transactions, purchase orders, payments, documents,
+contacts, comments, and reusable Library data. The app should give that data
+a focused workflow and its own visual identity.
+
+First read the SDK README, exported TypeScript types, and the Bidbook demo in
+demos/bidbook. Use @saturationio/sdk instead of handwritten HTTP requests.
+Inspect the available methods and types before choosing resources. Do not
+invent endpoints, fields, sample records, or relationships that the SDK does
+not expose.
+
+Keep the first version small: choose one useful job, fetch the minimum data it
+needs, handle loading, empty, and error states, and explain how to run it. Keep
+money in integer minor units, treat cursors as opaque, and use idempotency keys
+for writes.
+
+Support local development with a token entered by the developer. If you add a
+hosted demo token, read it only on the server from an environment variable and
+expose only the fixed operations the app needs. Never send that token to the
+browser or place it in a NEXT_PUBLIC_ variable.
+
+Before writing code, propose the app in one paragraph and list the Saturation
+SDK calls it will use. Then implement it and verify its typecheck and build.
+```
+
+For a starting point, [Bidbook](demos/bidbook) turns a live project brief and
+budget into a client-ready proposal while keeping its presentation and artwork
+inside the app.
+
 ## Development and releases
 
 Generated files under `src/generated/` come from the canonical OpenAPI contract. Do not edit them by hand.
