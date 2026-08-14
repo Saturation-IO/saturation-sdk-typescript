@@ -164,7 +164,7 @@ function ConnectScreen({
               type="password"
               value={token}
               onChange={(e) => setToken(e.target.value)}
-              placeholder="sat_live_..."
+              placeholder="API token"
               autoFocus
               className="w-full rounded-md border hairline bg-[var(--color-ink-2)] px-4 py-3 text-[15px] outline-none placeholder:text-[var(--color-muted)]/50 focus:border-[var(--color-gold)]/60"
             />
