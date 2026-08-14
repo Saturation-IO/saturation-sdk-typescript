@@ -70,12 +70,11 @@ on the server:
 ```bash
 SATURATION_API_TOKEN=your-read-only-token
 SATURATION_API_URL=https://next-api.saturation.io
-BIDBOOK_PROJECT_ID=your-project-id
 ```
 
 The token stays in the server route. Bidbook exposes only the read requests
-used by the configured project. Without these variables, the connection screen
-works as before.
+used by the project picker and bid view. Without these variables, the
+connection screen works as before.
 
 ## Make it yours
 

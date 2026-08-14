@@ -15,7 +15,7 @@ import { Bidbook } from "@/components/Bidbook";
 
 type Stage =
   | { name: "connect" }
-  | { name: "projects"; me: Me }
+  | { name: "projects"; me: Me; hosted: boolean }
   | { name: "bidbook"; me: Me; project: Project; hosted: boolean };
 
 export default function Home() {
@@ -29,20 +29,16 @@ export default function Home() {
       try {
         const response = await fetch("/api/demo");
         if (response.ok) {
-          const { projectId } = (await response.json()) as { projectId: string };
           const client = makeHostedClient();
-          const [me, project] = await Promise.all([
-            client.me(),
-            client.projects.get(projectId),
-          ]);
-          if (live) setStage({ name: "bidbook", me, project, hosted: true });
+          const me = await client.me();
+          if (live) setStage({ name: "projects", me, hosted: true });
           return;
         }
 
         const token = getStoredToken();
         if (!token) return;
         const me = await makeClient(token).me();
-        if (live) setStage({ name: "projects", me });
+        if (live) setStage({ name: "projects", me, hosted: false });
       } catch {
         if (live) setStage({ name: "connect" });
       } finally {
@@ -59,7 +55,7 @@ export default function Home() {
   const connect = useCallback(async (token: string, baseUrl?: string) => {
     storeCredentials(token, baseUrl);
     const me = await makeClient(token).me();
-    setStage({ name: "projects", me });
+    setStage({ name: "projects", me, hosted: false });
   }, []);
 
   const disconnect = useCallback(() => {
@@ -83,8 +79,9 @@ export default function Home() {
     return (
       <ProjectPicker
         me={stage.me}
+        hosted={stage.hosted}
         onPick={(project) =>
-          setStage({ name: "bidbook", me: stage.me, project, hosted: false })
+          setStage({ name: "bidbook", me: stage.me, project, hosted: stage.hosted })
         }
         onDisconnect={disconnect}
       />
@@ -96,7 +93,7 @@ export default function Home() {
       me={stage.me}
       project={stage.project}
       hosted={stage.hosted}
-      onBack={() => setStage({ name: "projects", me: stage.me })}
+      onBack={() => setStage({ name: "projects", me: stage.me, hosted: stage.hosted })}
       onDisconnect={disconnect}
     />
   );
@@ -225,10 +222,12 @@ function ConnectScreen({
 
 function ProjectPicker({
   me,
+  hosted,
   onPick,
   onDisconnect,
 }: {
   me: Me;
+  hosted: boolean;
   onPick: (p: Project) => void;
   onDisconnect: () => void;
 }) {
@@ -236,14 +235,14 @@ function ProjectPicker({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    makeClient()
+    (hosted ? makeHostedClient() : makeClient())
       .projects.list({ limit: 100 })
       .all()
       .then(setProjects)
       .catch((e) =>
         setError(e instanceof SaturationError ? e.message : "Failed to load projects")
       );
-  }, []);
+  }, [hosted]);
 
   const ws = me.workspaces[0];
 
@@ -255,12 +254,14 @@ function ProjectPicker({
           <span className="text-[13px] text-[var(--color-muted)]">
             {ws?.workspaceName}
           </span>
-          <button
-            onClick={onDisconnect}
-            className="text-[13px] text-[var(--color-muted)] hover:text-[var(--color-cream)]"
-          >
-            Disconnect
-          </button>
+          {!hosted && (
+            <button
+              onClick={onDisconnect}
+              className="text-[13px] text-[var(--color-muted)] hover:text-[var(--color-cream)]"
+            >
+              Disconnect
+            </button>
+          )}
         </div>
       </header>
 
